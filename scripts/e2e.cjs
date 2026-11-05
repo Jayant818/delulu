@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // E2E smoke test (DEV wallet + MOCK model, dev server on :3000).
 // Usage: CHROME_PATH=/path/to/chrome node scripts/e2e.cjs <path to playwright-core> <screenshot dir>
 const { chromium } = require(process.argv[2]);
@@ -28,7 +29,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("PASS:
   await page.getByRole("button", { name: /go with this/ }).first().waitFor();
   ok((await page.getByRole("button", { name: /go with this/ }).count()) === 3, "three views rendered");
   ok((await page.locator("button", { hasText: "MOCK" }).count()) === 3, "three request-ID chips (MOCK)");
-  for (const t of ["Tara", "Future You at 30", "Your Bestie"]) ok(await page.getByRole("heading", { name: t }).isVisible(), `view ${t}`);
+  for (const t of ["Delulu", "Future You at 30", "Your Bestie"]) ok(await page.getByRole("heading", { name: t }).isVisible(), `view ${t}`);
   await page.screenshot({ path: `${out}/2-decide.png`, fullPage: true });
   await page.getByRole("button", { name: /go with this/ }).nth(1).click();
   await page.getByText("Saved.").waitFor();

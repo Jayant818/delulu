@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { privateKeyToAccount } from "viem/accounts";
+import { APP_NAME } from "../config";
 import { complete, configuredBackends, parse0g } from "./ai/provider";
 import { deriveKey, KEY_MESSAGE, seal, unseal } from "./vault";
 
@@ -15,6 +16,10 @@ test("same wallet -> same key: memory survives a reload", async () => {
   const sealed = await seal(await deriveKey(sig1, alice.address), { secret: "she chose Bangalore" });
   assert.ok(!JSON.stringify(sealed).includes("Bangalore"), "ciphertext must not contain plaintext");
   assert.deepEqual(await unseal(await deriveKey(sig2, alice.address), sealed), { secret: "she chose Bangalore" });
+});
+
+test("renaming the app never changes the key", () => {
+  assert.ok(!KEY_MESSAGE.includes(APP_NAME), "KEY_MESSAGE must not depend on APP_NAME");
 });
 
 test("other wallet cannot read it", async () => {

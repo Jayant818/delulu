@@ -34,7 +34,7 @@ export function Shell({ children }: { children: ReactNode }) {
     return (
       <Center>
         <h1 className="font-serif text-5xl">{APP_NAME}</h1>
-        <p className="text-muted">Three honest voices for the decisions that are yours to make. Private by design.</p>
+        <p className="text-muted">The app with the delulu name that gives you the sane answer. Three voices, your call, and only you can read it.</p>
         <button onClick={session.login} className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-white">
           {session.mode === "privy" ? "Continue with email or Google" : "Start (DEV wallet)"}
         </button>

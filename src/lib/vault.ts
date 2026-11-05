@@ -1,9 +1,8 @@
 // Client-side encryption for her memory.
 // key = HKDF-SHA256(wallet signature over a fixed message) -> AES-256-GCM. Only ciphertext is stored.
 // Needs a deterministic signer (RFC 6979 ECDSA): Privy embedded wallets and viem local accounts are.
-import { APP_NAME } from "@/config";
-
-export const KEY_MESSAGE = `${APP_NAME}: unlock my private memory (v1)
+// Fixed text, independent of APP_NAME: changing it changes every key and makes stored memory unreadable.
+export const KEY_MESSAGE = `Unlock my private memory (v1)
 
 Signing this creates the key that encrypts your chats and decisions on this device. It is free and sends no transaction.`;
 
@@ -22,7 +21,7 @@ function hexToBytes(hex: string): Uint8Array {
 export async function deriveKey(signatureHex: string, address: string): Promise<CryptoKey> {
   const ikm = await crypto.subtle.importKey("raw", hexToBytes(signatureHex) as BufferSource, "HKDF", false, ["deriveKey"]);
   return crypto.subtle.deriveKey(
-    { name: "HKDF", hash: "SHA-256", salt: enc.encode("tara/memory/v1"), info: enc.encode(`aes-gcm:${address.toLowerCase()}`) },
+    { name: "HKDF", hash: "SHA-256", salt: enc.encode("memory/v1"), info: enc.encode(`aes-gcm:${address.toLowerCase()}`) },
     ikm,
     { name: "AES-GCM", length: 256 },
     false, // not extractable: the raw key never leaves WebCrypto

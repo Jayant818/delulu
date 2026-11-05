@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const question = str(body?.question, 1000).trim();
   if (!profile) return fail(400, "profile missing: finish onboarding first");
   if (!question) return fail(400, "decision is empty");
-  if (!isView(body?.view)) return fail(400, "view must be tara | future | bestie");
+  if (!isView(body?.view)) return fail(400, "view must be sane | future | bestie");
 
   try {
     const r = await complete(

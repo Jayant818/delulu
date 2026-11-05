@@ -65,7 +65,7 @@ function PrivySession({ children }: { children: ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-const DEV_KEY = "tara:dev-wallet";
+const DEV_KEY = "dev-wallet";
 const devListeners = new Set<() => void>();
 const devKey = {
   subscribe(cb: () => void) {

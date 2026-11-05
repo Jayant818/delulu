@@ -20,7 +20,7 @@ export function readProfile(v: unknown): Profile | null {
   return Object.values(p).some(Boolean) ? p : null;
 }
 
-const VIEW_IDS: ViewId[] = ["tara", "future", "bestie"];
+const VIEW_IDS: ViewId[] = ["sane", "future", "bestie"];
 export const isView = (v: unknown): v is ViewId => VIEW_IDS.includes(v as ViewId);
 
 export function readDecisions(v: unknown): DecisionSummary[] {

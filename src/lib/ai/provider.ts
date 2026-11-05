@@ -99,7 +99,7 @@ async function callOpenAI(messages: ChatMessage[], o: Opts): Promise<AiResult> {
 
 async function callMock(messages: ChatMessage[]): Promise<AiResult> {
   const last = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
-  const voice = messages[0]?.content.match(/^VOICE: (.+)$/m)?.[1] ?? "Tara";
+  const voice = messages[0]?.content.match(/^VOICE: (.+)$/m)?.[1] ?? "the app";
   return {
     text: `[MOCK, no model configured] ${voice} would answer here. You said: "${last.slice(0, 140)}"`,
     backend: "mock",

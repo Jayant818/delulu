@@ -1,8 +1,8 @@
-# Tara
+# Delulu
 
-A private AI that helps a young woman make her own decisions. She types a decision and gets three honest views on one screen: **Tara** (practical), **Future You at 30**, and **Your Bestie**. She picks one, and Tara checks back in 30 days. Chat remembers past chats and past decisions.
+A private AI that helps a young woman make her own decisions. She types a decision and gets three honest views on one screen: **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She picks one, and Delulu checks back in 30 days. Chat remembers past chats and past decisions.
 
-The name is one constant: `src/config.ts` → `APP_NAME`.
+The name is one constant: `src/config.ts` → `APP_NAME`. Storage keys and the signed key message do not use it, so a rename keeps existing memory readable.
 
 Built for ETHGlobal Mumbai 2026, track **Build with 0G Private Computer**.
 
@@ -47,7 +47,7 @@ Use port **3000** (or 3001 / 5173). The Privy app ID that 0G shares for the iAI 
 
 ## What breaks if 0G is removed (draft for the submission)
 
-Without 0G, every private decision she types is readable by whichever AI company runs the model; with 0G Private Computer, Tara's three voices run sealed inside a hardware enclave, and every answer shows its 0G request ID and a verified-TEE flag.
+Without 0G, every private decision she types is readable by whichever AI company runs the model; with 0G Private Computer, Delulu's three voices run sealed inside a hardware enclave, and every answer shows its 0G request ID and a verified-TEE flag.
 
 Honest scope: the app's own Next.js server sees the decrypted context while it forwards a request (in memory, never stored). On localhost that server is her own machine.
 

@@ -17,13 +17,13 @@ export const ONBOARDING: { key: keyof Profile; q: string; hint: string }[] = [
   { key: "bigDecision", q: "What is one big decision in front of you right now?", hint: "We can start with this one." },
 ];
 
-export type ViewId = "tara" | "future" | "bestie";
+export type ViewId = "sane" | "future" | "bestie";
 
 export const VIEWS: Record<ViewId, { title: string; voice: string; style: string }> = {
-  tara: {
+  sane: {
     title: APP_NAME,
-    voice: `${APP_NAME}, a calm and practical guide`,
-    style: "Be practical. Name the real trade-off, the cost of each option, and one concrete next step she can take this week.",
+    voice: `${APP_NAME}, the sane one`,
+    style: `The joke: an app called ${APP_NAME} that gives the SANE answer. Tone is playful Gen Z (light slang, at most one emoji), but the advice is grounded: name the real trade-off, the cost of each option, and one concrete next step she can take this week. No hype, no manifesting.`,
   },
   future: {
     title: "Future You at 30",
@@ -65,8 +65,8 @@ function pastDecisionsBlock(ds: DecisionSummary[]): string {
 }
 
 export function chatSystemPrompt(p: Profile, ds: DecisionSummary[]): string {
-  return `VOICE: ${VIEWS.tara.voice}
-You are ${APP_NAME}, a private AI companion that helps a young woman think through decisions. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
+  return `VOICE: ${VIEWS.sane.voice}
+You are ${APP_NAME}, a private AI companion that helps a young woman think through decisions. The joke is the name: ${APP_NAME} gives the sane answer. Playful Gen Z tone (light slang, at most one emoji), grounded advice. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
 
 ${profileBlock(p)}
 

@@ -20,7 +20,7 @@ export type Decision = {
 export type Memory = { profile: Profile | null; chat: ChatEntry[]; decisions: Decision[] };
 
 const EMPTY: Memory = { profile: null, chat: [], decisions: [] };
-const storeKey = (address: string) => `tara:memory:v1:${address.toLowerCase()}`;
+const storeKey = (address: string) => `memory:v1:${address.toLowerCase()}`;
 
 type Vault = {
   status: "locked" | "unlocking" | "unlocked" | "error";

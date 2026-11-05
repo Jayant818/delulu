@@ -5,7 +5,7 @@ import { aiMeta, decisionSummaries, postAi } from "@/lib/api";
 import { useMemoryVault, type AiMeta, type Decision } from "@/lib/memory";
 import { VIEWS, type ViewId } from "@/lib/persona";
 
-const ORDER: ViewId[] = ["tara", "future", "bestie"];
+const ORDER: ViewId[] = ["sane", "future", "bestie"];
 const DAY = 86_400_000;
 type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string };
 
