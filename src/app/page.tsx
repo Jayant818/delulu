@@ -1,12 +1,15 @@
 "use client";
 import { useState } from "react";
 import { AiChip } from "@/components/AiChip";
+import { PrivacyLine } from "@/components/PrivacyLine";
 import { aiMeta, decisionSummaries, postAi } from "@/lib/api";
 import { useMemoryVault, type AiMeta, type Decision } from "@/lib/memory";
 import { VIEWS, type ViewId } from "@/lib/persona";
 
 const ORDER: ViewId[] = ["sane", "future", "bestie"];
 const DAY = 86_400_000;
+// "6 Nov 2026" style: unambiguous in every locale (11/6 vs 6/11).
+const day = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string };
 
 export default function Decide() {
@@ -15,14 +18,14 @@ export default function Decide() {
   const [question, setQuestion] = useState(decisions.length ? "" : profile?.bigDecision ?? "");
   const [asked, setAsked] = useState("");
   const [cards, setCards] = useState<Partial<Record<ViewId, Card>>>({});
-  const [saved, setSaved] = useState(false);
+  const [picked, setPicked] = useState<ViewId | null>(null);
   const busy = ORDER.some((v) => cards[v]?.loading);
 
   async function askAll() {
     const q = question.trim();
     if (!q || !profile) return;
     setAsked(q);
-    setSaved(false);
+    setPicked(null);
     setCards(Object.fromEntries(ORDER.map((v) => [v, { loading: true }])));
     const ctx = { profile, decisions: decisionSummaries(vault.memory), question: q };
     // Three parallel 0G calls: three request IDs, one per voice.
@@ -52,7 +55,7 @@ export default function Decide() {
         { id: crypto.randomUUID(), question: asked, views, choice, at: now.toISOString(), checkInAt: new Date(+now + 30 * DAY).toISOString() },
       ],
     }));
-    setSaved(true);
+    setPicked(choice);
     setQuestion("");
   }
 
@@ -73,6 +76,7 @@ export default function Decide() {
       >
         {busy ? "Thinking privately…" : "Hear all three"}
       </button>
+      <PrivacyLine />
 
       {asked && (
         <section className="mt-6 space-y-3">
@@ -85,7 +89,8 @@ export default function Decide() {
                 {c?.error && <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>}
                 {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed">{c.text}</p>}
                 {c?.ai && <AiChip ai={c.ai} />}
-                {c?.text && !saved && (
+                {picked === v && <p className="mt-3 text-sm font-semibold text-accent">✓ Your pick</p>}
+                {c?.text && !picked && (
                   <button onClick={() => choose(v)} className="mt-3 block w-full rounded-xl border border-accent py-2 text-sm font-semibold text-accent">
                     I&apos;ll go with this
                   </button>
@@ -93,7 +98,7 @@ export default function Decide() {
               </article>
             );
           })}
-          {saved && <p className="rounded-xl bg-accent-soft p-3 text-sm">Saved. I will ask you how it went in 30 days.</p>}
+          {picked && <p className="rounded-xl bg-accent-soft p-3 text-sm">Saved. I will ask you how it went in 30 days.</p>}
         </section>
       )}
 
@@ -107,10 +112,10 @@ export default function Decide() {
                 <li key={d.id} className="rounded-xl border border-line bg-paper p-3 text-sm">
                   <p className="font-medium">{d.question}</p>
                   <p className="mt-1 text-muted">
-                    Went with {VIEWS[d.choice].title} · {new Date(d.at).toLocaleDateString()}
+                    Went with {VIEWS[d.choice].title} · {day(d.at)}
                   </p>
                   <p className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs ${due ? "bg-accent text-white" : "bg-accent-soft"}`}>
-                    {due ? "Time to check back: how did it go?" : `Check back on ${new Date(d.checkInAt).toLocaleDateString()}`}
+                    {due ? "Time to check back: how did it go?" : `Check back on ${day(d.checkInAt)}`}
                   </p>
                 </li>
               );

@@ -45,9 +45,29 @@ Use port **3000** (or 3001 / 5173). The Privy app ID that 0G shares for the iAI 
 - **TEE check** ([Verifiable Execution](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/router/features/verifiable-execution)): `verify_tee: true` adds `x_0g_trace.tee_verified`.
 - **Models** (live `GET https://router-api.0g.ai/v1/models`, no auth): 86 models. TeeML (private-capable): `0gm-1.0-35b-a3b` (the only chat model), `whisper-large-v3`, two embedding models, and two "decision" models (`laya`, `vela-2.0-9b`). This app uses `0gm-1.0-35b-a3b` with thinking off.
 
+## Demo script (about 80 s, one real decision)
+
+Decision used all the way through: **"Do I take the design job in Bangalore, or stay in Jaipur near my parents?"** Swap in a real one from a friend if she agrees; keep it one sentence.
+
+| Time | Screen | Do | Say |
+|---|---|---|---|
+| 0:00 | Login | Show the title | "Every girl I know has asked an AI about a decision she would never say out loud. This is Delulu: the app with the delulu name that gives the sane answer, and nobody else can read it." |
+| 0:08 | Login | Continue with Google | "Google login. It makes a wallet in the background: no seed phrase. One signature makes the key that encrypts her memory on her own phone." |
+| 0:18 | Onboarding | Show 2 of the 5 answers (pre-typed), tap through | "Five questions: her goals, her values, who she trusts, what she fears, and the big decision." |
+| 0:28 | Decide | The decision is already filled in. Tap **Hear all three** | "Three voices at once: Delulu, the sane one; Future You at 30; and Your Bestie." |
+| 0:40 | Decide | Zoom on one chip: `0G · req … · TEE ✓` | "Each voice is its own request on 0G Private Computer. The model runs inside a hardware enclave, and the TEE check is the 0G router verifying the enclave's signature. Here is the request ID." |
+| 0:52 | Decide | Tap **I'll go with this** on Future You at 30 | "She picks. Delulu saves it and checks back in 30 days." (show "Check back on …") |
+| 0:58 | Chat | Type "ok but how do I tell my parents" | "Chat remembers her answers and the decision she just made." (untested with the real model: rehearse this line) |
+| 1:08 | Decide | Point at the 🔒 line | "Without 0G, the AI company running the model could read every decision she types. With 0G, not even 0G can." |
+| 1:15 | Settings | Tap **Delete everything** | "One tap and it is gone. Delulu: delusional name, sane answers, sealed by 0G." |
+
+Before recording: `ZG_API_KEY` set with trust mode Private, run on `localhost:3000`, send one warm-up request (the first enclave call can be slow), and confirm every chip says `0G` and `TEE ✓`, not `MOCK` or `FALLBACK`. Record a backup take.
+
 ## What breaks if 0G is removed (draft for the submission)
 
 Without 0G, every private decision she types is readable by whichever AI company runs the model; with 0G Private Computer, Delulu's three voices run sealed inside a hardware enclave, and every answer shows its 0G request ID and a verified-TEE flag.
+
+The same line is on the Decide screen (`src/components/PrivacyLine.tsx`). It says "Right now: MOCK / FALLBACK" when the server is not on 0G private mode, so the screen never claims more than is true.
 
 Honest scope: the app's own Next.js server sees the decrypted context while it forwards a request (in memory, never stored). On localhost that server is her own machine.
 

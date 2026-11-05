@@ -52,7 +52,8 @@ export default function Chat() {
         ))}
         {busy && <p className="animate-pulse text-sm text-muted">{APP_NAME} is thinking privately…</p>}
         {error && <p className="text-sm text-red-700">Not sent to the model: {error}</p>}
-        <div ref={end} />
+        {/* spacer so the last bubble clears the fixed input + nav */}
+        <div ref={end} className="h-20" />
       </div>
       <form
         onSubmit={(e) => {

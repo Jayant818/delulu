@@ -1,22 +1,17 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { APP_NAME } from "@/config";
 import { useMemoryVault } from "@/lib/memory";
 import { useSession } from "@/lib/session";
-
-type Status = { backends: string[]; zgModel: string; zgTrustMode: string };
+import { useAiStatus } from "@/lib/useAiStatus";
 
 export default function Settings() {
   const session = useSession();
   const vault = useMemoryVault();
   const router = useRouter();
-  const [status, setStatus] = useState<Status>();
+  const status = useAiStatus();
   const [wiping, setWiping] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/status").then((r) => r.json()).then(setStatus).catch(() => {});
-  }, []);
 
   const { chat, decisions } = vault.memory;
 
