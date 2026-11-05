@@ -11,4 +11,5 @@ export async function postAi(url: string, body: unknown): Promise<AiResult> {
 
 export const decisionSummaries = (m: Memory) => m.decisions.map(({ question, choice, at }) => ({ question, choice, at }));
 
-export const aiMeta = ({ text: _text, ...meta }: AiResult) => meta;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const aiMeta = ({ text, ...meta }: AiResult) => meta;

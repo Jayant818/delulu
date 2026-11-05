@@ -39,29 +39,26 @@ export function useMemoryVault(): Vault {
 
 export function MemoryProvider({ children }: { children: ReactNode }) {
   const session = useSession();
-  const [status, setStatus] = useState<Vault["status"]>("locked");
-  const [error, setError] = useState<string>();
-  const [memory, setMemory] = useState<Memory>(EMPTY);
+  const { address } = session;
+  // State is tagged with the address it belongs to; anything else derives to locked/unlocking without a sync setState.
+  type S = { for: string; status: "unlocked" | "error"; error?: string; memory: Memory };
+  const [state, setState] = useState<S | null>(null);
   const keyRef = useRef<CryptoKey | null>(null);
   const memRef = useRef<Memory>(EMPTY);
   const saving = useRef<Promise<unknown>>(Promise.resolve());
-  const { address } = session;
   // Privy's signMessage identity can change every render; a ref keeps unlock from re-running.
   const signRef = useRef(session.sign);
-  signRef.current = session.sign;
+  useEffect(() => {
+    signRef.current = session.sign;
+  });
 
   // Unlock as soon as a wallet exists: sign the fixed message -> derive key -> decrypt.
   useEffect(() => {
-    if (!address) {
-      keyRef.current = null;
-      memRef.current = EMPTY;
-      setMemory(EMPTY);
-      setStatus("locked");
-      return;
-    }
+    keyRef.current = null;
+    memRef.current = EMPTY;
+    if (!address) return;
     let cancelled = false;
     (async () => {
-      setStatus("unlocking");
       try {
         const key = await deriveKey(await signRef.current(KEY_MESSAGE), address);
         const blob = await get<Sealed>(storeKey(address));
@@ -69,12 +66,9 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         keyRef.current = key;
         memRef.current = m;
-        setMemory(m);
-        setStatus("unlocked");
+        setState({ for: address, status: "unlocked", memory: m });
       } catch (e) {
-        if (cancelled) return;
-        setError((e as Error).message);
-        setStatus("error");
+        if (!cancelled) setState({ for: address, status: "error", error: (e as Error).message, memory: EMPTY });
       }
     })();
     return () => {
@@ -82,13 +76,17 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
     };
   }, [address]);
 
+  const mine = address && state?.for === address ? state : null;
+  const status: Vault["status"] = mine?.status ?? (address ? "unlocking" : "locked");
+  const memory = mine?.memory ?? EMPTY;
+
   const update = useCallback(
     async (fn: (m: Memory) => Memory) => {
       const key = keyRef.current;
       if (!key || !address) throw new Error("memory is locked");
       memRef.current = fn(memRef.current);
-      setMemory(memRef.current);
       const snapshot = memRef.current;
+      setState({ for: address, status: "unlocked", memory: snapshot });
       // Writes are chained so a slow encrypt can never overwrite a newer one.
       saving.current = saving.current.then(async () => set(storeKey(address), await seal(key, snapshot)));
       await saving.current;
@@ -102,9 +100,9 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
     await clear();
     keyRef.current = null;
     memRef.current = EMPTY;
-    setMemory(EMPTY);
+    setState(null);
     await session.logout();
   }, [address, session]);
 
-  return <Ctx.Provider value={{ status, error, memory, update, wipe }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ status, error: mine?.error, memory, update, wipe }}>{children}</Ctx.Provider>;
 }

@@ -3,7 +3,7 @@
 // - privy: email/Google login that creates an embedded EVM wallet (no seed phrase UI). Needs NEXT_PUBLIC_PRIVY_APP_ID.
 //   0G shares its own Privy app ID at the event for the iAI bonus (works on localhost:3000/3001/5173 only).
 // - dev: no app ID set -> a local throwaway key in localStorage, clearly labelled DEV. Not for real users.
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { PrivyProvider, usePrivy, useSignMessage, useWallets } from "@privy-io/react-auth";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
@@ -66,45 +66,51 @@ function PrivySession({ children }: { children: ReactNode }) {
 }
 
 const DEV_KEY = "tara:dev-wallet";
+const devListeners = new Set<() => void>();
+const devKey = {
+  subscribe(cb: () => void) {
+    devListeners.add(cb);
+    window.addEventListener("storage", cb);
+    return () => {
+      devListeners.delete(cb);
+      window.removeEventListener("storage", cb);
+    };
+  },
+  get(): string | null {
+    try {
+      return localStorage.getItem(DEV_KEY);
+    } catch {
+      return null;
+    }
+  },
+  set(v: string | null) {
+    try {
+      if (v) localStorage.setItem(DEV_KEY, v);
+      else localStorage.removeItem(DEV_KEY);
+    } catch {}
+    devListeners.forEach((l) => l());
+  },
+};
 
 function DevSession({ children }: { children: ReactNode }) {
-  const [pk, setPk] = useState<`0x${string}` | null>(null);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    try {
-      setPk((localStorage.getItem(DEV_KEY) as `0x${string}` | null) ?? null);
-    } catch {}
-    setReady(true);
-  }, []);
-
+  // undefined on the server (not ready yet), string | null in the browser.
+  const pk = useSyncExternalStore(devKey.subscribe, devKey.get, () => undefined) as `0x${string}` | null | undefined;
   const account = useMemo(() => (pk ? privateKeyToAccount(pk) : null), [pk]);
 
   const value = useMemo<Session>(
     () => ({
       mode: "dev",
-      ready,
+      ready: pk !== undefined,
       authenticated: !!account,
       address: account?.address ?? null,
-      login: () => {
-        const k = generatePrivateKey();
-        try {
-          localStorage.setItem(DEV_KEY, k);
-        } catch {}
-        setPk(k);
-      },
-      logout: async () => {
-        try {
-          localStorage.removeItem(DEV_KEY);
-        } catch {}
-        setPk(null);
-      },
+      login: () => devKey.set(generatePrivateKey()),
+      logout: async () => devKey.set(null),
       sign: async (message: string) => {
         if (!account) throw new Error("not logged in");
         return account.signMessage({ message });
       },
     }),
-    [ready, account],
+    [pk, account],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
