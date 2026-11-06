@@ -2,6 +2,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { AiChip } from "@/components/AiChip";
+import { VoiceTitle } from "@/components/VoiceTitle";
 import { PrivacyLine } from "@/components/PrivacyLine";
 import { CHECKBACK_MS } from "@/config";
 import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
@@ -101,7 +102,7 @@ function Decide({ fromChat }: { fromChat: string }) {
             const c = cards[v];
             return (
               <article key={v} className="rounded-2xl border border-line bg-paper p-4">
-                <h2 className="font-semibold">{VIEWS[v].title}</h2>
+                <VoiceTitle view={v} />
                 {c?.loading && <p className="mt-2 animate-pulse text-sm text-muted">…</p>}
                 {c?.error && <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>}
                 {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed">{c.text}</p>}

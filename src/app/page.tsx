@@ -1,5 +1,6 @@
 // Landing page. Structure and rhythm inspired by talkamore.com (Jayant's pick); all text, art and colours are
 // Delulu's own. Palette rules: brand/delulu-DESIGN.md (navy / cream; coral only on things you press).
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { APP_NAME, TELEGRAM_URL } from "@/config";
@@ -73,6 +74,16 @@ function Bubble({ me, children }: { me?: boolean; children: ReactNode }) {
 
 const Sealed = () => <p className="mt-1.5 font-mono text-[11px] text-sealed">🔒 sealed on 0G</p>;
 
+// Every person in these images is fictional, generated on 0G (seedream-5.0-flash). Said once, plainly, on the page.
+const AI_PEOPLE = "All people shown are AI-generated on 0G.";
+
+const HAIR_SAMPLES = [
+  { src: "/visuals/hair-base-a-768.webp", label: "Before", alt: "Fictional model with long straight dark hair", before: true },
+  { src: "/visuals/hair-a-curtain-bangs-768.webp", label: "Curtain bangs", alt: "Same model with curtain bangs and long layers" },
+  { src: "/visuals/hair-a-bob-768.webp", label: "Sleek bob", alt: "Same model with a sleek chin-length bob" },
+  { src: "/visuals/hair-a-copper-waves-768.webp", label: "Copper waves", alt: "Same model with copper red waves" },
+];
+
 const NAIL_SAMPLES = [
   { src: "/samples/nails-before.jpg", label: "Before", alt: "Fictional model, bare natural nails", before: true },
   { src: "/samples/nails-glazed-chrome.jpg", label: "Glazed chrome", alt: "Same hand with glazed chrome almond nails" },
@@ -89,9 +100,9 @@ const STEPS = [
 ];
 
 const VOICES = [
-  { t: APP_NAME, s: "the sane one", d: "The real trade-off, the cost of each option, and one step you can take this week. Delusional name, sane answer." },
-  { t: "Future You at 30", s: "looking back", d: "Your own voice from a few years ahead: what mattered in the end, and what you'll be glad you did." },
-  { t: "Your Bestie", s: "over coffee", d: "Protective, a little funny, always honest. Checks how you actually feel before saying anything else." },
+  { t: APP_NAME, s: "the sane one", img: "/visuals/perspective-sane-768.webp", alt: "A calm young woman in a navy blazer holding a notebook", d: "The real trade-off, the cost of each option, and one step you can take this week. Delusional name, sane answer." },
+  { t: "Future You at 30", s: "looking back", img: "/visuals/perspective-future-30-768.webp", alt: "A woman around thirty smiling by a window", d: "Your own voice from a few years ahead: what mattered in the end, and what you'll be glad you did." },
+  { t: "Your Bestie", s: "over coffee", img: "/visuals/perspective-bestie-768.webp", alt: "A laughing young woman in a coral hoodie waving", d: "Protective, a little funny, always honest. Checks how you actually feel before saying anything else." },
 ];
 
 const FAQ = [
@@ -134,9 +145,14 @@ export default function Landing() {
         </nav>
       </header>
 
-      {/* Hero: the one navy band at the top, with a soft light beam behind the headline. */}
-      <section className="-mt-16 bg-l-ink bg-[radial-gradient(ellipse_60%_55%_at_30%_0%,rgba(244,237,224,0.16),transparent_70%)] px-4 pt-16 text-l-paper">
-        <div className="mx-auto grid max-w-5xl items-center gap-10 pb-20 pt-14 md:grid-cols-2 md:pt-20">
+      {/* Hero: the navy band with its light beam, then her night-time chat: a photo with the product card on top of it. */}
+      {/* The beam texture only on wide screens: on a tall phone hero, object-cover puts the brightest part right behind the
+          headline (contrast fails), so phones get a soft CSS glow instead. */}
+      <section className="relative -mt-16 overflow-hidden bg-l-ink bg-[radial-gradient(ellipse_90%_35%_at_50%_0%,rgba(244,237,224,0.14),transparent_70%)] px-4 pt-16 text-l-paper">
+        <Image src="/visuals/texture-navy-1536.webp" alt="" fill sizes="100vw" className="hidden object-cover opacity-90 md:block" />
+        {/* keep the beam on the photo side; the headline side stays deep navy (measured: cream text >= 7:1) */}
+        <div className="absolute inset-0 hidden bg-gradient-to-r from-l-ink via-l-ink/75 to-transparent md:block" />
+        <div className="relative mx-auto grid max-w-5xl items-center gap-10 pb-24 pt-14 md:grid-cols-2 md:pb-28 md:pt-20">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-l-muted-dark">AI companion · chats sealed on 0G</p>
             <h1 className="mt-3 font-serif text-[clamp(2.6rem,9vw,4.4rem)] leading-[1.02] tracking-tight">
@@ -155,32 +171,45 @@ export default function Landing() {
             <p className="mt-3 font-mono text-[11px] text-l-muted-dark">Free · opens in your browser · no card, no seed phrase</p>
           </div>
 
-          {/* Product artifact: an example chat, as a physical card */}
-          <figure className="mx-auto w-full max-w-sm">
-            <div className="rotate-[0.6deg] rounded-[28px] border border-l-line bg-l-card p-4 text-l-ink shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)]">
-              <div className="mb-3 flex items-center gap-2 border-b border-l-line pb-3">
-                <Mark size={26} />
-                <div className="leading-tight">
-                  <p className="text-sm font-semibold">{APP_NAME}</p>
-                  <p className="text-[11px] text-l-muted">private chat · sealed on 0G</p>
-                </div>
+          {/* Product artifact: an example chat, as a physical card over the photo of the moment it is for. */}
+          <figure className="mx-auto w-full max-w-md">
+            {/* photo + card share one box, so the card's offset never depends on the caption below */}
+            <div className="relative">
+              <div className="relative aspect-square overflow-hidden rounded-[28px] md:aspect-[4/5]">
+                <Image
+                  src="/visuals/hero-night-chat-1536.webp"
+                  alt="A young woman on her bed at night, smiling at her phone"
+                  fill
+                  preload
+                  sizes="(min-width: 768px) 448px, 100vw"
+                  className="object-cover object-[42%_50%]"
+                />
               </div>
-              <div className="space-y-2.5">
-                <Bubble me>parents want me home but the bangalore offer pays 2x. should i take it?? 😭</Bubble>
-                <Bubble>
-                  Okay, breathe first. Both options are real, that&apos;s why it&apos;s hard. In a year, what would sting more: the job you
-                  didn&apos;t take, or the distance?
-                  <Sealed />
-                  <div className="mt-2 rounded-xl bg-l-paper px-2.5 py-2 text-[13px]">
-                    <b>Sounds like a decision:</b> take the Bangalore job or stay in Jaipur
+              <div className="relative -mt-28 ml-auto w-[88%] rotate-[0.6deg] rounded-[28px] border border-l-line bg-l-card p-4 text-l-ink shadow-[0_24px_60px_-20px_rgba(0,0,0,0.6)] md:absolute md:-bottom-14 md:-left-14 md:mt-0 md:w-[82%]">
+                <div className="mb-3 flex items-center gap-2 border-b border-l-line pb-3">
+                  <Mark size={26} />
+                  <div className="leading-tight">
+                    <p className="text-sm font-semibold">{APP_NAME}</p>
+                    <p className="text-[11px] text-l-muted">private chat · sealed on 0G</p>
                   </div>
-                </Bubble>
-                <div className="flex justify-center">
-                  <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-semibold text-l-ink">See perspectives 👀</span>
+                </div>
+                <div className="space-y-2.5">
+                  <Bubble me>parents want me home but the bangalore offer pays 2x. should i take it?? 😭</Bubble>
+                  <Bubble>
+                    Okay, breathe first. Both options are real, that&apos;s why it&apos;s hard. In a year, what would sting more: the job you
+                    didn&apos;t take, or the distance?
+                    <Sealed />
+                    <div className="mt-2 rounded-xl bg-l-paper px-2.5 py-2 text-[13px]">
+                      <b>Sounds like a decision:</b> take the Bangalore job or stay in Jaipur
+                    </div>
+                  </Bubble>
+                  <div className="flex justify-center">
+                    <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-semibold text-l-ink">See perspectives 👀</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <figcaption className="mt-3 text-center text-xs text-l-muted-dark">Example conversation. Every real answer carries its own 0G request ID.</figcaption>
+            <figcaption className="mt-3 text-center text-xs text-l-muted-dark md:mt-20">Example conversation. Every real answer carries its own 0G request ID.</figcaption>
           </figure>
         </div>
       </section>
@@ -188,14 +217,51 @@ export default function Landing() {
       <main className="mx-auto max-w-5xl px-4">
 
         {/* The problem */}
-        <section className="mx-auto max-w-2xl py-16 text-center">
-          <H2>
-            Every AI you vent to <Em>can read it.</Em>
-          </H2>
-          <p className="mt-5 text-[17px] leading-relaxed text-l-muted">
-            You&apos;ve told a chatbot about the job offer, the situationship, the fight with your mom. On most apps all of it sits in plain
-            text on a company&apos;s servers. {APP_NAME} is built so that it doesn&apos;t.
-          </p>
+        <section className="grid items-center gap-8 py-16 md:grid-cols-2 md:gap-12">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[28px]">
+            <Image
+              src="/visuals/decision-cafe-1536.webp"
+              alt="A young woman in a café typing on her phone, a laptop and coffee in front of her"
+              fill
+              sizes="(min-width: 768px) 480px, 100vw"
+              className="object-cover"
+            />
+          </div>
+          <div>
+            <H2>
+              Every AI you vent to <Em>can read it.</Em>
+            </H2>
+            <p className="mt-5 text-[17px] leading-relaxed text-l-muted">
+              You&apos;ve told a chatbot about the job offer, the situationship, the fight with your mom. On most apps all of it sits in
+              plain text on a company&apos;s servers. {APP_NAME} is built so that it doesn&apos;t.
+            </p>
+          </div>
+        </section>
+
+        {/* Split personality: the product idea, as one picture */}
+        <section className="py-16">
+          <figure className="relative aspect-[4/3] overflow-hidden rounded-[32px] md:aspect-[2/1]">
+            <Image
+              src="/visuals/split-personality-1536.webp"
+              alt="The same young woman twice: calm and thoughtful in navy, laughing in coral"
+              fill
+              sizes="(min-width: 1024px) 992px, 100vw"
+              className="object-cover object-[50%_30%]"
+            />
+            <figcaption className="absolute inset-x-3 bottom-3 flex justify-between gap-2 font-mono text-[11px] uppercase tracking-wider">
+              <span className="rounded-full bg-l-ink/85 px-3 py-1 text-l-paper backdrop-blur">the calm one</span>
+              <span className="rounded-full bg-l-card/90 px-3 py-1 text-l-ink backdrop-blur">the chaotic one</span>
+            </figcaption>
+          </figure>
+          <div className="mx-auto mt-8 max-w-2xl text-center">
+            <H2>
+              Your split personality, <Em>finally on your side.</Em>
+            </H2>
+            <p className="mt-4 text-[17px] leading-relaxed text-l-muted">
+              The calm one who thinks it through and the chaotic one who wants it all are both you. {APP_NAME} listens to both, and when
+              you&apos;re stuck it shows you the choice from different perspectives.
+            </p>
+          </div>
         </section>
 
         {/* How it works */}
@@ -206,15 +272,29 @@ export default function Landing() {
             </H2>
             <p className="mt-3 text-l-muted">Four steps, and you only ever do the first one.</p>
           </div>
-          <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s) => (
-              <li key={s.n} className="rounded-3xl border border-l-line bg-l-card p-6">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-l-ink font-mono text-sm font-semibold text-l-paper">{s.n}</span>
-                <h3 className="mt-4 font-serif text-2xl">{s.t}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-l-muted">{s.d}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="mt-10 grid items-stretch gap-4 lg:grid-cols-[1fr_1.5fr]">
+            <figure className="relative aspect-[3/2] overflow-hidden rounded-3xl lg:aspect-auto">
+              <Image
+                src="/visuals/decision-crossroads-1536.webp"
+                alt="A young woman at a train station, looking at two boards: a city skyline and a house"
+                fill
+                sizes="(min-width: 1024px) 400px, 100vw"
+                className="object-cover"
+              />
+              <figcaption className="absolute bottom-3 left-3 rounded-full bg-l-card/90 px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-l-ink backdrop-blur">
+                the city or home?
+              </figcaption>
+            </figure>
+            <ol className="grid gap-4 sm:grid-cols-2">
+              {STEPS.map((s) => (
+                <li key={s.n} className="rounded-3xl border border-l-line bg-l-card p-6">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-l-ink font-mono text-sm font-semibold text-l-paper">{s.n}</span>
+                  <h3 className="mt-4 font-serif text-2xl">{s.t}</h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-l-muted">{s.d}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
         </section>
 
         {/* Three voices */}
@@ -227,10 +307,15 @@ export default function Landing() {
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {VOICES.map((v) => (
-              <article key={v.t} className="rounded-3xl border border-l-line bg-l-card p-6">
-                <p className="font-mono text-xs uppercase tracking-widest text-l-muted">{v.s}</p>
-                <h3 className="mt-1 font-serif text-3xl italic">{v.t}</h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-l-muted">{v.d}</p>
+              <article key={v.t} className="overflow-hidden rounded-3xl border border-l-line bg-l-card">
+                <div className="relative aspect-[4/3]">
+                  <Image src={v.img} alt={v.alt} fill sizes="(min-width: 768px) 320px, 100vw" className="object-cover object-[50%_25%]" />
+                </div>
+                <div className="p-6">
+                  <p className="font-mono text-xs uppercase tracking-widest text-l-muted">{v.s}</p>
+                  <h3 className="mt-1 font-serif text-3xl italic">{v.t}</h3>
+                  <p className="mt-3 text-[15px] leading-relaxed text-l-muted">{v.d}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -280,16 +365,29 @@ export default function Landing() {
             </p>
             {/* Real outputs from the app's own image model on 0G (seedream-5.0-flash). The model is fictional, generated
                 for this page: no real person's photo is ever shown or stored. */}
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
-              {NAIL_SAMPLES.map((n) => (
-                <figure key={n.src} className={n.before ? "col-span-2 sm:col-span-1" : ""}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={n.src} alt={n.alt} width={720} height={720} loading="lazy" className="aspect-square w-full rounded-2xl object-cover" />
+            <p className="mt-8 font-mono text-xs uppercase tracking-widest text-l-muted">💇 Hair</p>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {HAIR_SAMPLES.map((n) => (
+                <figure key={n.src}>
+                  <div className="relative aspect-square overflow-hidden rounded-2xl">
+                    <Image src={n.src} alt={n.alt} fill sizes="(min-width: 640px) 240px, 50vw" className="object-cover" />
+                  </div>
                   <figcaption className="mt-1.5 text-center font-mono text-[11px] uppercase tracking-wide text-l-muted">{n.label}</figcaption>
                 </figure>
               ))}
             </div>
-            <p className="mt-2 text-xs text-l-muted">Sample looks made by Delulu&apos;s try-on on 0G, on a fictional model (not a real person).</p>
+            <p className="mt-8 font-mono text-xs uppercase tracking-widest text-l-muted">💅 Nails</p>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+              {NAIL_SAMPLES.map((n) => (
+                <figure key={n.src} className={n.before ? "col-span-2 sm:col-span-1" : ""}>
+                  <div className="relative aspect-square overflow-hidden rounded-2xl">
+                    <Image src={n.src} alt={n.alt} fill sizes="(min-width: 640px) 190px, 50vw" className="object-cover" />
+                  </div>
+                  <figcaption className="mt-1.5 text-center font-mono text-[11px] uppercase tracking-wide text-l-muted">{n.label}</figcaption>
+                </figure>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-l-muted">Looks made by {APP_NAME}&apos;s own try-on on 0G. {AI_PEOPLE}</p>
           </div>
         </section>
 
@@ -328,15 +426,20 @@ export default function Landing() {
 
         {/* Anti-scam promise */}
         <section className="py-16">
-          <div className="rounded-[32px] bg-l-ink px-6 py-12 text-center text-l-paper md:px-16">
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-l-muted-dark">Our promise</p>
-            <p className="mx-auto mt-4 max-w-3xl font-serif text-[clamp(1.8rem,5vw,2.8rem)] leading-tight">
-              {APP_NAME} will never ask you for money, crypto, a wallet, passwords, codes, or to click a link.
-            </p>
-            <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed opacity-80">
-              Not to &ldquo;verify&rdquo; you, not for a &ldquo;reward&rdquo;, not ever. If something called {APP_NAME} does, it isn&apos;t
-              us. Block it and tell a friend.
-            </p>
+          <div className="relative overflow-hidden rounded-[32px] bg-l-ink px-6 py-12 text-center text-l-paper md:px-16">
+            <Image src="/visuals/texture-navy-1536.webp" alt="" fill sizes="(min-width: 1024px) 992px, 100vw" className="object-cover" />
+            {/* navy veil: the beam sits right behind the centred promise text, so it is toned down to keep contrast */}
+            <div className="absolute inset-0 bg-l-ink/80" />
+            <div className="relative">
+              <p className="font-mono text-xs uppercase tracking-[0.2em]">Our promise</p>
+              <p className="mx-auto mt-4 max-w-3xl font-serif text-[clamp(1.8rem,5vw,2.8rem)] leading-tight">
+                {APP_NAME} will never ask you for money, crypto, a wallet, passwords, codes, or to click a link.
+              </p>
+              <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed">
+                Not to &ldquo;verify&rdquo; you, not for a &ldquo;reward&rdquo;, not ever. If something called {APP_NAME} does, it isn&apos;t
+                us. Block it and tell a friend.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -363,16 +466,19 @@ export default function Landing() {
         </section>
 
         {/* Closing CTA */}
-        <section className="py-20 text-center">
-          <H2>
-            Your next big decision
-            <br />
-            <Em>deserves a sane answer.</Em>
-          </H2>
-          <p className="mt-4 text-l-muted">Say hi. No forms, no setup: it gets to know you as you talk.</p>
-          <div className="mt-8 flex flex-col items-center gap-3">
-            <OpenCta big />
-            <TelegramLink />
+        <section className="relative my-8 overflow-hidden rounded-[32px] px-6 py-20 text-center">
+          <Image src="/visuals/texture-cream-1536.webp" alt="" fill sizes="(min-width: 1024px) 992px, 100vw" className="object-cover" />
+          <div className="relative">
+            <H2>
+              Your next big decision
+              <br />
+              <Em>deserves a sane answer.</Em>
+            </H2>
+            <p className="mt-4 text-l-muted">Say hi. No forms, no setup: it gets to know you as you talk.</p>
+            <div className="mt-8 flex flex-col items-center gap-3">
+              <OpenCta big />
+              <TelegramLink />
+          </div>
           </div>
         </section>
       </main>
@@ -380,7 +486,11 @@ export default function Landing() {
       <footer className="border-t border-l-line">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-10 text-sm text-l-muted md:flex-row md:items-center md:justify-between">
           <Wordmark />
-          <p>Built at ETHGlobal Mumbai 2026 · AI on 0G Private Computer</p>
+          <p>
+            Built at ETHGlobal Mumbai 2026 · AI on 0G Private Computer
+            <br />
+            <span className="text-xs">{AI_PEOPLE}</span>
+          </p>
           <div className="flex gap-5">
             <a href="#how">How it works</a>
             <a href="#privacy">Privacy</a>
