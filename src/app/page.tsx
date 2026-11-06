@@ -3,11 +3,11 @@
 // diary (Friday's brief, Saturday's check-in) -> privacy -> the last call. One CTA: "Open Delulu".
 // Palette rule (brand/delulu-DESIGN.md): coral only on things you press, navy text on it. Every person shown is
 // fictional, generated on 0G (public/visuals-west/).
-import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { DiaryBook } from "@/components/DiaryBook";
 import { HeroPhone } from "@/components/HeroPhone";
 import { Mark } from "@/components/Mark";
+import { SmoothScroll } from "@/components/SmoothScroll";
 import { APP_NAME } from "@/config";
 
 function OpenDelulu({ where }: { where: string }) {
@@ -24,28 +24,13 @@ function OpenDelulu({ where }: { where: string }) {
   );
 }
 
-/** One page of the open diary: ruled paper, a date line at the top. */
-function Page({ date, side, children }: { date: string; side: "left" | "right"; children: ReactNode }) {
-  return (
-    <div
-      className={`relative flex min-h-[360px] flex-col gap-5 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_31px,rgba(20,33,61,0.08)_31px,rgba(20,33,61,0.08)_32px)] bg-l-card px-7 pb-10 pt-6 md:min-h-[440px] md:px-10 ${
-        side === "left"
-          ? "rounded-t-[10px] md:rounded-l-[10px] md:rounded-tr-none md:shadow-[inset_-28px_0_30px_-26px_rgba(20,33,61,0.28)]"
-          : "rounded-b-[10px] border-t border-l-line md:rounded-r-[10px] md:rounded-bl-none md:border-t-0 md:shadow-[inset_28px_0_30px_-26px_rgba(20,33,61,0.28)]"
-      }`}
-    >
-      <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-l-muted">{date}</p>
-      {children}
-    </div>
-  );
-}
-
 const WRAP = "mx-auto w-full max-w-[1180px] px-5 md:px-8";
 const H2 = "font-serif text-[clamp(34px,4.4vw,58px)] font-normal leading-[1.02] [text-wrap:balance]";
 
 export default function Landing() {
   return (
     <div className="flex min-h-dvh flex-col bg-l-paper font-body text-l-ink">
+      <SmoothScroll />
       {/* Nav + hero fill exactly one window (Jayant TG 3623): the next section starts below the fold on any desktop.
           100vh first as the fallback, then 100svh (the small viewport: no jump when mobile browser bars move). */}
       <div className="flex min-h-screen min-h-svh flex-col">
@@ -80,42 +65,11 @@ export default function Landing() {
         </header>
       </div>
 
-      {/* THE NEXT PAGE: Friday and Saturday, as an open diary. Moves the story on; nothing from the phone repeats. */}
+      {/* THE DIARY (Jayant TG 3622): three things it really does today, as pages you turn. */}
       <section className="border-t border-l-line">
         <div className={`${WRAP} flex flex-col gap-10 py-20 md:gap-12 md:py-28`}>
-          <h2 className={H2}>And on Saturday, it asks.</h2>
-          <div className="grid shadow-[0_30px_60px_-34px_rgba(20,33,61,0.45)] md:grid-cols-2">
-            <Page date="Friday, 9:10 am" side="left">
-              <p className="text-[15px] font-semibold">The brief for her stylist</p>
-              {/* the try-on, as two polaroids: before and after */}
-              <div className="flex items-start gap-1 pl-1">
-                {[
-                  { src: "/visuals-west/hair-base-west.jpg", label: "before", alt: "Sasha before: long straight hair", tilt: "-rotate-3" },
-                  { src: "/visuals-west/hair-west-curtain-bangs.jpg", label: "after · AI preview", alt: "Sasha with curtain bangs, made by Delulu's try-on", tilt: "rotate-2 -ml-6 mt-4" },
-                ].map((ph) => (
-                  <figure key={ph.src} className={`w-[46%] max-w-[190px] ${ph.tilt} bg-white p-1.5 pb-1 shadow-[0_8px_20px_-8px_rgba(20,33,61,0.35)]`}>
-                    <div className="relative aspect-square overflow-hidden">
-                      {/* zoomed on the face, so the fringe change reads at polaroid size */}
-                      <Image src={ph.src} alt={ph.alt} fill sizes="(min-width: 768px) 190px, 42vw" className="scale-[1.45] object-cover object-[50%_18%]" />
-                    </div>
-                    <figcaption className="py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-l-muted">{ph.label}</figcaption>
-                  </figure>
-                ))}
-              </div>
-              <p className="font-serif text-[18px] italic leading-[32px]">
-                Soft curtain bangs from the cheekbone. Keep the length. Warm honey tone. No blunt cut.
-              </p>
-            </Page>
-            <Page date="Saturday, 10:14 am" side="right">
-              <p className="max-w-[340px] font-serif text-[24px] leading-[1.3]">so... how did the date go? And the bangs?</p>
-              <p className="max-w-[320px] self-end rounded-[20px] rounded-br-[6px] bg-l-sasha px-4 py-3 text-[17px] leading-snug">
-                he said they suit me. I said I know.
-              </p>
-              <p className="max-w-[360px] pt-2 text-[16px] leading-[1.55] text-l-body">
-                It remembers what you chose, and asks how it went.
-              </p>
-            </Page>
-          </div>
+          <h2 className={H2}>Try it on. Then it asks how it went.</h2>
+          <DiaryBook />
         </div>
       </section>
 
