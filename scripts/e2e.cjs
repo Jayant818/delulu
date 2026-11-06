@@ -4,7 +4,23 @@
 const { chromium } = require(process.argv[2]);
 const out = process.argv[3];
 const B = "http://localhost:3000";
-const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("PASS:", m); };
+const ok = (c, m) => {
+  if (!c) throw new Error("FAIL: " + m);
+  console.log("PASS:", m);
+};
+const idb = (page, op) =>
+  page.evaluate(
+    (op) =>
+      new Promise((res) => {
+        const r = indexedDB.open("keyval-store");
+        r.onsuccess = () => {
+          const s = r.result.transaction("keyval").objectStore("keyval");
+          const q = op === "count" ? s.count() : s.getAll();
+          q.onsuccess = () => res(op === "count" ? q.result : JSON.stringify(q.result));
+        };
+      }),
+    op,
+  );
 
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined });
@@ -13,6 +29,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("PASS:
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
 
+  // Login + onboarding -> home is the chat.
   await page.goto(B);
   await page.getByRole("button", { name: /DEV wallet/ }).click();
   await page.waitForURL("**/onboarding");
@@ -23,58 +40,53 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("PASS:
     await page.getByRole("button", { name: i < 4 ? "Next" : /Meet/, exact: i < 4 }).click();
   }
   await page.waitForURL(B + "/");
-  ok((await page.getByPlaceholder(/Should I take/).inputValue()).includes("Bangalore"), "decide prefilled with her big decision");
+  ok(await page.getByRole("heading", { name: /Tell Delulu anything/ }).isVisible(), "home is the 'Tell Delulu anything' chat");
 
+  // Free talk with a decision in it -> inline decision card.
+  const input = page.getByPlaceholder("Tell me anything…");
+  await input.fill("ugh my parents want me home but should I take the Bangalore design job or stay in Jaipur?");
+  await page.getByRole("button", { name: "Send" }).click();
+  await page.getByText("Sounds like a decision:").waitFor();
+  ok((await page.locator("button", { hasText: "MOCK" }).count()) === 1, "chat reply carries a request-ID chip");
+  await page.screenshot({ path: `${out}/2-talk-decision.png`, fullPage: true });
+
+  // Card -> Decide, pre-filled.
+  await page.getByRole("link", { name: /See 3 views/ }).click();
+  await page.waitForURL("**/decide?q=**");
+  ok((await page.getByPlaceholder(/Should I take/).inputValue()).includes("Bangalore design job"), "Decide pre-filled from the chat");
+  ok(await page.getByText("Pulled from your chat.").isVisible(), "Decide says it came from chat");
   await page.getByRole("button", { name: "Hear all three" }).click();
   await page.getByRole("button", { name: /go with this/ }).first().waitFor();
-  ok((await page.getByRole("button", { name: /go with this/ }).count()) === 3, "three views rendered");
-  ok((await page.locator("button", { hasText: "MOCK" }).count()) === 3, "three request-ID chips (MOCK)");
+  ok((await page.locator("button", { hasText: "MOCK" }).count()) === 3, "three views, three request-ID chips");
   for (const t of ["Delulu", "Future You at 30", "Your Bestie"]) ok(await page.getByRole("heading", { name: t }).isVisible(), `view ${t}`);
-  await page.screenshot({ path: `${out}/2-decide.png`, fullPage: true });
   await page.getByRole("button", { name: /go with this/ }).nth(1).click();
   await page.getByText("Saved.").waitFor();
   ok(await page.getByText(/Check back on/).isVisible(), "30-day check-back item shown");
+  await page.screenshot({ path: `${out}/3-decide.png`, fullPage: true });
 
-  // Ciphertext only at rest.
-  const raw = await page.evaluate(
-    () =>
-      new Promise((res) => {
-        const r = indexedDB.open("keyval-store");
-        r.onsuccess = () => {
-          const tx = r.result.transaction("keyval").objectStore("keyval").getAll();
-          tx.onsuccess = () => res(JSON.stringify(tx.result));
-        };
-      }),
-  );
+  // Ciphertext only at rest; survives reload.
+  const raw = await idb(page, "all");
   ok(raw.includes('"ct"') && !raw.includes("Bangalore") && !raw.includes("sister"), "IndexedDB holds ciphertext only");
-
-  await page.reload();
+  await page.goto(B + "/decide");
   await page.getByText(/Went with Future You at 30/).waitFor();
   ok(true, "memory decrypts after reload");
 
-  await page.getByRole("link", { name: "Chat" }).click();
-  await page.getByPlaceholder("Message…").fill("I am scared to tell my parents");
+  // Back in chat: the card now shows the outcome; small talk makes no card.
+  await page.getByRole("link", { name: "Talk" }).click();
+  await page.getByText(/Decided: went with Future You at 30/).waitFor();
+  ok(true, "chat card shows the decision she made");
+  await page.getByPlaceholder("Tell me anything…").fill("hiii");
   await page.getByRole("button", { name: "Send" }).click();
-  await page.locator("button", { hasText: "MOCK" }).first().waitFor();
-  ok(await page.getByText("I am scared to tell my parents", { exact: true }).isVisible(), "chat message + reply");
-  await page.screenshot({ path: `${out}/3-chat.png`, fullPage: true });
+  await page.locator("button", { hasText: "MOCK" }).nth(1).waitFor();
+  ok((await page.getByText("Sounds like a decision:").count()) === 0, "small talk does not create a decision card");
+  await page.screenshot({ path: `${out}/4-talk.png`, fullPage: true });
 
+  // Delete everything.
   await page.getByRole("link", { name: "Settings" }).click();
   await page.getByText(/1 decisions/).waitFor();
-  await page.screenshot({ path: `${out}/4-settings.png`, fullPage: true });
   await page.getByRole("button", { name: "Delete everything" }).click();
   await page.getByRole("button", { name: /DEV wallet/ }).waitFor();
-  const left = await page.evaluate(
-    () =>
-      new Promise((res) => {
-        const r = indexedDB.open("keyval-store");
-        r.onsuccess = () => {
-          const tx = r.result.transaction("keyval").objectStore("keyval").count();
-          tx.onsuccess = () => res(tx.result);
-        };
-      }),
-  );
-  ok(left === 0, "delete everything wipes IndexedDB and logs out");
+  ok((await idb(page, "count")) === 0, "delete everything wipes IndexedDB and logs out");
 
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();

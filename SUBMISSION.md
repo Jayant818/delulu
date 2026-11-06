@@ -12,19 +12,21 @@ Delulu is the solulu. We give you the sane answer.
 
 ## Short description (≤ 100 words)
 
-Delulu helps young women make big decisions in private. She types a decision and gets three voices on one screen: Delulu (the sane one), Future You at 30, and Your Bestie. She picks one, and Delulu checks back in 30 days. Every answer runs on 0G Private Computer inside a hardware enclave, with a visible request ID and TEE check [PENDING-KEY]. Her profile, chats and decisions are encrypted on her own device with a key made from her wallet signature. Login is email or Google, with no seed phrase [PENDING-APP-ID]. One tap deletes everything.
+Tell her anything; she helps you decide. Delulu is a private AI companion for young women that remembers her. When she is weighing a choice in chat, Delulu pulls it out into three views on one screen: Delulu (the sane one), Future You at 30, and Your Bestie. She picks one; Delulu checks back in 30 days. Every reply runs sealed on 0G Private Computer with a visible request ID and TEE check [PENDING-KEY]. Her memory is encrypted on her device with a key from her wallet signature. Google login, no seed phrase [PENDING-APP-ID].
 
 ## Long description
 
-Girls already ask AI about the decisions they would never say out loud: a job in another city, a relationship, money, family pressure. Today, every one of those questions sits in plain text at an AI company.
+Girls already tell AI the things they would never say out loud: a job in another city, a relationship, money, family pressure. Today, every one of those messages sits in plain text at an AI company.
 
-Delulu is the app with the delulu name that gives the sane answer. Onboarding asks five questions: her goals, her values, who she trusts, what she fears, and the big decision in front of her. Then the main screen, **Decide**, gives three views of one decision side by side:
+Delulu is the app with the delulu name that gives the sane answer. **Tell her anything; she helps you decide.** Onboarding asks five questions (goals, values, who she trusts, what she fears, the big thing on her mind). After that, home is a chat: she talks about anything, and Delulu answers with her setup answers, past chats and past decisions in mind.
+
+When she is actually stuck on a choice, Delulu notices. The reply carries a one-line summary ("Sounds like a decision: take the Bangalore job or stay in Jaipur. See 3 views?") [PENDING-KEY: detection quality on the real model]. One tap opens **Decide**, pre-filled, with three views of the same choice side by side:
 
 - **Delulu**, the sane one: the real trade-off, the cost of each option, one next step this week.
 - **Future You at 30**: her own voice looking back.
 - **Your Bestie**: casual, protective, honest.
 
-She picks the one she will follow. Delulu saves it and shows "check back on <date>" 30 days later. **Chat** remembers her answers and her past decisions, so advice gets more specific over time.
+She picks the one she will follow. Delulu saves it, shows "check back on <date>" 30 days later, and the chat card changes to "Decided: went with …". This is why it is not a chat wrapper: the persona remembers her, decisions are pulled out of free talk into a structured three-voice choice with a check-back, and all of it is sealed.
 
 Privacy is the product, not a setting:
 
@@ -32,22 +34,22 @@ Privacy is the product, not a setting:
 - **Memory never leaves her device in plain text.** Her wallet signs one fixed message, the signature goes through HKDF-SHA256 to make an AES-256-GCM key, and only ciphertext is stored (IndexedDB).
 - **The server keeps nothing.** API routes forward one request and store nothing. **Delete everything** wipes the device store and logs her out in one tap.
 
-What breaks if 0G is removed: without 0G, every private decision she types is readable by whichever AI company runs the model. The Decide screen says this in one line, and it says "MOCK" or "FALLBACK" when the app is not on 0G private mode, so the screen never claims more than is true.
+What breaks if 0G is removed: without 0G, everything she tells Delulu, and every decision she weighs, is readable by whichever AI company runs the model. The app says this on screen (under the chat header and under the Decide button), and it says "MOCK" or "FALLBACK" when the app is not on 0G private mode, so the screen never claims more than is true.
 
 Safety: if she mentions self-harm, abuse or danger, every voice stops advising and points her to a trusted adult or a helpline (India: 112, Tele-MANAS 14416).
 
 ## How it's made
 
 - **App:** Next.js 16 (App Router, TypeScript), Tailwind 4, mobile-first, installable (web manifest). Checked at 375 px.
-- **AI:** 0G Private Computer router, `https://router-api.0g.ai/v1`, OpenAI-compatible. Model `0gm-1.0-35b-a3b`: on 2026-11-06 it is the only chat model with a TeeML (sealed) provider in the live `/v1/models` list. Every request sends `X-0G-Provider-Trust-Mode: private` (TeeML only; it fails with 503 instead of downgrading) and `verify_tee: true`. The app reads `x_0g_trace.request_id`, `provider`, `tee_verified` and `billing.total_cost` and shows them on a chip under every answer [PENDING-KEY]. Decide sends three parallel requests, so each voice has its own request ID. The `sk-` key stays on the server.
+- **AI:** 0G Private Computer router, `https://router-api.0g.ai/v1`, OpenAI-compatible. Model `0gm-1.0-35b-a3b`: on 2026-11-06 it is the only chat model with a TeeML (sealed) provider in the live `/v1/models` list. Every request sends `X-0G-Provider-Trust-Mode: private` (TeeML only; it fails with 503 instead of downgrading) and `verify_tee: true`. The app reads `x_0g_trace.request_id`, `provider`, `tee_verified` and `billing.total_cost` and shows them on a chip under every answer [PENDING-KEY]. Chat runs in JSON mode (`response_format: json_object`) and returns `{reply, decision}`; a tolerant parser handles fenced JSON and falls back to plain text, so a format slip never breaks chat. Decide sends three parallel requests, so each voice has its own request ID. Memory feeds both: chat gets her setup answers and past decisions; each Decide voice also gets the last 10 chat lines. The `sk-` key stays on the server.
 - **One model interface** (`src/lib/ai/provider.ts`): 0G first, then an optional OpenAI-compatible fallback (labelled FALLBACK, with the 0G error kept). Mock is used only when nothing is configured, so a broken 0G key fails loudly and never turns into canned text quietly.
 - **Login and wallet:** Privy embedded EVM wallet, email or Google, no seed phrase UI [PENDING-APP-ID]. A labelled local DEV wallet runs when no app ID is set.
 - **Encrypted memory:** WebCrypto only. Signature (deterministic RFC 6979 ECDSA) → HKDF-SHA256 → AES-256-GCM, key not extractable, random 96-bit IV per write, ciphertext in IndexedDB. The key message and the storage keys do not depend on the app name, so a rename never locks anyone out.
-- **Tests:** unit tests (same wallet gives the same key; another wallet cannot decrypt; no plaintext in the ciphertext; 0G trace parsing; a configured 0G key never falls back to mock silently) and a headless-browser run of the full flow (12 checks).
+- **Tests:** unit tests (same wallet gives the same key; another wallet cannot decrypt; no plaintext in the ciphertext; 0G trace parsing; a configured 0G key never falls back to mock silently; decision parsing) and a headless-browser run of the full flow, chat → decision card → Decide → pick → check-back → delete (15 checks).
 
 ## Tracks
 
-1. **0G: Build with 0G Private Computer** ($5,000). Main track. 0G inference is the main user flow (three sealed answers per decision, plus chat), each answer shows its request ID [PENDING-KEY], a judge can try it on localhost, she has a reason to come back (the 30-day check-back), and the "what breaks if 0G is removed" line is in the UI and the README. **iAI bonus: NOT YET.** It needs 0G's Privy app ID and the way an app spends a signed-in user's own credits; neither is in the public docs.
+1. **0G: Build with 0G Private Computer** ($5,000). Main track. 0G inference is the whole user flow (every chat reply, plus three sealed answers per decision), each answer shows its request ID [PENDING-KEY], a judge can try it on localhost, she has a reason to come back (the 30-day check-back), and the "what breaks if 0G is removed" line is in the UI and the README. **iAI bonus: NOT YET.** It needs 0G's Privy app ID and the way an app spends a signed-in user's own credits; neither is in the public docs.
 2. **Ethereum Foundation: Best CROPS App** ($3,500). Possible second track, lead property **Private**: her data is encrypted on her device, the server stores nothing, and inference is sealed. Before submitting here, the repo needs an open-source LICENSE and a "CROPS" README section (draft below), and the demo must show the moment it matters (for example, server logs with nothing identifying). Honest gaps: login depends on Privy (wallet recovery needs Privy's service), and the app server sees the decrypted request in memory while forwarding it. EF places each project in at most one of its prizes.
 
 Not a fit (checked against the prize page): 0G Physical AI, 0G Agents That Pay, 0G Keep Building, World ID, Uniswap, Arc, Hedera, Arkiv, Whitechain, ENS, Flash, Chainlink, EF Anon-RPC and alt mempool.

@@ -31,6 +31,14 @@ export function readDecisions(v: unknown): DecisionSummary[] {
     .map((d) => ({ question: str(d.question, 200), choice: d.choice, at: str(d.at, 30) }));
 }
 
+export function readHistory(v: unknown, max: number): { role: "user" | "assistant"; content: string }[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .slice(-max)
+    .filter((m) => m?.role === "user" || m?.role === "assistant")
+    .map((m) => ({ role: m.role, content: str(m.content, 2000) }));
+}
+
 export function fail(status: number, error: string) {
   return NextResponse.json({ error }, { status });
 }

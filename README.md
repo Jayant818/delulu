@@ -1,6 +1,6 @@
 # Delulu
 
-A private AI that helps a young woman make her own decisions. She types a decision and gets three honest views on one screen: **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She picks one, and Delulu checks back in 30 days. Chat remembers past chats and past decisions.
+**Tell her anything; she helps you decide.** Delulu is a private AI companion for young women. The home screen is a chat: she talks about anything, and Delulu remembers her (setup answers, past chats, past decisions). When she is weighing a choice, Delulu pulls it out of the conversation ("Sounds like a decision: … See 3 views?") into the **Decide** screen: three honest views side by side, **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She picks one, and Delulu checks back in 30 days. Every answer runs sealed on 0G Private Computer with a visible request ID.
 
 The name is one constant: `src/config.ts` → `APP_NAME`. Storage keys and the signed key message do not use it, so a rename keeps existing memory readable.
 
@@ -18,15 +18,16 @@ Use port **3000** (or 3001 / 5173). The Privy app ID that 0G shares for the iAI 
 
 | Command | What it checks |
 |---|---|
-| `npm test` | memory crypto (same wallet → same key, other wallet cannot decrypt, no plaintext in ciphertext), 0G `x_0g_trace` parsing, "a configured 0G key never silently becomes mock" |
+| `npm test` | memory crypto (same wallet → same key, other wallet cannot decrypt, no plaintext in ciphertext), rename-safe key, 0G `x_0g_trace` parsing, "a configured 0G key never silently becomes mock", chat reply / decision parsing (JSON, fenced JSON, prose fallback) |
 | `npm run build` | production build |
-| `node scripts/e2e.cjs <playwright-core> <dir>` | full flow in a headless browser: login → onboarding → 3 views → pick → reload → chat → delete everything (12 checks, screenshots) |
+| `node scripts/e2e.cjs <playwright-core> <dir>` | full flow in a headless browser: login → onboarding → chat → decision card → Decide pre-filled → 3 views → pick → reload → card shows the outcome → small talk makes no card → delete everything (15 checks, screenshots) |
 
 ## Real vs stubbed (2026-11-06)
 
 | Part | Status |
 |---|---|
-| Screens 1-4 (onboarding, chat, decide, settings) | **Real**, tested end to end in a browser |
+| Screens (onboarding, Talk = home chat, Decide, Settings) | **Real**, tested end to end in a browser |
+| Decision detection in chat | **Real code; with MOCK it uses a keyword stand-in.** With a model, the chat call runs in JSON mode and returns `{reply, decision}`; a tolerant parser falls back to plain text. Quality of detection on `0gm-1.0` is **untested until the key arrives.** |
 | 0G inference (`src/lib/ai/provider.ts`) | **Real code, not yet run with a key.** Endpoint and error shape checked live (401 with a fake key). Needs `ZG_API_KEY`. |
 | Request ID chip on every AI answer | **Real** (`x_0g_trace.request_id`, `tee_verified`, provider, cost). Shows `MOCK` / `FALLBACK` when not on 0G. |
 | Fallback to an OpenAI-compatible endpoint | **Real**, only when `OPENAI_COMPAT_*` is set. The chip then says `FALLBACK` and the tooltip shows the 0G error. |
@@ -45,29 +46,29 @@ Use port **3000** (or 3001 / 5173). The Privy app ID that 0G shares for the iAI 
 - **TEE check** ([Verifiable Execution](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/router/features/verifiable-execution)): `verify_tee: true` adds `x_0g_trace.tee_verified`.
 - **Models** (live `GET https://router-api.0g.ai/v1/models`, no auth): 86 models. TeeML (private-capable): `0gm-1.0-35b-a3b` (the only chat model), `whisper-large-v3`, two embedding models, and two "decision" models (`laya`, `vela-2.0-9b`). This app uses `0gm-1.0-35b-a3b` with thinking off.
 
-## Demo script (about 80 s, one real decision)
+## Demo script (about 85 s, chat first)
 
-Decision used all the way through: **"Do I take the design job in Bangalore, or stay in Jaipur near my parents?"** Swap in a real one from a friend if she agrees; keep it one sentence.
+One thread all the way through: she starts talking, and a decision comes out of it: **"take the design job in Bangalore, or stay in Jaipur near my parents?"** Swap in a real one from a friend if she agrees.
 
 | Time | Screen | Do | Say |
 |---|---|---|---|
-| 0:00 | Login | Show the title | "Every girl I know has asked an AI about a decision she would never say out loud. This is Delulu: the app with the delulu name that gives the sane answer, and nobody else can read it." |
-| 0:08 | Login | Continue with Google | "Google login. It makes a wallet in the background: no seed phrase. One signature makes the key that encrypts her memory on her own phone." |
-| 0:18 | Onboarding | Show 2 of the 5 answers (pre-typed), tap through | "Five questions: her goals, her values, who she trusts, what she fears, and the big decision." |
-| 0:28 | Decide | The decision is already filled in. Tap **Hear all three** | "Three voices at once: Delulu, the sane one; Future You at 30; and Your Bestie." |
-| 0:40 | Decide | Zoom on one chip: `0G · req … · TEE ✓` | "Each voice is its own request on 0G Private Computer. The model runs inside a hardware enclave, and the TEE check is the 0G router verifying the enclave's signature. Here is the request ID." |
-| 0:52 | Decide | Tap **I'll go with this** on Future You at 30 | "She picks. Delulu saves it and checks back in 30 days." (show "Check back on …") |
-| 0:58 | Chat | Type "ok but how do I tell my parents" | "Chat remembers her answers and the decision she just made." (untested with the real model: rehearse this line) |
-| 1:08 | Decide | Point at the 🔒 line | "Without 0G, the AI company running the model could read every decision she types. With 0G, not even 0G can." |
-| 1:15 | Settings | Tap **Delete everything** | "One tap and it is gone. Delulu: delusional name, sane answers, sealed by 0G." |
+| 0:00 | Login | Show the title | "Every girl I know tells an AI things she would never say out loud. Delulu: the app with the delulu name that gives the sane answer, and nobody else can read it." |
+| 0:08 | Login | Continue with Google | "Google login makes a wallet in the background: no seed phrase. One signature makes the key that encrypts her memory on her own phone." |
+| 0:16 | Onboarding | Show 2 of the 5 answers (pre-typed), tap through | "Five questions so Delulu knows her: goals, values, who she trusts, what she fears, the big thing on her mind." |
+| 0:24 | Talk | Type: "ugh, parents want me home but the Bangalore offer pays 2x. should I take it or stay in Jaipur?" | "She can tell Delulu anything. It remembers her, and it notices when she is actually stuck on a choice." |
+| 0:36 | Talk | Point at the reply's chip, then at **Sounds like a decision… See 3 views** | "Every reply is a sealed request on 0G Private Computer: here is the request ID and the TEE check. And Delulu pulled the decision out of the chat." |
+| 0:46 | Decide | Tap the card → **Hear all three** | "Three voices on one screen: Delulu, the sane one; Future You at 30; Your Bestie. Three separate 0G requests." |
+| 1:00 | Decide | Tap **I'll go with this** on Future You at 30 | "She picks. Delulu saves it and checks back in 30 days." (show "Check back on …") |
+| 1:08 | Talk | Back to chat: the card now says "Decided: went with Future You at 30". Point at the 🔒 line | "Without 0G, the AI company running the model could read everything she types. With 0G, not even 0G can." |
+| 1:18 | Settings | Tap **Delete everything** | "One tap and it is gone. Delulu: delusional name, sane answers, sealed by 0G." |
 
-Before recording: `ZG_API_KEY` set with trust mode Private, run on `localhost:3000`, send one warm-up request (the first enclave call can be slow), and confirm every chip says `0G` and `TEE ✓`, not `MOCK` or `FALLBACK`. Record a backup take.
+Before recording: `ZG_API_KEY` set with trust mode Private, run on `localhost:3000`, send one warm-up request (the first enclave call can be slow), and confirm every chip says `0G` and `TEE ✓`, not `MOCK` or `FALLBACK`. **Rehearse the 0:24 message with the real model** and check that it returns the decision card; reword the message if it does not. Record a backup take.
 
 ## What breaks if 0G is removed (draft for the submission)
 
-Without 0G, every private decision she types is readable by whichever AI company runs the model; with 0G Private Computer, Delulu's three voices run sealed inside a hardware enclave, and every answer shows its 0G request ID and a verified-TEE flag.
+Without 0G, everything she tells Delulu (and every decision she weighs) is readable by whichever AI company runs the model; with 0G Private Computer, every chat reply and all three voices run sealed inside a hardware enclave, and every answer shows its 0G request ID and a verified-TEE flag.
 
-The same line is on the Decide screen (`src/components/PrivacyLine.tsx`). It says "Right now: MOCK / FALLBACK" when the server is not on 0G private mode, so the screen never claims more than is true.
+The same line is on screen: compact under the Talk header, full under the Decide button (`src/components/PrivacyLine.tsx`). It says "Right now: MOCK / FALLBACK" when the server is not on 0G private mode, so the screen never claims more than is true.
 
 Honest scope: the app's own Next.js server sees the decrypted context while it forwards a request (in memory, never stored). On localhost that server is her own machine.
 
@@ -76,12 +77,13 @@ Honest scope: the app's own Next.js server sees the decrypted context while it f
 ```
 src/config.ts               APP_NAME
 src/lib/ai/provider.ts      complete(): 0G → OpenAI-compatible fallback → mock (mock only if nothing is configured)
-src/lib/persona.ts          onboarding questions, the three voices, system prompts (incl. safety + India helplines)
+src/lib/persona.ts          onboarding questions, the three voices, system prompts (incl. safety + India helplines),
+                            chat JSON contract {reply, decision} + parseChatReply()
 src/lib/vault.ts            HKDF → AES-GCM seal/unseal
 src/lib/session.tsx         Privy embedded wallet, or DEV wallet
 src/lib/memory.tsx          unlock on login, encrypted read/write, delete everything
 src/app/api/{chat,decide,status}  server routes (input clipped and validated, no storage)
-src/app/{onboarding,chat,settings}/page.tsx, src/app/page.tsx (Decide)
+src/app/page.tsx (Talk: home chat + decision card), src/app/{decide,onboarding,settings}/page.tsx
 ```
 
 ## Before a public deploy

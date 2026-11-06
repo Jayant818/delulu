@@ -8,7 +8,7 @@ import { useSession } from "@/lib/session";
 import { deriveKey, KEY_MESSAGE, seal, unseal, type Sealed } from "@/lib/vault";
 
 export type AiMeta = Omit<AiResult, "text">;
-export type ChatEntry = { role: "user" | "assistant"; content: string; at: string; ai?: AiMeta };
+export type ChatEntry = { role: "user" | "assistant"; content: string; at: string; ai?: AiMeta; decision?: string };
 export type Decision = {
   id: string;
   question: string;

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { complete, type ChatMessage } from "@/lib/ai/provider";
-import { chatSystemPrompt } from "@/lib/persona";
-import { fail, readDecisions, readProfile, str } from "../_shared";
+import { complete } from "@/lib/ai/provider";
+import { chatSystemPrompt, parseChatReply } from "@/lib/persona";
+import { fail, readDecisions, readHistory, readProfile, str } from "../_shared";
 
+// Free chat. The model answers in JSON: a reply plus an optional one-line decision pulled out of what she said.
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const profile = readProfile(body?.profile);
@@ -10,18 +11,17 @@ export async function POST(req: Request) {
   if (!profile) return fail(400, "profile missing: finish onboarding first");
   if (!message) return fail(400, "message is empty");
 
-  const history: ChatMessage[] = (Array.isArray(body?.history) ? body.history : [])
-    .slice(-20)
-    .filter((m: { role?: string }) => m?.role === "user" || m?.role === "assistant")
-    .map((m: { role: "user" | "assistant"; content: unknown }) => ({ role: m.role, content: str(m.content, 2000) }));
-
   try {
-    const r = await complete([
-      { role: "system", content: chatSystemPrompt(profile, readDecisions(body?.decisions)) },
-      ...history,
-      { role: "user", content: message },
-    ]);
-    return NextResponse.json(r);
+    const r = await complete(
+      [
+        { role: "system", content: chatSystemPrompt(profile, readDecisions(body?.decisions)) },
+        ...readHistory(body?.history, 20),
+        { role: "user", content: message },
+      ],
+      { json: true },
+    );
+    const { reply, decision } = parseChatReply(r.text);
+    return NextResponse.json({ ...r, text: reply, decision });
   } catch (e) {
     return fail(502, (e as Error).message);
   }

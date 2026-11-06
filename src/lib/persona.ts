@@ -64,18 +64,48 @@ function pastDecisionsBlock(ds: DecisionSummary[]): string {
   );
 }
 
+export type ChatLine = { role: "user" | "assistant"; content: string };
+
+function recentChatBlock(lines: ChatLine[]): string {
+  if (!lines.length) return "RECENT CHAT: none yet.";
+  return "RECENT CHAT (oldest first):\n" + lines.slice(-10).map((l) => `- ${l.role === "user" ? "Her" : APP_NAME}: ${clip(l.content, 300)}`).join("\n");
+}
+
+// Chat replies are JSON so a decision hidden in free talk can be pulled out into the 3-voice Decide screen.
 export function chatSystemPrompt(p: Profile, ds: DecisionSummary[]): string {
   return `VOICE: ${VIEWS.sane.voice}
-You are ${APP_NAME}, a private AI companion that helps a young woman think through decisions. The joke is the name: ${APP_NAME} gives the sane answer. Playful Gen Z tone (light slang, at most one emoji), grounded advice. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
+You are ${APP_NAME}, a private AI companion. She can tell you anything: her day, her feelings, her plans, her drama. You listen, remember, and help her think. The joke is the name: ${APP_NAME} gives the sane answer. Playful Gen Z tone (light slang, at most one emoji), grounded advice. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
 
 ${profileBlock(p)}
 
 ${pastDecisionsBlock(ds)}
 
-${SAFETY}`;
+${SAFETY}
+
+OUTPUT FORMAT: answer with ONE JSON object and nothing else:
+{"reply": "<your message to her>", "decision": <null or "<one line, max 15 words: the choice she is weighing, e.g. Take the Bangalore job or stay in Jaipur>">}
+Set "decision" only when her LATEST message shows a real choice she has to make (two or more options, or yes/no on something that matters). Small talk, venting with no choice, or a decision she already made: null.`;
 }
 
-export function viewSystemPrompt(view: ViewId, p: Profile, ds: DecisionSummary[]): string {
+// Tolerant parser: plain JSON, JSON inside a code fence, or prose with a JSON object in it.
+// Anything unparseable becomes a plain reply with no decision, so chat never breaks on a format slip.
+export function parseChatReply(raw: string): { reply: string; decision: string | null } {
+  const text = String(raw ?? "").trim();
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start >= 0 && end > start) {
+    try {
+      const o = JSON.parse(text.slice(start, end + 1));
+      if (o && typeof o.reply === "string" && o.reply.trim()) {
+        const d = typeof o.decision === "string" ? o.decision.trim().slice(0, 160) : "";
+        return { reply: o.reply.trim(), decision: d || null };
+      }
+    } catch {}
+  }
+  return { reply: text, decision: null };
+}
+
+export function viewSystemPrompt(view: ViewId, p: Profile, ds: DecisionSummary[], chat: ChatLine[] = []): string {
   const v = VIEWS[view];
   return `VOICE: ${v.voice}
 You are one of three voices that help her with a decision. You are ${v.voice}. ${v.style}
@@ -84,6 +114,8 @@ Answer in under 110 words. End with one short line that starts with "My call:".
 ${profileBlock(p)}
 
 ${pastDecisionsBlock(ds)}
+
+${recentChatBlock(chat)}
 
 ${SAFETY}`;
 }

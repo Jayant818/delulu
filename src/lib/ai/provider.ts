@@ -49,7 +49,8 @@ export function parse0g(data: any, model: string): AiResult {
   };
 }
 
-type Opts = { maxTokens?: number; temperature?: number };
+type Opts = { maxTokens?: number; temperature?: number; json?: boolean };
+const jsonMode = (o: Opts) => (o.json ? { response_format: { type: "json_object" } } : {});
 
 async function postJson(url: string, headers: Record<string, string>, body: unknown) {
   const res = await fetch(url, {
@@ -73,6 +74,7 @@ async function call0g(messages: ChatMessage[], o: Opts): Promise<AiResult> {
       max_tokens: o.maxTokens ?? 700,
       temperature: o.temperature ?? 0.8,
       verify_tee: true, // Router checks the provider's TEE signature; result lands in x_0g_trace.tee_verified
+      ...jsonMode(o), // 0gm-1.0 lists response_format in supported_parameters (/v1/models, 2026-11-06)
       chat_template_kwargs: { enable_thinking: false }, // 0gm thinks by default; off = faster, cheaper replies
     },
   );
@@ -84,7 +86,7 @@ async function callOpenAI(messages: ChatMessage[], o: Opts): Promise<AiResult> {
   const data = await postJson(
     `${env("OPENAI_COMPAT_BASE_URL")!.replace(/\/$/, "")}/chat/completions`,
     { Authorization: `Bearer ${env("OPENAI_COMPAT_API_KEY")}` },
-    { model, messages, max_tokens: o.maxTokens ?? 700, temperature: o.temperature ?? 0.8 },
+    { model, messages, max_tokens: o.maxTokens ?? 700, temperature: o.temperature ?? 0.8, ...jsonMode(o) },
   );
   return {
     text: stripThinking(data?.choices?.[0]?.message?.content ?? ""),
@@ -97,11 +99,14 @@ async function callOpenAI(messages: ChatMessage[], o: Opts): Promise<AiResult> {
   };
 }
 
-async function callMock(messages: ChatMessage[]): Promise<AiResult> {
+async function callMock(messages: ChatMessage[], o: Opts): Promise<AiResult> {
   const last = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
   const voice = messages[0]?.content.match(/^VOICE: (.+)$/m)?.[1] ?? "the app";
+  const reply = `[MOCK, no model configured] ${voice} would answer here. You said: "${last.slice(0, 140)}"`;
+  // Crude stand-in for the model's decision flag, so the decision card can be demoed without a key.
+  const decision = /\b(should i|or not|decide|choose|whether)\b|\?.*\bor\b|\bor\b.*\?/i.test(last) ? last.slice(0, 100) : null;
   return {
-    text: `[MOCK, no model configured] ${voice} would answer here. You said: "${last.slice(0, 140)}"`,
+    text: o.json ? JSON.stringify({ reply, decision }) : reply,
     backend: "mock",
     model: "mock",
     requestId: `mock-${crypto.randomUUID()}`,

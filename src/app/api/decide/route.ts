@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { complete } from "@/lib/ai/provider";
 import { viewSystemPrompt } from "@/lib/persona";
-import { fail, isView, readDecisions, readProfile, str } from "../_shared";
+import { fail, isView, readDecisions, readHistory, readProfile, str } from "../_shared";
 
 // One view per request. The client asks for all three in parallel, so each view gets its own 0G request ID.
 export async function POST(req: Request) {
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   try {
     const r = await complete(
       [
-        { role: "system", content: viewSystemPrompt(body.view, profile, readDecisions(body?.decisions)) },
+        { role: "system", content: viewSystemPrompt(body.view, profile, readDecisions(body?.decisions), readHistory(body?.history, 10)) },
         { role: "user", content: `The decision I am facing: ${question}` },
       ],
       { maxTokens: 400 },

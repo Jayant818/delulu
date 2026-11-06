@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { privateKeyToAccount } from "viem/accounts";
 import { APP_NAME } from "../config";
 import { complete, configuredBackends, parse0g } from "./ai/provider";
+import { parseChatReply } from "./persona";
 import { deriveKey, KEY_MESSAGE, seal, unseal } from "./vault";
 
 const alice = privateKeyToAccount("0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d");
@@ -60,4 +61,16 @@ test("no keys configured -> mock only; a configured 0G key never silently become
   assert.deepEqual(configuredBackends(), ["0g"]);
   await assert.rejects(complete([{ role: "user", content: "hi" }]));
   delete process.env.ZG_API_KEY;
+});
+
+test("parseChatReply pulls a decision out of the model's JSON, and never breaks chat on a format slip", () => {
+  assert.deepEqual(parseChatReply('{"reply":"ok bestie","decision":"Take the Bangalore job or stay in Jaipur"}'), {
+    reply: "ok bestie",
+    decision: "Take the Bangalore job or stay in Jaipur",
+  });
+  assert.deepEqual(parseChatReply('```json\n{"reply":"hey","decision":null}\n```'), { reply: "hey", decision: null });
+  assert.deepEqual(parseChatReply('{"reply":"hey","decision":"   "}'), { reply: "hey", decision: null });
+  assert.deepEqual(parseChatReply("just prose, no json"), { reply: "just prose, no json", decision: null });
+  assert.deepEqual(parseChatReply('{"decision":"x"}'), { reply: '{"decision":"x"}', decision: null }, "no reply field -> show raw text");
+  assert.equal(parseChatReply(JSON.stringify({ reply: "a", decision: "d".repeat(500) })).decision?.length, 160);
 });
