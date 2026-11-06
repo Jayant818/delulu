@@ -7,9 +7,10 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 
-type Photo = { src: string; label: string; alt: string };
+type Photo = { src: string; label: string; alt: string; focus?: string };
 type Spread = {
   key: string;
+  tab: string;
   left: { date: string; title: string; photos: Photo[]; note: string };
   right: { date: string; delulu: string; sasha: string; foot: string };
 };
@@ -18,75 +19,83 @@ const W = "/visuals-west";
 const SPREADS: Spread[] = [
   {
     key: "hair",
+    tab: "Hair",
     left: {
       date: "Friday, 9:10 am",
       title: "The brief for her stylist",
       photos: [
         { src: `${W}/hair-base-west.jpg`, label: "before", alt: "Sasha before: long straight hair" },
-        { src: `${W}/hair-west-curtain-bangs.jpg`, label: "after · AI preview", alt: "Sasha with curtain bangs, an AI preview" },
+        { src: `${W}/hair-west-curtain-bangs.jpg`, label: "AI preview", alt: "Sasha with curtain bangs, an AI preview" },
       ],
       note: "Soft curtain bangs from the cheekbone. Keep the length. Warm honey tone. No blunt cut.",
     },
     right: {
       date: "Saturday, 10:14 am",
-      delulu: "so... how did the date go? And the bangs?",
+      delulu: "So... how did the date go? And the bangs?",
       sasha: "he said they suit me. I said I know.",
       foot: "It remembers what you chose, and asks how it went.",
     },
   },
   {
     key: "nails",
+    tab: "Nails",
     left: {
       date: "Wednesday, 6:30 pm",
       title: "The brief for her nail artist",
       photos: [
-        { src: `${W}/nails-base-west.jpg`, label: "before", alt: "Sasha's hand before: bare nails" },
-        { src: `${W}/nails-west-chrome.jpg`, label: "after · AI preview", alt: "Sasha's hand with glazed chrome nails, an AI preview" },
+        { src: `${W}/nails-base-west.jpg`, label: "before", alt: "Sasha's hand before: bare nails", focus: "object-[58%_42%] scale-[1.6]" },
+        { src: `${W}/nails-west-coral.jpg`, label: "AI preview", alt: "Sasha's hand with glossy coral nails, an AI preview", focus: "object-[58%_42%] scale-[1.6]" },
       ],
-      note: "Glazed chrome, short almond. Sheer pearl base, high shine. No glitter.",
+      note: "Coral gloss, short almond. Two coats, high shine. No glitter.",
     },
     right: {
       date: "Thursday, 8:02 pm",
-      delulu: "how are the nails holding up? Chipped yet?",
+      delulu: "How are the nails holding up? Chipped yet?",
       sasha: "not one chip. everyone asked where I got them.",
       foot: "See a nail look on your own hand before the salon.",
     },
   },
   {
     key: "color",
+    tab: "Hair color",
     left: {
       date: "Sunday, 4:15 pm",
       title: "Which color looks good on her?",
       photos: [
-        { src: `${W}/hair-color-copper.jpg`, label: "copper", alt: "Sasha with copper red hair, an AI preview" },
-        { src: `${W}/hair-color-honey.jpg`, label: "honey", alt: "Sasha with honey blonde hair, an AI preview" },
-        { src: `${W}/hair-color-brunette.jpg`, label: "brunette", alt: "Sasha with dark brown hair, an AI preview" },
+        { src: `${W}/hair-color-copper.jpg`, label: "AI · copper", alt: "Sasha with copper red hair, an AI preview" },
+        { src: `${W}/hair-color-honey.jpg`, label: "AI · honey", alt: "Sasha with honey blonde hair, an AI preview" },
+        { src: `${W}/hair-color-brunette.jpg`, label: "AI · brown", alt: "Sasha with dark brown hair, an AI preview" },
       ],
-      note: "Three AI previews on her own photo. Same cut, only the color changes.",
+      note: "Delulu's pick: honey. It looks the most like her, just brighter.",
     },
     right: {
-      date: "Sunday, 4:16 pm",
-      delulu: "Honey. It looks the most like you, just brighter. Copper is fun for summer.",
-      sasha: "honey it is. telling my colorist tomorrow.",
-      foot: "Try a color on your own photo. You pick.",
+      date: "Tuesday, 7:40 pm",
+      delulu: "Did you tell your colorist? How's the honey?",
+      sasha: "she said it's my color. I'm keeping it.",
+      foot: "See three colors on your own photo before you dye.",
     },
   },
 ];
 const N = SPREADS.length;
 
 const PAPER =
-  "bg-l-card bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_31px,rgba(20,33,61,0.08)_31px,rgba(20,33,61,0.08)_32px)]";
+  "bg-l-card bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_31px,rgba(20,33,61,0.06)_31px,rgba(20,33,61,0.06)_32px)]";
 
-function DateLine({ children }: { children: ReactNode }) {
-  return <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-l-muted">{children}</p>;
+/** The page header: an unruled top margin with the date (and a title), like the top of a real diary page. */
+function Header({ date, title }: { date: string; title?: string }) {
+  return (
+    <div className="-mx-6 -mt-6 flex flex-col gap-2 border-b border-l-ink/15 bg-l-card px-6 pb-3 pt-6 md:-mx-9 md:px-9">
+      <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-l-muted">{date}</p>
+      {title && <p className="text-[16px] font-semibold">{title}</p>}
+    </div>
+  );
 }
 
-function LeftPage({ s }: { s: Spread }) {
+function LeftPage({ s, fill = true }: { s: Spread; fill?: boolean }) {
   const three = s.left.photos.length === 3;
   return (
-    <div className="flex h-full flex-col gap-4 px-6 pb-8 pt-6 md:min-h-[470px] md:px-9">
-      <DateLine>{s.left.date}</DateLine>
-      <p className="text-[15px] font-semibold">{s.left.title}</p>
+    <div className={`flex flex-col gap-4 px-6 pb-8 pt-6 md:min-h-[440px] md:px-9 ${fill ? "h-full" : ""}`}>
+      <Header date={s.left.date} title={s.left.title} />
       <div className={`flex items-start pl-1 ${three ? "gap-2" : "gap-1"}`}>
         {s.left.photos.map((ph, i) => (
           <figure
@@ -96,7 +105,7 @@ function LeftPage({ s }: { s: Spread }) {
             }`}
           >
             <div className="relative aspect-square overflow-hidden">
-              <Image src={ph.src} alt={ph.alt} fill sizes="(min-width: 768px) 190px, 42vw" className="scale-[1.45] object-cover object-[50%_18%]" />
+              <Image src={ph.src} alt={ph.alt} fill sizes="(min-width: 768px) 190px, 42vw" className={`object-cover ${ph.focus ?? "scale-[1.45] object-[50%_18%]"}`} />
             </div>
             <figcaption className="py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-l-muted">{ph.label}</figcaption>
           </figure>
@@ -107,13 +116,13 @@ function LeftPage({ s }: { s: Spread }) {
   );
 }
 
-function RightPage({ s }: { s: Spread }) {
+function RightPage({ s, fill = true }: { s: Spread; fill?: boolean }) {
   return (
-    <div className="flex h-full flex-col gap-5 px-6 pb-8 pt-6 md:min-h-[470px] md:px-9">
-      <DateLine>{s.right.date}</DateLine>
+    <div className={`flex flex-col gap-5 px-6 pb-8 pt-6 md:min-h-[440px] md:px-9 ${fill ? "h-full" : ""}`}>
+      <Header date={s.right.date} />
       <p className="max-w-[360px] font-serif text-[22px] leading-[1.3] md:text-[24px]">{s.right.delulu}</p>
       <p className="max-w-[320px] self-end rounded-[20px] rounded-br-[6px] bg-l-sasha px-4 py-3 text-[17px] leading-snug">{s.right.sasha}</p>
-      <p className="max-w-[360px] pt-1 text-[16px] leading-[1.55] text-l-body">{s.right.foot}</p>
+      <p className="mt-auto max-w-[360px] pt-1 text-[16px] leading-[1.55] text-l-body">{s.right.foot}</p>
     </div>
   );
 }
@@ -121,10 +130,9 @@ function RightPage({ s }: { s: Spread }) {
 /** Phones: one tall page per spread, the left page's content above the right page's. */
 function Stack({ s }: { s: Spread }) {
   return (
-    // one height for every spread, so the arrows don't move when the page turns
-    <div className={`${PAPER} min-h-[600px] rounded-[10px]`}>
-      <LeftPage s={s} />
-      <div className="border-t border-l-line">
+    <div className={`${PAPER} flex h-full flex-col rounded-[10px]`}>
+      <LeftPage s={s} fill={false} />
+      <div className="flex flex-1 flex-col border-t border-l-line">
         <RightPage s={s} />
       </div>
     </div>
@@ -144,7 +152,7 @@ function useMedia(q: string, server: boolean) {
   );
 }
 
-type Turn = { to: number; dir: 1 | -1; go: boolean };
+type Turn = { to: number; dir: 1 | -1; go: boolean; half: boolean };
 const TURN_MS = 900;
 const AUTO_MS = 7000;
 
@@ -161,8 +169,9 @@ export function DiaryBook() {
   const flipTo = useCallback(
     (to: number, dir: 1 | -1) => {
       if (turn || to === at || to < 0 || to >= N) return;
-      setTurn({ to, dir, go: false });
+      setTurn({ to, dir, go: false, half: false });
       requestAnimationFrame(() => requestAnimationFrame(() => setTurn((t) => (t ? { ...t, go: true } : t))));
+      window.setTimeout(() => setTurn((t) => (t ? { ...t, half: true } : t)), (still ? 320 : TURN_MS) / 2);
       window.setTimeout(() => {
         setAt(to);
         setTurn(null);
@@ -192,6 +201,7 @@ export function DiaryBook() {
   }, [touched, inView, turn, next]);
 
   const cur = SPREADS[at];
+  const shown = turn?.half ? turn.to : at; // the tab that matches what you see
   const tgt = turn ? SPREADS[turn.to] : cur;
   const fwd = turn?.dir === 1;
   const angle = (start: number, end: number) => (turn?.go ? end : start);
@@ -200,14 +210,24 @@ export function DiaryBook() {
     transformOrigin: origin,
     transition: turn?.go ? `transform ${TURN_MS}ms cubic-bezier(0.33, 0.05, 0.2, 1)` : "none",
   });
-  // shade on the turning page: darkest mid-turn, like light falling across a lifted page
+  // Light across the turning page: the front darkens as it lifts away; the back arrives dark and clears as it lands.
   const shade = (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(20,33,61,0.18),transparent_60%)]"
-      style={{ opacity: turn?.go ? 0.9 : 0, transition: turn?.go ? `opacity ${TURN_MS / 2}ms ease-in` : "none" }}
+      className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(20,33,61,0.30),rgba(20,33,61,0.06)_70%)]"
+      style={{ opacity: turn?.go ? 1 : 0, transition: turn?.go ? `opacity ${TURN_MS * 0.55}ms ease-in` : "none" }}
     />
   );
+  const backShade = (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_left,rgba(20,33,61,0.28),transparent_70%)]"
+      style={{ opacity: turn?.half ? 0 : 1, transition: `opacity ${TURN_MS / 2}ms ease-out` }}
+    />
+  );
+  // the spine shadow stays on both sides of the fold during the turn
+  const SPINE_L = "shadow-[inset_-28px_0_30px_-26px_rgba(20,33,61,0.28)]";
+  const SPINE_R = "shadow-[inset_28px_0_30px_-26px_rgba(20,33,61,0.28)]";
   const face = "absolute inset-0 overflow-hidden [backface-visibility:hidden]";
 
   let pages: ReactNode;
@@ -233,12 +253,13 @@ export function DiaryBook() {
           <LeftPage s={turn ? baseLeft : cur} />
           {turn && !fwd && (
             <div className="absolute inset-0 z-10 [transform-style:preserve-3d]" style={leafStyle(angle(0, 180), "right center")}>
-              <div className={`${face} ${PAPER} rounded-l-[10px]`}>
+              <div className={`${face} ${PAPER} ${SPINE_L} rounded-l-[10px]`}>
                 <LeftPage s={cur} />
                 {shade}
               </div>
-              <div className={`${face} ${PAPER} rounded-r-[10px] [transform:rotateY(180deg)]`}>
+              <div className={`${face} ${PAPER} ${SPINE_R} rounded-r-[10px] [transform:rotateY(180deg)]`}>
                 <RightPage s={tgt} />
+                {backShade}
               </div>
             </div>
           )}
@@ -247,12 +268,13 @@ export function DiaryBook() {
           <RightPage s={turn ? baseRight : cur} />
           {turn && fwd && (
             <div className="absolute inset-0 z-10 [transform-style:preserve-3d]" style={leafStyle(angle(0, -180), "left center")}>
-              <div className={`${face} ${PAPER} rounded-r-[10px]`}>
+              <div className={`${face} ${PAPER} ${SPINE_R} rounded-r-[10px]`}>
                 <RightPage s={cur} />
                 {shade}
               </div>
-              <div className={`${face} ${PAPER} rounded-l-[10px] [transform:rotateY(180deg)]`}>
+              <div className={`${face} ${PAPER} ${SPINE_L} rounded-l-[10px] [transform:rotateY(180deg)]`}>
                 <LeftPage s={tgt} />
+                {backShade}
               </div>
             </div>
           )}
@@ -262,7 +284,14 @@ export function DiaryBook() {
   } else {
     // phones: one page per spread (left content above right); the whole page turns over at the left edge
     pages = (
-      <div className="grid [perspective:1600px]">
+      <div className="grid overflow-hidden rounded-[10px] [perspective:1600px]">
+        {/* All three pages sit invisibly in the same cell, so the card is always as tall as the tallest page:
+            the arrows never move and nothing below jumps when a page turns. */}
+        {SPREADS.map((s) => (
+          <div key={s.key} aria-hidden="true" className="invisible [grid-area:1/1]">
+            <Stack s={s} />
+          </div>
+        ))}
         <div className="[grid-area:1/1]">
           <Stack s={turn && fwd ? tgt : cur} />
         </div>
@@ -311,28 +340,28 @@ export function DiaryBook() {
           {`Page ${at + 1} of ${N}: ${cur.left.title}`}
         </span>
       </div>
-      <div className="flex items-center justify-between gap-4">
-        <button onClick={user(prev)} className="grid h-11 w-11 place-items-center rounded-full border border-l-ink/30 text-l-ink" aria-label="Previous page">
+      <div className="flex items-center justify-between gap-3">
+        <button onClick={user(prev)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-l-ink text-l-ink" aria-label="Previous page">
           ←
         </button>
-        <div className="flex items-center gap-3" role="tablist" aria-label="Diary pages">
-          {SPREADS.map((s, i) => (
-            <button
-              key={s.key}
-              role="tab"
-              aria-selected={i === at}
-              aria-label={`Page ${i + 1}: ${s.left.title}`}
-              onClick={user(() => flipTo(i, i > at ? 1 : -1))}
-              className="grid h-11 w-8 place-items-center"
-            >
-              <span className={`block h-2 rounded-full transition-all ${i === at ? "w-6 bg-l-ink" : "w-2 bg-l-ink/30"}`} />
-            </button>
-          ))}
-          <span className="font-mono text-[11px] text-l-muted">
-            {at + 1} / {N}
-          </span>
+        <div className="flex items-center gap-1 sm:gap-4" role="tablist" aria-label="Diary pages">
+          {SPREADS.map((s, i) => {
+            const on = i === shown;
+            return (
+              <button
+                key={s.key}
+                role="tab"
+                aria-selected={on}
+                aria-label={`Page ${i + 1} of ${N}: ${s.tab}`}
+                onClick={user(() => flipTo(i, i > at ? 1 : -1))}
+                className={`min-h-11 px-2 font-mono text-[12px] uppercase tracking-[0.12em] underline-offset-[6px] ${on ? "text-l-ink underline decoration-2" : "text-l-muted"}`}
+              >
+                {s.tab}
+              </button>
+            );
+          })}
         </div>
-        <button onClick={user(next)} className="grid h-11 w-11 place-items-center rounded-full border border-l-ink/30 text-l-ink" aria-label="Next page">
+        <button onClick={user(next)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-l-ink text-l-ink" aria-label="Next page">
           →
         </button>
       </div>
