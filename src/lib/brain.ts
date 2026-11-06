@@ -2,10 +2,12 @@
 // Every model call goes through complete() -> 0G Private Computer (private trust mode) first.
 import { complete, type AiResult } from "@/lib/ai/provider";
 import {
+  checkInPrompt,
   chatSystemPrompt,
   parseChatReply,
   viewSystemPrompt,
   type ChatLine,
+  type ChatReply,
   type DecisionSummary,
   type Profile,
   type ViewId,
@@ -16,13 +18,28 @@ export const VIEW_ORDER: ViewId[] = ["sane", "future", "bestie"];
 export type Context = { profile: Profile; decisions: DecisionSummary[]; history: ChatLine[] };
 
 /** One chat turn: a reply, plus a one-line decision when her message contains a real choice. */
-export async function chatTurn(ctx: Context, message: string): Promise<{ reply: string; decision: string | null; ai: AiResult }> {
+export async function chatTurn(ctx: Context, message: string, opts: { canRemind?: boolean } = {}): Promise<ChatReply & { ai: AiResult }> {
   const ai = await complete(
-    [{ role: "system", content: chatSystemPrompt(ctx.profile, ctx.decisions) }, ...ctx.history.slice(-20), { role: "user", content: message }],
+    [
+      { role: "system", content: chatSystemPrompt(ctx.profile, ctx.decisions, new Date(), opts.canRemind ?? true) },
+      ...ctx.history.slice(-20),
+      { role: "user", content: message },
+    ],
     { json: true },
   );
-  const { reply, decision } = parseChatReply(ai.text);
-  return { reply, decision, ai: { ...ai, text: reply } };
+  const parsed = parseChatReply(ai.text);
+  return { ...parsed, ai: { ...ai, text: parsed.reply } };
+}
+
+/** Daily check-in text (one 0G call). */
+export function checkInText(ctx: Context): Promise<AiResult> {
+  return complete(
+    [
+      { role: "system", content: checkInPrompt(ctx.profile, ctx.decisions, ctx.history.slice(-10)) },
+      { role: "user", content: "Write today's check-in." },
+    ],
+    { maxTokens: 120 },
+  );
 }
 
 /** One of the three voices on a decision. */

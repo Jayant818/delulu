@@ -14,6 +14,7 @@ export async function POST(req: Request) {
     const { decision, ai } = await chatTurn(
       { profile, decisions: readDecisions(body?.decisions), history: readHistory(body?.history, 20) },
       message,
+      { canRemind: false }, // the web app has no scheduler; reminders live in the Telegram bot
     );
     return NextResponse.json({ ...ai, decision });
   } catch (e) {

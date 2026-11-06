@@ -67,10 +67,21 @@ test("parseChatReply pulls a decision out of the model's JSON, and never breaks 
   assert.deepEqual(parseChatReply('{"reply":"ok bestie","decision":"Take the Bangalore job or stay in Jaipur"}'), {
     reply: "ok bestie",
     decision: "Take the Bangalore job or stay in Jaipur",
+    reminder: null,
   });
-  assert.deepEqual(parseChatReply('```json\n{"reply":"hey","decision":null}\n```'), { reply: "hey", decision: null });
-  assert.deepEqual(parseChatReply('{"reply":"hey","decision":"   "}'), { reply: "hey", decision: null });
-  assert.deepEqual(parseChatReply("just prose, no json"), { reply: "just prose, no json", decision: null });
-  assert.deepEqual(parseChatReply('{"decision":"x"}'), { reply: '{"decision":"x"}', decision: null }, "no reply field -> show raw text");
+  assert.deepEqual(parseChatReply('```json\n{"reply":"hey","decision":null}\n```'), { reply: "hey", decision: null, reminder: null });
+  assert.deepEqual(parseChatReply('{"reply":"hey","decision":"   "}'), { reply: "hey", decision: null, reminder: null });
+  assert.deepEqual(parseChatReply("just prose, no json"), { reply: "just prose, no json", decision: null, reminder: null });
+  assert.deepEqual(parseChatReply('{"decision":"x"}'), { reply: '{"decision":"x"}', decision: null, reminder: null }, "no reply field -> show raw text");
   assert.equal(parseChatReply(JSON.stringify({ reply: "a", decision: "d".repeat(500) })).decision?.length, 160);
+});
+
+test("reminders: accepted only with a parseable time in the next year", () => {
+  const now = Date.parse("2026-11-06T08:00:00Z");
+  const r = (reminder: unknown) => parseChatReply(JSON.stringify({ reply: "ok", decision: null, reminder }), now).reminder;
+  assert.deepEqual(r({ text: "call Riya", at: "2026-11-08T18:00:00+05:30" }), { text: "call Riya", at: "2026-11-08T12:30:00.000Z" });
+  assert.equal(r({ text: "call Riya", at: "2026-11-01T18:00:00+05:30" }), null, "past time");
+  assert.equal(r({ text: "call Riya", at: "next sunday" }), null, "unparseable");
+  assert.equal(r({ text: "", at: "2026-11-08T18:00:00+05:30" }), null, "empty text");
+  assert.equal(r({ text: "x", at: "2028-11-08T18:00:00+05:30" }), null, "more than a year out");
 });

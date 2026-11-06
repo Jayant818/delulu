@@ -4,14 +4,25 @@
 // - /forget deletes the file, so the wrapped key and the data go together (crypto-shredding)
 // Honest limit: whoever holds BOT_MASTER_KEY on this server can decrypt. "Nothing readable at rest", not "unreadable to us".
 import { createCipheriv, createDecipheriv, createHmac, randomBytes } from "node:crypto";
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Profile, ViewId } from "@/lib/persona";
+import type { Outcome, Profile, ViewId } from "@/lib/persona";
 import type { AiResult } from "@/lib/ai/provider";
 
 export type Proof = Omit<AiResult, "text"> & { at: string; kind: "chat" | "view" | "voice" };
-export type BotDecision = { id: string; question: string; choice: ViewId; at: string; checkInAt: string; views: Partial<Record<ViewId, string>> };
+export type BotDecision = {
+  id: string;
+  question: string;
+  choice: ViewId;
+  at: string;
+  checkInAt: string;
+  views: Partial<Record<ViewId, string>>;
+  outcome?: Outcome;
+};
+// Scheduled bot messages. Kept inside the encrypted record, so the schedule is as private as the memory.
+export type Job = { id: string; kind: "checkback" | "daily" | "reminder"; at: string; ref?: string; text?: string };
 export type BotUser = {
+  uid: number; // telegram user id = private chat id; needed to message her first (check-ins, reminders)
   profile: Profile | null;
   onboarding: { step: number; answers: Partial<Profile> } | null;
   chat: { role: "user" | "assistant"; content: string; at: string }[];
@@ -19,9 +30,22 @@ export type BotUser = {
   pending: Record<string, { question: string; views?: Partial<Record<ViewId, string>> }>;
   proofs: Proof[];
   usage: { day: string; count: number };
+  dailyAt: string | null; // "HH:MM" IST, or null = no daily check-in
+  jobs: Job[];
 };
 
-export const newUser = (): BotUser => ({ profile: null, onboarding: null, chat: [], decisions: [], pending: {}, proofs: [], usage: { day: "", count: 0 } });
+export const newUser = (uid = 0): BotUser => ({
+  uid,
+  profile: null,
+  onboarding: null,
+  chat: [],
+  decisions: [],
+  pending: {},
+  proofs: [],
+  usage: { day: "", count: 0 },
+  dailyAt: null,
+  jobs: [],
+});
 
 type Box = { iv: string; ct: string; tag: string };
 type FileV1 = { v: 1; wk: Box; d: Box };
@@ -78,6 +102,25 @@ export class BotStore {
     const tmp = `${target}.${process.pid}.tmp`;
     await writeFile(tmp, JSON.stringify(body), { mode: 0o600 });
     await rename(tmp, target); // atomic: a crash never leaves half a record
+  }
+
+  /** Every user id with a record. Decrypts each file: O(users), fine for a demo-sized bot. */
+  async userIds(): Promise<number[]> {
+    let names: string[];
+    try {
+      names = (await readdir(this.dir)).filter((n) => n.endsWith(".json"));
+    } catch {
+      return [];
+    }
+    const ids: number[] = [];
+    for (const n of names) {
+      try {
+        const f = JSON.parse(await readFile(path.join(this.dir, n), "utf8")) as FileV1;
+        const uid = JSON.parse(open(open(this.master, f.wk), f.d).toString("utf8")).uid;
+        if (typeof uid === "number" && uid) ids.push(uid);
+      } catch {}
+    }
+    return ids;
   }
 
   async forget(userId: number | string): Promise<void> {

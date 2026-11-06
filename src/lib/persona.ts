@@ -37,7 +37,9 @@ export const VIEWS: Record<ViewId, { title: string; voice: string; style: string
   },
 };
 
-export type DecisionSummary = { question: string; choice: ViewId; at: string };
+export type Outcome = "glad" | "mixed" | "regret";
+export type DecisionSummary = { question: string; choice: ViewId; at: string; outcome?: Outcome };
+const OUTCOME_TEXT: Record<Outcome, string> = { glad: "she is glad she did", mixed: "mixed feelings", regret: "she regrets it" };
 
 const SAFETY = `If she mentions self-harm, abuse, violence, or being in danger, stop giving advice. Tell her clearly that she deserves help now, and suggest a trusted adult or a helpline (in India: 112 for emergencies, Tele-MANAS 14416 for mental health support).
 Never pretend to be human. Never shame her. Never decide for her: help her decide.`;
@@ -59,7 +61,11 @@ function pastDecisionsBlock(ds: DecisionSummary[]): string {
     "PAST DECISIONS (most recent last):\n" +
     ds
       .slice(-15)
-      .map((d) => `- ${clip(d.at, 10)}: "${clip(d.question, 200)}" -> she went with ${VIEWS[d.choice]?.title ?? d.choice}`)
+      .map(
+        (d) =>
+          `- ${clip(d.at, 10)}: "${clip(d.question, 200)}" -> she went with ${VIEWS[d.choice]?.title ?? d.choice}` +
+          (d.outcome ? ` (30 days later: ${OUTCOME_TEXT[d.outcome] ?? d.outcome})` : ""),
+      )
       .join("\n")
   );
 }
@@ -72,7 +78,15 @@ function recentChatBlock(lines: ChatLine[]): string {
 }
 
 // Chat replies are JSON so a decision hidden in free talk can be pulled out into the 3-voice Decide screen.
-export function chatSystemPrompt(p: Profile, ds: DecisionSummary[]): string {
+// IST is the only timezone for now (Jayant's users); reminders are resolved against this clock.
+export function nowLineIST(now = new Date()): string {
+  const ist = new Date(+now + 330 * 60_000);
+  const wd = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][ist.getUTCDay()];
+  return `NOW: ${ist.toISOString().slice(0, 16).replace("T", " ")} IST (${wd}), UTC+05:30`;
+}
+
+// canRemind: only the Telegram bot has a scheduler. Elsewhere the model must not promise reminders.
+export function chatSystemPrompt(p: Profile, ds: DecisionSummary[], now = new Date(), canRemind = true): string {
   return `VOICE: ${VIEWS.sane.voice}
 You are ${APP_NAME}, a private AI companion. She can tell you anything: her day, her feelings, her plans, her drama. You listen, remember, and help her think. The joke is the name: ${APP_NAME} gives the sane answer. Playful Gen Z tone (light slang, at most one emoji), grounded advice. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
 
@@ -82,14 +96,34 @@ ${pastDecisionsBlock(ds)}
 
 ${SAFETY}
 
+${nowLineIST(now)}
+
 OUTPUT FORMAT: answer with ONE JSON object and nothing else:
-{"reply": "<your message to her>", "decision": <null or "<one line, max 15 words: the choice she is weighing, e.g. Take the Bangalore job or stay in Jaipur>">}
-Set "decision" only when her LATEST message shows a real choice she has to make (two or more options, or yes/no on something that matters). Small talk, venting with no choice, or a decision she already made: null.`;
+{"reply": "<your message to her>", "decision": <null or "<one line, max 15 words: the choice she is weighing, e.g. Take the Bangalore job or stay in Jaipur>">, "reminder": <null or {"text": "<what to remind her, max 12 words>", "at": "<ISO 8601 time with +05:30>"}>}
+Set "decision" only when her LATEST message shows a real choice she has to make (two or more options, or yes/no on something that matters). Small talk, venting with no choice, or a decision she already made: null.
+${
+    canRemind
+      ? `Set "reminder" only when her LATEST message asks you to remind her of something at a time you can work out from NOW. Otherwise null. If she asks for a reminder but the time is unclear, ask her when in "reply" and set "reminder" to null.`
+      : `Always set "reminder" to null: you cannot set reminders here. If she asks, tell her reminders work in the ${APP_NAME} Telegram bot.`
+  }`;
+}
+
+export type Reminder = { text: string; at: string };
+export type ChatReply = { reply: string; decision: string | null; reminder: Reminder | null };
+
+// A reminder is only accepted if its time parses and lies between now and one year from now.
+function readReminder(v: unknown, now: number): Reminder | null {
+  if (!v || typeof v !== "object") return null;
+  const r = v as { text?: unknown; at?: unknown };
+  const text = typeof r.text === "string" ? r.text.trim().slice(0, 120) : "";
+  const at = typeof r.at === "string" ? Date.parse(r.at) : NaN;
+  if (!text || !Number.isFinite(at) || at <= now || at > now + 366 * 86_400_000) return null;
+  return { text, at: new Date(at).toISOString() };
 }
 
 // Tolerant parser: plain JSON, JSON inside a code fence, or prose with a JSON object in it.
 // Anything unparseable becomes a plain reply with no decision, so chat never breaks on a format slip.
-export function parseChatReply(raw: string): { reply: string; decision: string | null } {
+export function parseChatReply(raw: string, now = Date.now()): ChatReply {
   const text = String(raw ?? "").trim();
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -98,11 +132,11 @@ export function parseChatReply(raw: string): { reply: string; decision: string |
       const o = JSON.parse(text.slice(start, end + 1));
       if (o && typeof o.reply === "string" && o.reply.trim()) {
         const d = typeof o.decision === "string" ? o.decision.trim().slice(0, 160) : "";
-        return { reply: o.reply.trim(), decision: d || null };
+        return { reply: o.reply.trim(), decision: d || null, reminder: readReminder(o.reminder, now) };
       }
     } catch {}
   }
-  return { reply: text, decision: null };
+  return { reply: text, decision: null, reminder: null };
 }
 
 export function viewSystemPrompt(view: ViewId, p: Profile, ds: DecisionSummary[], chat: ChatLine[] = []): string {
@@ -116,6 +150,22 @@ ${profileBlock(p)}
 ${pastDecisionsBlock(ds)}
 
 ${recentChatBlock(chat)}
+
+${SAFETY}`;
+}
+
+// Daily check-in: one short, warm, specific nudge. Never generic, never pushy.
+export function checkInPrompt(p: Profile, ds: DecisionSummary[], chat: ChatLine[] = [], now = new Date()): string {
+  return `VOICE: ${VIEWS.sane.voice}
+You are ${APP_NAME}. Write ONE short daily check-in message to her (max 40 words). Make it specific: refer to something from her recent chat, a decision she is living with, or one of her goals. Playful Gen Z tone, at most one emoji. End with a question she can answer in one line. Plain text only.
+
+${profileBlock(p)}
+
+${pastDecisionsBlock(ds)}
+
+${recentChatBlock(chat)}
+
+${nowLineIST(now)}
 
 ${SAFETY}`;
 }

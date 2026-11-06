@@ -26,7 +26,9 @@ When she is actually stuck on a choice, Delulu notices. The reply ends with a on
 - **Future You at 30**: her own voice looking back.
 - **Your Bestie**: casual, protective, honest.
 
-She taps **Go with …** on the one she will follow. Delulu saves it and tells her when it will check back. This is why it is not a chat wrapper: the persona remembers her, decisions are pulled out of free talk into a structured three-voice choice with a check-back, and every model call is sealed.
+She taps **Go with …** on the one she will follow. Thirty days later Delulu messages her: "You went with Future You at 30. How did it go?" with Glad / Mixed / Regret buttons, and her answer becomes part of its memory.
+
+It also works like a good secretary: "remind me Sunday 6pm to call Riya" sets a reminder (with a cancel button and `/reminders`), and `/checkin 21:00` gets her a short, specific daily check-in, written by the same sealed model. This is why it is not a chat wrapper: the persona remembers her, decisions are pulled out of free talk into a structured three-voice choice, Delulu comes back to her on its own (check-backs, check-ins, reminders), and every model call is sealed.
 
 **Not scammy, by design.** The first message says Delulu will never ask for money, crypto, a wallet, passwords or codes, and never asks her to click a link. There is no wallet anywhere in the Telegram flow. A test checks that no message asks for any of these.
 
@@ -42,16 +44,17 @@ Safety: if she mentions self-harm, abuse or danger, every voice stops advising a
 
 ## How it's made
 
-- **Telegram bot:** grammY with long polling, TypeScript, run with `tsx`. Commands: `/start` (5 setup questions), `/decide`, `/proof`, `/privacy`, `/forget`. Decision card and the three "Go with …" choices are inline buttons. A per-person daily cap protects the team's 0G credits.
+- **Telegram bot:** grammY with long polling, TypeScript, run with `tsx`. Commands: `/start` (5 setup questions), `/decide`, `/reminders`, `/checkin`, `/proof`, `/privacy`, `/forget`. Decision card and the three "Go with …" choices are inline buttons. A per-person daily cap protects the team's 0G credits.
 - **One brain, two channels:** `src/lib/brain.ts` (persona, memory context, decision detection, three voices) is shared by the bot and a Next.js 16 web app (chat-first home + Decide screen, on-device encrypted memory, Privy embedded wallet).
 - **AI:** 0G Private Computer router, `https://router-api.0g.ai/v1`, OpenAI-compatible. Model `0gm-1.0-35b-a3b`: on 2026-11-06 it is the only chat model with a TeeML (sealed) provider in the live `/v1/models` list. Every request sends `X-0G-Provider-Trust-Mode: private` (TeeML only; it fails with 503 instead of downgrading) and `verify_tee: true`. We read `x_0g_trace.request_id`, `provider`, `tee_verified` and `billing.total_cost` [PENDING-KEY]. Chat runs in JSON mode (`response_format: json_object`) and returns `{reply, decision}`; a tolerant parser falls back to plain text, so a format slip never breaks chat. The three voices are three parallel requests, so each has its own request ID. The `sk-` key stays on the server.
 - **One model interface** (`src/lib/ai/provider.ts`): 0G first, then an optional OpenAI-compatible fallback (labelled, with the 0G error kept). Mock is used only when nothing is configured, so a broken 0G key fails loudly and never turns into canned text quietly.
+- **Scheduler:** check-backs, daily check-ins and reminders are jobs stored inside each encrypted record; an in-memory due index (rebuilt from the store on start) and a 15 s timer deliver them, once each.
 - **Bot storage:** Node `crypto` only. Per-user random 256-bit data key, AES-256-GCM with a random 96-bit IV per write, data key wrapped by `BOT_MASTER_KEY`; atomic writes; HMAC file names; `/forget` = crypto-shredding.
-- **Tests:** the whole bot flow runs offline against a fake Telegram API (onboarding → chat → decision card → three voices → pick → `/proof` → `/forget`), with checks that nothing readable reaches disk, file names do not reveal Telegram IDs, a wrong master key cannot read, and no message asks for a wallet, seed, payment or link click. Plus web tests (crypto, 0G trace parsing, decision parsing) and a 15-step headless-browser run of the web app.
+- **Tests:** the whole bot flow runs offline against a fake Telegram API (onboarding → chat → decision card → three voices → pick → `/proof` → `/forget`), with checks that nothing readable reaches disk, file names do not reveal Telegram IDs, a wrong master key cannot read, and no message asks for a wallet, seed, payment or link click; the scheduler is tested for due times, single delivery, restart recovery and `/forget`. Plus web tests (crypto, 0G trace parsing, decision parsing) and a 15-step headless-browser run of the web app.
 
 ## Tracks
 
-1. **0G: Build with 0G Private Computer** ($5,000). 0G inference is the whole user flow (every reply, plus three sealed answers per decision), each answer carries its request ID (footer + `/proof`) [PENDING-KEY], a judge can try it in Telegram [PENDING-BOT], she has a reason to come back (the 30-day check-back), and the "what breaks if 0G is removed" line is in the bot and the README. **iAI bonus: NOT CLAIMED.** It needs "sign in with your 0G account" (Privy + wallet), and the Telegram flow is wallet-free by design.
+1. **0G: Build with 0G Private Computer** ($5,000). 0G inference is the whole user flow (every reply, plus three sealed answers per decision), each answer carries its request ID (footer + `/proof`) [PENDING-KEY], a judge can try it in Telegram [PENDING-BOT], she has a reason to come back tomorrow (Delulu messages her first: daily check-in, reminders, the 30-day check-back), and the "what breaks if 0G is removed" line is in the bot and the README. **iAI bonus: NOT CLAIMED.** It needs "sign in with your 0G account" (Privy + wallet), and the Telegram flow is wallet-free by design.
 
 Not a fit (checked against the prize page): 0G Physical AI, 0G Agents That Pay, 0G Keep Building, Ethereum Foundation CROPS (dropped: Telegram can read bot chats and the server holds the master key), World ID, Uniswap, Arc, Hedera, Arkiv, Whitechain, ENS, Flash, Chainlink, EF Anon-RPC and alt mempool.
 
