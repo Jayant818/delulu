@@ -131,3 +131,11 @@ brand/                      DESIGN.md, SVG logo set, favicons, contact sheet
 - Try-on caps key on the wallet address the browser sends and on the client IP from `x-forwarded-for`. Behind a proxy that does not set that header itself, the IP can be spoofed; the 40/day total cap still holds.
 - The bot handles one update at a time (grammY long-polling default); slow 0G calls for one person delay others. Use `@grammyjs/runner` with per-chat sequentialize for real traffic.
 - Privy's optional Solana / smart-wallet peers are stubbed in `next.config.ts` (EVM only).
+
+## Pricing (planned, not built)
+
+Delulu is free in the hackathon build: there are no payments in the code. The planned plan, for the docs only (Jayant, TG 3506): **₹99/month in India, $8-9/month abroad**. The target audience is now international (Western); the app copy stays English.
+
+## License
+
+License: MIT. See [LICENSE](LICENSE). Copyright (c) 2026 Jayant Yadav.

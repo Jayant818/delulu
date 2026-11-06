@@ -81,6 +81,15 @@ Safety: if she mentions self-harm, abuse or danger, every voice stops advising a
 
 Not a fit (checked against the prize page): 0G Physical AI, 0G Agents That Pay, 0G Keep Building, Ethereum Foundation CROPS (dropped earlier), World ID, Uniswap, Arc, Hedera, Arkiv, Whitechain, ENS, Flash, Chainlink, EF Anon-RPC and alt mempool.
 
+## Business (docs only, nothing built)
+
+- Audience: young women abroad first (Western market); the app copy is English.
+- Planned price: $8-9/month abroad, ₹99/month in India. The hackathon build is free and has no payments.
+
+## License
+
+MIT (LICENSE file in the repo). Copyright (c) 2026 Jayant Yadav.
+
 ## Links (fill in; Jayant decides when the repo goes public)
 
 - GitHub (public, required): TODO
