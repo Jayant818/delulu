@@ -148,7 +148,7 @@ export default function Landing() {
                 <Mark size={26} />
                 <div className="leading-tight">
                   <p className="text-sm font-semibold">{APP_NAME}</p>
-                  <p className="text-[11px] text-l-muted">bot</p>
+                  <p className="text-[11px] text-l-muted">private chat · sealed on 0G</p>
                 </div>
               </div>
               <div className="space-y-2.5">

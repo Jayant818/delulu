@@ -1,35 +1,38 @@
 # Delulu
 
-**Tell her anything; she helps you decide.** Delulu is a private AI companion for young women, and it lives where she already talks: **Telegram**. She tells Delulu anything, and Delulu remembers her (setup answers, past chats, past decisions). When she is weighing a choice, Delulu pulls it out of the conversation ("Sounds like a decision: … See 3 views 👀") and answers with three honest voices: **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She taps the one she will follow, and 30 days later Delulu messages her to ask how it went. Like a good secretary, it also keeps her reminders ("remind me Sunday 6pm to call Riya") and checks in on her every day at a time she picks. Every model call runs sealed on 0G Private Computer, with request IDs one question away ("is this private?").
+**Tell her anything; she helps you decide.** Delulu is a private AI companion for young women. **The website is the main product** (landing at `/`, the app at `/app`, mobile-first); the same brain also runs as a Telegram bot.
 
-**No commands.** It is all plain text: she just talks, and the model routes requests like "help me decide …", "what are my reminders", "check in on me every evening at 9" or "delete everything" (which asks her to confirm). Only Telegram's own Start button sends `/start`.
+She tells Delulu anything, and Delulu remembers her (setup answers, past chats, past decisions). When she is weighing a choice, Delulu pulls it out of the conversation ("Sounds like a decision: … See 3 views") into three honest voices: **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She picks one, and Delulu checks back later to ask how it went. Like a good secretary, it keeps her reminders ("remind me Sunday 6pm to call Riya") and checks in on her daily at a time she picks. And before the salon, **Try-on** shows a new hair or nail look on her own photo, then writes the brief for her stylist or nail tech.
 
-The repo also has a **landing page** at `/` (brand: `brand/delulu-DESIGN.md`, logo set in `brand/`) and a **web app** with the same brain (`src/lib/brain.ts`) at `/app`: chat-first, the Decide screen, and on-device encrypted memory.
+**Privacy, in one line (shown in the app):** "Your chats are sealed on 0G. Try-on photos go to OpenAI's image model to make your look, then we delete them." Every chat answer carries its 0G request ID.
 
-**Anti-scam by design:** the bot never asks for money, crypto, a wallet, passwords or codes, and never asks her to click a link. There is no wallet anywhere in the Telegram flow. It says so in its first message.
+**No commands, English only.** She just talks; the model routes requests like "help me decide …", "what are my reminders", "check in on me every evening at 9", "is this private?" or "delete everything" (which asks her to confirm), and the app performs them.
+
+**Anti-scam by design:** Delulu never asks for money, crypto, a wallet, passwords or codes, and never asks her to click a link.
 
 The name is one constant: `src/config.ts` → `APP_NAME`. Storage keys and the signed key message do not use it, so a rename keeps existing memory readable.
 
-Built for ETHGlobal Mumbai 2026, track **Build with 0G Private Computer**.
+Built for ETHGlobal Mumbai 2026, track **Build with 0G Private Computer** (chat and decisions are 0G; try-on is an extra feature on OpenAI's image model, labelled as such).
 
 ## Run it
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in TELEGRAM_BOT_TOKEN, BOT_MASTER_KEY, ZG_API_KEY
-npm run bot                  # Telegram bot, long polling (no public URL needed)
-npm run dev                  # landing page on http://localhost:3000, web app on /app
+cp .env.example .env.local   # fill in ZG_API_KEY (0G) and OPENAI_API_KEY (try-on); see REHEARSAL.md
+npm run dev                  # landing on http://localhost:3000, the app on /app
+npm run bot                  # optional: the Telegram bot (needs TELEGRAM_BOT_TOKEN)
 ```
 
-Without `ZG_API_KEY`, every answer is a labelled MOCK ("MOCK · no AI called"). The web app also runs with no keys at all (DEV wallet + MOCK model). Use port **3000** (or 3001 / 5173) for the web app: the Privy app ID that 0G shares for the iAI bonus only works on those ports.
+Without keys everything still runs, labelled: chat answers say MOCK, try-on returns your photo unchanged with "MOCK", login uses a DEV wallet unless `NEXT_PUBLIC_PRIVY_APP_ID` is set. `NEXT_PUBLIC_DEMO_FAST=1` makes check-backs and the first daily check-in due after 1 minute (for the demo video). Stop the dev server when idle (`.next` grows).
 
-**The bot must be running for judges to try it** (`npm run bot` on a machine that stays awake, or a host).
+**Try-on spends Jayant's OpenAI money:** hard caps of 40 images per day for everyone and 5 per person per day (wallet and IP), in `src/lib/tryon.ts` (`TRYON_CAP_TOTAL`, `TRYON_CAP_USER`).
 
 | Command | What it checks |
 |---|---|
-| `npm test` | **bot** (offline, fake Telegram API): onboarding → chat → decision card → 3 views → pick → "is this private?" → "delete everything" (confirm No / Yes) → any message restarts onboarding; no message contains a slash command; nothing readable on disk, file names do not reveal Telegram IDs, wrong master key cannot read; no message asks for a wallet, seed, payment or link click; scheduler: check-back, daily check-in at 21:00 IST + reschedule, reminders (set, list, cancel by name or button, deliver once, survive restart, cleared by deleting). **web/brain**: memory crypto (same wallet → same key, other wallet cannot decrypt, no plaintext), rename-safe key, 0G `x_0g_trace` parsing, a configured 0G key never silently becomes mock, chat reply / decision / reminder / intent parsing |
-| `npm run build` | production build of the web app |
-| `node scripts/e2e.cjs <playwright-core> <dir>` | web app in a headless browser: login → onboarding → chat → decision card → Decide → 3 views → pick → reload → delete (15 checks) |
+| `npm test` | 22 cases. **web**: assistant logic (intents performed by the app, reminders, in-app scheduler delivers once, daily reschedule, check-back answers become memory), memory crypto, 0G trace parsing, decision / reminder / intent parsing. **try-on**: caps (per user, per IP, total, per IST day, refunds), MOCK mode, the exact request to the image model against a fake OpenAI server (never `input_fidelity`), nothing on disk but hashed counts. **bot**: the whole Telegram flow offline, no slash commands, nothing readable on disk, scheduler. |
+| `npm run check:live` | with real keys: replays the demo against 0G (chat, decisions, reminders, intents, three voices, check-in, try-on brief) and probes the image model; exits 1 unless every answer is 0G private mode with a verified TEE signature |
+| `npm run build` | production build |
+| `node scripts/e2e.cjs <playwright-core> <dir>` | the web app in a headless browser, 22 checks: login → onboarding → chat → decision card → Decide → three voices → pick → reload → in-app check-back → reminders and "delete everything" by plain text → try-on (MOCK) → brief → three voices → no photo stored → delete everything. Start the dev server with `NEXT_PUBLIC_CHECKBACK_MS=8000` for it. |
 
 ## Real vs stubbed (2026-11-06)
 
@@ -38,9 +41,11 @@ Without `ZG_API_KEY`, every answer is a labelled MOCK ("MOCK · no AI called"). 
 | Telegram bot (`src/bot/`), text only: Start → 5 questions, free chat, decision card, 3 voices with "Go with …" buttons, saved decision + check-back date; plain-text intents for help, privacy + proof, delete everything (with confirm), check-ins, reminders, "help me decide" | **Real**, tested offline with a fake Telegram API; startup checked against the real Bot API (401 with a fake token). **Not yet run with a real token.** |
 | Bot memory | **Real.** Encrypted at rest: per-user random data key (AES-256-GCM), wrapped by `BOT_MASTER_KEY`; file names are HMACs, not Telegram IDs; "delete everything" (confirmed) deletes the record. |
 | Secretary layer (T3): 30-day check-back message with "Glad / Mixed / Regret" buttons (the answer becomes memory), daily check-in at her time ("check in on me every evening at 9", an AI message with its 0G footer), reminders from chat ("what are my reminders", "cancel the Riya reminder", or the cancel button) | **Real**, tested offline (due times, no double delivery, schedule survives a restart, deleting clears it). The schedule lives inside each encrypted record; a 15 s timer delivers what is due. IST only. Reminder-time and intent routing on the real model are **untested until the key arrives** (`npm run check:live` tests both). |
-| Voice notes | **Not built** (T2). |
-| Web screens (onboarding, Talk = home chat, Decide, Settings) | **Real**, tested end to end in a browser |
-| Decision detection (bot and web) | **Real code; with MOCK it uses a keyword stand-in.** With a model, the chat call runs in JSON mode and returns `{reply, decision}`; a tolerant parser falls back to plain text. Quality of detection on `0gm-1.0` is **untested until the key arrives.** |
+| Try-on (hair + nails): `/tryon`, `/api/tryon` (OpenAI `gpt-image-2.5-sunburst`, `/v1/images/edits`, 1024 px, quality medium, no `input_fidelity`), `/api/brief` (0G) | **Real code; runs in MOCK until `OPENAI_API_KEY` is set.** The real request is tested against a fake OpenAI server; the model and its speed/quality are **untested until the key arrives**. Photo and result live only in the request and in her browser tab; nothing is written to the server's disk except hashed per-day counts; her stored memory keeps only text. |
+| Web assistant: plain-text intents + in-app scheduler (check-backs, reminders, daily check-ins appear in Talk when due, checked on open and every 15 s) | **Real**, unit-tested and E2E-tested. No web push: she sees them when the app is open. |
+| Voice | **Dropped** (Jayant, TG 3399). |
+| Web screens (landing, onboarding, Talk = home chat, Decide, Try-on, Settings) | **Real**, tested end to end in a browser |
+| Decision detection (bot and web) | **Real code; with MOCK it uses a keyword stand-in.** With a model, the chat call runs in JSON mode and returns `{reply, decision, reminder, intent}`; a tolerant parser falls back to plain text. Quality of detection on `0gm-1.0` is **untested until the key arrives.** |
 | 0G inference (`src/lib/ai/provider.ts`) | **Real code, not yet run with a key.** Endpoint and error shape checked live (401 with a fake key). Needs `ZG_API_KEY`. |
 | Request IDs | **Real.** Bot: a small footer on every answer (`🔒 0G · 0852f405 · TEE ✓`), and the last ten when she asks "is this private?". Web: a chip on every answer (`x_0g_trace.request_id`, `tee_verified`, provider, cost). Shows `MOCK` / `FALLBACK` when not on 0G. |
 | Fallback to an OpenAI-compatible endpoint | **Real**, only when `OPENAI_COMPAT_*` is set. The chip then says `FALLBACK` and the tooltip shows the 0G error. |
@@ -52,9 +57,10 @@ Without `ZG_API_KEY`, every answer is a labelled MOCK ("MOCK · no AI called"). 
 
 ## Privacy, honestly
 
-- **The AI is sealed.** Every model call goes to 0G Private Computer in `private` trust mode: TeeML providers only, the model runs inside an Intel TDX enclave, and 0G documents that neither 0G nor the GPU operator can read the prompt.
+- **Chats are sealed.** Every chat, decision, check-in and brief call goes to 0G Private Computer in `private` trust mode: TeeML providers only, the model runs inside an Intel TDX enclave, and 0G documents that neither 0G nor the GPU operator can read the prompt.
 - **We store nothing readable.** The bot keeps each person's memory encrypted at rest (per-user key, wrapped by a server master key). The web app keeps memory encrypted on her own device. Neither logs message content.
-- **Telegram carries the messages.** Telegram can read bot chats, like any Telegram chat. That part is outside our control, and the bot says so when she asks "is this private?".
+- **Try-on photos are NOT sealed.** They go to OpenAI's image model to make the look, then we delete them: the photo and the result exist only in that request's memory and in her browser tab, never on our disk, never in her stored memory. OpenAI's own API data policy applies to what it receives. The app says this on the try-on screen.
+- **Telegram carries the messages** (bot only). Telegram can read bot chats, like any Telegram chat. That part is outside our control, and the bot says so when she asks "is this private?".
 - **What we do not claim:** whoever runs the bot server holds the master key and could decrypt the store. "Nothing readable at rest" is the claim, not "unreadable to us".
 
 ## 0G facts verified at the source (2026-11-06)
@@ -66,29 +72,28 @@ Without `ZG_API_KEY`, every answer is a labelled MOCK ("MOCK · no AI called"). 
 - **TEE check** ([Verifiable Execution](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/router/features/verifiable-execution)): `verify_tee: true` adds `x_0g_trace.tee_verified`.
 - **Models** (live `GET https://router-api.0g.ai/v1/models`, no auth): 86 models. TeeML (private-capable): `0gm-1.0-35b-a3b` (the only chat model), `whisper-large-v3`, two embedding models, and two "decision" models (`laya`, `vela-2.0-9b`). This app uses `0gm-1.0-35b-a3b` with thinking off.
 
-## Demo script (about 95 s, Telegram)
+## Demo script (about 2 min, the website on a phone)
 
-One thread all the way through: she starts talking, and a decision comes out of it: **"take the design job in Bangalore, or stay in Jaipur near my parents?"** Start the bot with `DEMO_FAST=1 npm run bot` so the check-back (and the first daily check-in) arrive 1 minute later.
+Run `NEXT_PUBLIC_DEMO_FAST=1 npm run dev` so the check-back arrives 1 minute after the pick. One thread all the way through: **"take the design job in Bangalore, or stay in Jaipur near my parents?"** Cut the ~30 s image wait in editing.
 
 | Time | Screen | Do | Say |
 |---|---|---|---|
-| 0:00 | Telegram | Open the bot, tap Start | "Every girl I know tells an AI things she would never say out loud. Delulu lives in Telegram, gives the sane answer, and nobody else can read it." |
-| 0:08 | Telegram | Show the intro: the 🚫 line | "First thing it says: it will never ask for money, crypto, a wallet or a link. If 'Delulu' ever does, it isn't Delulu." |
-| 0:16 | Telegram | Answer 2 of the 5 questions on camera (cut the rest) | "Five questions so it actually knows her." |
-| 0:24 | Telegram | Type: "ugh, parents want me home but the Bangalore offer pays 2x. should I take it or stay in Jaipur?" | "She can tell Delulu anything. It remembers her, and it notices when she is actually stuck on a choice." |
-| 0:36 | Telegram | Point at the footer `🔒 0G · … · TEE ✓` and **Sounds like a decision… See 3 views 👀** | "Every answer is a sealed request on 0G Private Computer: request ID and TEE check right there. And it pulled the decision out of the chat." |
-| 0:46 | Telegram | Tap **See 3 views** | "Three voices: Delulu, the sane one; Future You at 30; Your Bestie. Three separate sealed 0G requests." |
-| 1:00 | Telegram | Tap **Go with Future You at 30** | "She picks. Delulu saves it and checks back on her." |
-| 1:06 | Telegram | Wait ~1 min (DEMO_FAST): the check-back arrives, tap **😊 Glad I did** | "And it comes back to her. Normally after 30 days; here after one minute." |
-| 1:14 | Telegram | Type "remind me in 2 minutes to call Riya" | "It is her secretary too: reminders and a daily check-in." |
-| 1:20 | Telegram | Type "is this private?" | "She can ask any time: the honest answer, plus every request ID behind those answers." |
-| 1:26 | Telegram | Type "delete everything", tap **Yes** | "No commands anywhere: she just says it, confirms, and it is gone. Delulu: delusional name, sane answers." |
+| 0:00 | Landing | Scroll the hero, tap **Open Delulu** | "Every girl I know tells an AI things she'd never say out loud. Delulu gives the sane answer, and nobody else can read it." |
+| 0:10 | Login + setup | Log in, show 2 of the 5 answers | "Five questions so it actually knows her. Memory is encrypted on her phone." |
+| 0:20 | Talk | Type the Bangalore message | "She can tell Delulu anything, and it notices when she's stuck on a choice." |
+| 0:30 | Talk | Point at the chip `0G · … · TEE ✓` and the decision card | "Every answer is a sealed request on 0G Private Computer: here's its request ID and TEE check." |
+| 0:38 | Decide | **See 3 views** → three cards → **I'll go with this** | "Three voices: Delulu, the sane one; Future You at 30; Your Bestie. Three separate sealed requests. She picks." |
+| 0:55 | Talk | Wait for the check-back, tap **😊 Glad I did** | "And Delulu comes back to her: here after one minute, normally a month later." |
+| 1:05 | Talk | Type "remind me Sunday 6pm to call Riya", then "is this private?" | "No commands, just talk: reminders, check-ins, and the proof, with every request ID." |
+| 1:20 | Try-on | Hair → selfie → "Copper red, same cut" → **See it on me** (cut the wait) | "Before the salon: see it on you. This part uses OpenAI's image model, and the app says so: the photo is deleted right after." |
+| 1:40 | Try-on | Show the stylist brief, then **Ask the three voices** | "Then a brief she can show her stylist, and the three voices on whether to do it." |
+| 1:55 | Talk | Type "delete everything" → **Yes** | "One sentence and it's all gone. Delulu: delusional name, sane answers, sealed by 0G." |
 
-Before recording: `ZG_API_KEY` set with trust mode Private, the bot running, one warm-up message sent (the first enclave call can be slow), and every footer says `0G` and `TEE ✓`, not `MOCK`. **Rehearse the 0:24 message with the real model** and check that it returns the decision card; reword it if not. Record a backup take.
+Before recording: follow REHEARSAL.md (keys, `npm run check:live`, one warm-up chat message, one real try-on to see the timing). Every chat chip must say `0G` and `TEE ✓`, not `MOCK`. Record a backup take.
 
 ## What breaks if 0G is removed (draft for the submission)
 
-Without 0G, everything she tells Delulu (and every decision she weighs) is readable by whichever AI company runs the model; with 0G Private Computer, every reply and all three voices run sealed inside a hardware enclave, and every answer carries its 0G request ID and a verified-TEE flag.
+Without 0G, everything she tells Delulu (and every decision she weighs) is readable by whichever AI company runs the model; with 0G Private Computer, every chat reply, all three voices and every brief run sealed inside a hardware enclave, and every answer carries its 0G request ID and a verified-TEE flag. (Try-on images are the one exception, and the app says so.)
 
 The bot says it in its intro and whenever she asks "is this private?"; every bot answer has a footer that says `MOCK` or "fallback model, not sealed" when it is not on 0G. The web app shows the same line under the Talk header and the Decide button (`src/components/PrivacyLine.tsx`), with "Right now: MOCK / FALLBACK" when it applies, so no screen claims more than is true.
 
@@ -111,13 +116,17 @@ src/bot/bot.ts              Telegram bot (grammY), no commands: onboarding, chat
 src/bot/store.ts            encrypted-at-rest per-user store (HMAC file names, per-user data key)
 src/bot/index.ts            entry: npm run bot
 src/app/api/{chat,decide,status}  web API routes (input clipped and validated, no storage)
-src/app/page.tsx            landing page (static; Telegram CTA from NEXT_PUBLIC_TELEGRAM_BOT)
-src/app/(app)/              the web app behind the wallet gate: app/ (Talk), decide/, onboarding/, settings/
+src/app/page.tsx            landing page (static; "Open Delulu" -> /app; Telegram link from NEXT_PUBLIC_TELEGRAM_BOT)
+src/app/(app)/              the web app behind the wallet gate: app/ (Talk), decide/, tryon/, onboarding/, settings/
+src/lib/assistant.ts        web intents + in-app scheduler (pure, unit-tested)
+src/lib/tryon.ts            image edit call, prompts, presets, spend caps
+src/app/api/{tryon,brief,checkin}  try-on (OpenAI), brief + check-in (0G)
 brand/                      DESIGN.md, SVG logo set, favicons, contact sheet
 ```
 
 ## Before a public deploy
 
-- The web API routes have no auth or rate limit: anyone who can reach the server can spend the 0G key. Verify the Privy access token in `src/app/api/_shared.ts` first. (The bot has a per-person daily cap, `BOT_DAILY_LIMIT`.)
+- The web chat routes (`/api/chat`, `/api/decide`, `/api/brief`, `/api/checkin`) have no auth or rate limit: anyone who can reach the server can spend the 0G credits. Verify the Privy access token in `src/app/api/_shared.ts` and add a per-user cap first. (The bot has `BOT_DAILY_LIMIT`; try-on has its caps.)
+- Try-on caps key on the wallet address the browser sends and on the client IP from `x-forwarded-for`. Behind a proxy that does not set that header itself, the IP can be spoofed; the 40/day total cap still holds.
 - The bot handles one update at a time (grammY long-polling default); slow 0G calls for one person delay others. Use `@grammyjs/runner` with per-chat sequentialize for real traffic.
 - Privy's optional Solana / smart-wallet peers are stubbed in `next.config.ts` (EVM only).

@@ -3,7 +3,8 @@
 // Exit code 1 if anything is not served by 0G in private (TEE-verified) mode, so a silent fallback cannot pass.
 import { Bot } from "grammy";
 import { complete, configuredBackends, ZG_MODEL, ZG_TRUST_MODE, type AiResult } from "../src/lib/ai/provider";
-import { allViews, chatTurn, checkInText, type Context } from "../src/lib/brain";
+import { allViews, briefFor, chatTurn, checkInText, type Context } from "../src/lib/brain";
+import { IMAGE_MODEL } from "../src/lib/tryon";
 
 const ctx: Context = {
   profile: {
@@ -99,6 +100,21 @@ async function main() {
   const [c, t6] = await timed(() => checkInText(ctx));
   show("check-in", c, t6);
   console.log(`      ${c.text.slice(0, 140)}`);
+
+  // 7. Try-on: the brief is a 0G call; the image model is only PROBED here (a real image costs money: --image).
+  const [b, t7] = await timed(() => briefFor("hair", "Copper red, same cut", ctx.profile));
+  show("brief", b, t7);
+  const okey = process.env.OPENAI_API_KEY?.trim();
+  if (!okey) console.log("SKIP  image model    OPENAI_API_KEY not set (try-on runs in MOCK)");
+  else {
+    const r = await fetch(`https://api.openai.com/v1/models/${IMAGE_MODEL}`, { headers: { Authorization: `Bearer ${okey}` } });
+    if (r.ok) console.log(`PASS  image model    ${IMAGE_MODEL} is available to this key`);
+    else {
+      failures++;
+      console.log(`FAIL  image model    ${IMAGE_MODEL}: HTTP ${r.status} ${(await r.text()).slice(0, 160)}`);
+    }
+    if (process.argv.includes("--image")) console.log("      (--image: make one real try-on from the app instead, so the spend cap counts it)");
+  }
 
   console.log(failures ? `\n${failures} problem(s). Fix before the demo (see REHEARSAL.md).` : "\nAll good: every answer came from 0G private mode with a verified TEE signature.");
   process.exit(failures ? 1 : 0);

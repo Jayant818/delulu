@@ -1,28 +1,28 @@
 # ETHGlobal Mumbai 2026: submission draft
 
-Draft for the ETHGlobal form. **PENDING-KEY** = true only after a real 0G call runs with `ZG_API_KEY`. **PENDING-BOT** = true only after the bot runs with the real `TELEGRAM_BOT_TOKEN`. Remove each tag only after you check the claim in the running bot.
+Draft for the ETHGlobal form. **PENDING-KEY** = true only after a real 0G call runs with `ZG_API_KEY`. **PENDING-IMG** = true only after a real try-on runs with `OPENAI_API_KEY`. Remove each tag only after you check the claim in the running app (REHEARSAL.md).
 
 ## Before you press submit (deadline Sat 7 Nov, 09:00 IST)
 
-- [ ] Keys in `.env.local`, then `npm run check:live` prints "All good" (REHEARSAL.md, step 2). Only then delete the `[PENDING-KEY]` / `[PENDING-BOT]` tags below.
-- [ ] Five-minute live check on a phone passes (REHEARSAL.md, step 4).
-- [ ] Demo video under 3 minutes, recorded from the README script with `DEMO_FAST=1`.
+- [ ] Keys in `.env.local`, then `npm run check:live` prints "All good" (REHEARSAL.md, step 2). Only then delete the `[PENDING-…]` tags below.
+- [ ] Five-minute live check passes, including one real try-on (REHEARSAL.md, step 4).
+- [ ] Demo video under 3 minutes, recorded from the README script with `NEXT_PUBLIC_DEMO_FAST=1`.
 - [ ] Public GitHub repo (Jayant's call; ETHGlobal and 0G both require it). The repo contains no secrets: `.env.local` and `data/` are git-ignored.
-- [ ] Bot running for the whole judging window, without `DEMO_FAST`.
+- [ ] A URL judges can open during judging (Jayant's hosting call), with the caps still on.
 - [ ] Links and team details filled in (bottom of this file).
 
 ## 0G "must show" → where a judge sees it
 
 | 0G prize requirement (verbatim) | Delulu |
 |---|---|
-| Inference on 0G Private Computer in your main user flow, with request IDs | Every reply, all three voices and every daily check-in are 0G calls in private mode. Each message has a footer with its request ID and TEE check; asking "is this private?" lists the last ten. [PENDING-KEY] |
-| A working app a judge can try, with a clear reason someone comes back tomorrow | Open the bot in Telegram, no install, no wallet [PENDING-BOT]. She comes back because Delulu messages her first: the daily check-in, her reminders, and the 30-day check-back on each decision. |
+| Inference on 0G Private Computer in your main user flow, with request IDs | Every chat reply, all three voices, every daily check-in and every stylist / nail tech brief are 0G calls in private mode. Each answer shows a chip with its request ID and TEE check; asking "is this private?" lists the last ten. [PENDING-KEY] |
+| A working app a judge can try, with a clear reason someone comes back tomorrow | Open the website on a phone: no install, no seed phrase. She comes back because Delulu follows up: the daily check-in, her reminders, and the check-back on each decision (shown when she opens the app). |
 | One sentence on what breaks if 0G is removed | See "What breaks if 0G is removed" below. |
-| iAI bonus: sign in with a 0G account, credit balance goes down | Not claimed: the Telegram flow is wallet-free by design. |
+| iAI bonus: sign in with a 0G account, credit balance goes down | Not claimed: needs 0G's Privy app ID and the credit-spend flow, which are not in the public docs. |
 
 ## What breaks if 0G is removed (one sentence, for the form)
 
-Without 0G, every secret and every decision a girl tells Delulu would be readable by whichever AI company runs the model; with 0G Private Computer each answer comes from a sealed hardware enclave, and its request ID proves it.
+Without 0G, every secret and every decision a girl tells Delulu would be readable by whichever AI company runs the model; with 0G Private Computer each chat answer comes from a sealed hardware enclave, and its request ID proves it.
 
 ## Project name
 
@@ -34,57 +34,58 @@ Delulu is the solulu. We give you the sane answer.
 
 ## Short description (≤ 100 words)
 
-Tell her anything; she helps you decide. Delulu is a private AI companion for young women that lives in Telegram and remembers her. When she is weighing a choice, Delulu pulls it out of the chat and answers with three voices: Delulu (the sane one), Future You at 30, and Your Bestie. She taps one; Delulu checks back in 30 days. Every answer runs sealed on 0G Private Computer, with visible request IDs [PENDING-KEY]. Memory is encrypted at rest. No wallet, no payments, no links: it says so up front.
+Tell her anything; she helps you decide. Delulu is a private AI big sister for young women that remembers her. When she is weighing a choice, Delulu pulls it out of the chat into three voices: Delulu (the sane one), Future You at 30, and Your Bestie. She picks one, and Delulu checks back later. Before the salon, Try-on shows new hair or nails on her own photo and writes the stylist brief. Chats run sealed on 0G Private Computer with visible request IDs [PENDING-KEY]. No commands, no wallet prompts, no links.
 
 ## Long description
 
 Girls already tell AI the things they would never say out loud: a job in another city, a relationship, money, family pressure. Today, every one of those messages sits in plain text at an AI company.
 
-Delulu is the app with the delulu name that gives the sane answer. **Tell her anything; she helps you decide.** It lives in Telegram, where she already talks [PENDING-BOT], and it is text only: no commands, she just talks. Her first message starts five questions (goals, values, who she trusts, what she fears, the big thing on her mind). After that she just talks, and Delulu answers with her setup answers, past chats and past decisions in mind.
+Delulu is the app with the delulu name that gives the sane answer. **Tell her anything; she helps you decide.** It is a mobile-first website (and the same brain runs as a Telegram bot). Five setup questions (goals, values, who she trusts, what she fears, the big thing on her mind), then she just talks, and Delulu answers with her setup answers, past chats and past decisions in mind. There are no commands: "help me decide …", "remind me Sunday 6pm to call Riya", "what are my reminders", "check in on me every evening at 9", "is this private?" and "delete everything" (with a confirm) all work as plain sentences.
 
-When she is actually stuck on a choice, Delulu notices. The reply ends with a one-line summary, "Sounds like a decision: take the Bangalore job or stay in Jaipur", and a **See 3 views** button [PENDING-KEY: detection quality on the real model]. One tap gives three voices on the same choice:
+When she is actually stuck on a choice, Delulu notices. The reply carries "Sounds like a decision: take the Bangalore job or stay in Jaipur" and a **See 3 views** button [PENDING-KEY: detection quality on the real model]. One tap gives three voices on the same choice, side by side:
 
 - **Delulu**, the sane one: the real trade-off, the cost of each option, one next step this week.
 - **Future You at 30**: her own voice looking back.
 - **Your Bestie**: casual, protective, honest.
 
-She taps **Go with …** on the one she will follow. Thirty days later Delulu messages her: "You went with Future You at 30. How did it go?" with Glad / Mixed / Regret buttons, and her answer becomes part of its memory.
+She picks the one she will follow. Later, Delulu asks how it went (Glad / Mixed / Regret), and her answer becomes part of its memory. Reminders and a short, specific daily check-in work the same way: they appear in the app when they are due.
 
-It also works like a good secretary: "remind me Sunday 6pm to call Riya" sets a reminder ("what are my reminders" and "cancel the Riya reminder" work too), and "check in on me every evening at 9" gets her a short, specific daily check-in, written by the same sealed model. This is why it is not a chat wrapper: the persona remembers her, decisions are pulled out of free talk into a structured three-voice choice, Delulu comes back to her on its own (check-backs, check-ins, reminders), and every model call is sealed.
+**Try-on (hair + nails).** She uploads a selfie or a photo of her hand, picks one of six styles or describes her own, and sees the look on herself [PENDING-IMG]. Then Delulu writes a ready-to-show brief for her stylist or nail tech, and the three voices weigh in on whether to do it. The photo is never stored: not on our server, not in her saved memory.
 
-**Not scammy, by design.** The first message says Delulu will never ask for money, crypto, a wallet, passwords or codes, and never asks her to click a link. There is no wallet anywhere in the Telegram flow. A test checks that no message asks for any of these.
+This is why it is not a chat wrapper: the persona remembers her, decisions are pulled out of free talk into a structured three-voice choice, Delulu follows up on its own, and every chat answer is sealed with a checkable request ID.
 
-Privacy, honestly:
+Privacy, honestly (the app says this in one line: "Your chats are sealed on 0G. Try-on photos go to OpenAI's image model to make your look, then we delete them."):
 
-- **The AI is sealed.** Every model call goes to 0G Private Computer in `private` trust mode, so only TeeML providers serve it: the model runs inside an Intel TDX enclave, and 0G documents that neither 0G nor the GPU operator can read the prompt. Every answer has a small footer with its 0G request ID and the router's TEE check, and "is this private?" lists the last ten [PENDING-KEY].
-- **We store nothing readable.** Each person's memory is encrypted at rest with its own key (AES-256-GCM), wrapped by a server master key. File names are HMACs, not Telegram IDs. "Delete everything" (after a yes/no confirm) deletes it for good. No message content is logged.
-- **Telegram carries the messages.** Telegram can read bot chats, like any Telegram chat. The bot says this plainly when asked.
+- **Chats are sealed.** Every chat, decision, check-in and brief call goes to 0G Private Computer in `private` trust mode, so only TeeML providers serve it: the model runs inside an Intel TDX enclave, and 0G documents that neither 0G nor the GPU operator can read the prompt [PENDING-KEY].
+- **Memory stays hers.** In the web app, her memory is encrypted on her own device (a key derived from her wallet signature, AES-256-GCM); nothing readable is stored on a server.
+- **Try-on is the one exception, and we say so.** The photo goes to OpenAI's image model to make the look; it exists only in that request's memory and her browser tab, and is gone afterwards.
 
-What breaks if 0G is removed: without 0G, everything she tells Delulu, and every decision she weighs, is readable by whichever AI company runs the model. Every footer says `MOCK` or "fallback model, not sealed" when an answer did not come from 0G, so the bot never claims more than is true.
+Not scammy, by design: Delulu never asks for money, crypto, a wallet, passwords or codes, and never asks her to click a link.
 
 Safety: if she mentions self-harm, abuse or danger, every voice stops advising and points her to a trusted adult or a helpline (India: 112, Tele-MANAS 14416).
 
 ## How it's made
 
-- **Telegram bot:** grammY with long polling, TypeScript, run with `tsx`. No commands: the same chat call returns an `intent` (help, privacy + proof, delete with confirm, check-in on/off, list or cancel reminders, "help me decide"), validated against a fixed list, and the bot does the action itself, so the model's words never stand in for real data. Decision card, the three "Go with …" choices and confirmations are inline buttons. A per-person daily cap protects the team's 0G credits.
-- **One brain, two channels:** `src/lib/brain.ts` (persona, memory context, decision detection, three voices) is shared by the bot and a Next.js 16 web app (chat-first home + Decide screen, on-device encrypted memory, Privy embedded wallet).
-- **AI:** 0G Private Computer router, `https://router-api.0g.ai/v1`, OpenAI-compatible. Model `0gm-1.0-35b-a3b`: on 2026-11-06 it is the only chat model with a TeeML (sealed) provider in the live `/v1/models` list. Every request sends `X-0G-Provider-Trust-Mode: private` (TeeML only; it fails with 503 instead of downgrading) and `verify_tee: true`. We read `x_0g_trace.request_id`, `provider`, `tee_verified` and `billing.total_cost` [PENDING-KEY]. Chat runs in JSON mode (`response_format: json_object`) and returns `{reply, decision, reminder, intent}`, with the current IST time in the prompt so "Sunday 6pm" resolves; a tolerant parser falls back to plain text, so a format slip never breaks chat. The three voices are three parallel requests, so each has its own request ID. The `sk-` key stays on the server.
-- **One model interface** (`src/lib/ai/provider.ts`): 0G first, then an optional OpenAI-compatible fallback (labelled, with the 0G error kept). Mock is used only when nothing is configured, so a broken 0G key fails loudly and never turns into canned text quietly.
-- **Landing page:** Next.js, static, at `/` (hero, how it works, the three voices, privacy in honest wording, the anti-scam promise, FAQ). Brand from a light pass of our own brand process: palette assigned to claims (a reserved colour for "sealed on 0G", a loud one for the honest limits), hand-made SVG logo set.
-- **Scheduler:** check-backs, daily check-ins and reminders are jobs stored inside each encrypted record; an in-memory due index (rebuilt from the store on start) and a 15 s timer deliver them, once each.
-- **Bot storage:** Node `crypto` only. Per-user random 256-bit data key, AES-256-GCM with a random 96-bit IV per write, data key wrapped by `BOT_MASTER_KEY`; atomic writes; HMAC file names; deleting = crypto-shredding.
-- **Tests:** the whole bot flow runs offline against a fake Telegram API (onboarding → chat → decision card → three voices → pick → "is this private?" → "delete everything" with confirm), with checks that nothing readable reaches disk, file names do not reveal Telegram IDs, a wrong master key cannot read, no message asks for a wallet, seed, payment or link click, and no message contains a slash command; the scheduler is tested for due times, single delivery, restart recovery and deletion. Plus web tests (crypto, 0G trace parsing, decision, reminder and intent parsing): 14 test cases in all, and a 15-step headless-browser run of the web app. `npm run check:live` replays the demo against the real 0G router and fails if any answer is not sealed.
+- **Web app:** Next.js 16 (App Router, TypeScript), Tailwind 4, mobile-first; landing at `/`, the app at `/app` (Talk, Decide, Try-on, Settings). Login via Privy embedded EVM wallet (email/Google, no seed phrase), with a labelled DEV wallet when no app ID is set.
+- **AI on 0G:** 0G Private Computer router, `https://router-api.0g.ai/v1`, OpenAI-compatible. Model `0gm-1.0-35b-a3b`: on 2026-11-06 the only chat model with a TeeML (sealed) provider in the live `/v1/models` list. Every request sends `X-0G-Provider-Trust-Mode: private` (TeeML only; it fails with 503 instead of downgrading) and `verify_tee: true`; we read `x_0g_trace.request_id`, `provider`, `tee_verified` and `billing.total_cost` [PENDING-KEY]. Chat runs in JSON mode and returns `{reply, decision, reminder, intent}`, with the current IST time in the prompt; a tolerant parser falls back to plain text. The three voices are three parallel requests, so each has its own request ID.
+- **No commands:** the model's `intent` is validated against a fixed list and the app performs the action itself (`src/lib/assistant.ts`, pure functions), so the model's words never stand in for real data.
+- **Follow-ups without push:** check-backs, reminders and daily check-ins are jobs inside her encrypted memory; an in-app scheduler delivers them when she opens Delulu and every 15 s while it is open.
+- **Try-on:** OpenAI `gpt-image-2.5-sunburst` on `/v1/images/edits` (1024 px, quality medium; never `input_fidelity`, which this model rejects). The browser shrinks the photo to 1024 px first. A hard spend cap (40 images per day in total, 5 per person per day, on wallet and IP, failed calls refunded) protects the key; only hashed per-day counts are written to disk. The brief is a 0G call (text only).
+- **Encrypted memory:** WebCrypto: wallet signature (deterministic RFC 6979) → HKDF-SHA256 → AES-256-GCM, key not extractable, ciphertext in IndexedDB.
+- **Same brain on Telegram:** grammY bot with the same persona, intents and scheduler; per-user records encrypted at rest.
+- **Tests:** 22 unit/integration cases (assistant logic, crypto, 0G parsing, try-on caps and the exact request to the image model against a fake OpenAI server, the whole Telegram flow offline) and a 22-step headless-browser run of the website (chat → decision → three voices → check-back → plain-text intents → try-on → no photo stored → delete everything). `npm run check:live` replays the demo against the real 0G router and fails if any answer is not sealed.
 
 ## Tracks
 
-1. **0G: Build with 0G Private Computer** ($5,000). 0G inference is the whole user flow (every reply, plus three sealed answers per decision), each answer carries its request ID (footer, and "is this private?") [PENDING-KEY], a judge can try it in Telegram [PENDING-BOT], she has a reason to come back tomorrow (Delulu messages her first: daily check-in, reminders, the 30-day check-back), and the "what breaks if 0G is removed" line is in the bot and the README. **iAI bonus: NOT CLAIMED.** It needs "sign in with your 0G account" (Privy + wallet), and the Telegram flow is wallet-free by design.
+1. **0G: Build with 0G Private Computer** ($5,000). 0G inference is the main user flow (every chat reply, the three voices, check-ins and briefs), each answer carries its request ID [PENDING-KEY], judges can try it in a phone browser, she has a reason to come back tomorrow, and the "what breaks if 0G is removed" line is in the app and the README. Try-on is an extra feature on OpenAI's image model and is labelled that way. **iAI bonus: NOT CLAIMED.**
 
-Not a fit (checked against the prize page): 0G Physical AI, 0G Agents That Pay, 0G Keep Building, Ethereum Foundation CROPS (dropped: Telegram can read bot chats and the server holds the master key), World ID, Uniswap, Arc, Hedera, Arkiv, Whitechain, ENS, Flash, Chainlink, EF Anon-RPC and alt mempool.
+Not a fit (checked against the prize page): 0G Physical AI, 0G Agents That Pay, 0G Keep Building, Ethereum Foundation CROPS (dropped earlier), World ID, Uniswap, Arc, Hedera, Arkiv, Whitechain, ENS, Flash, Chainlink, EF Anon-RPC and alt mempool.
 
 ## Links (fill in; Jayant decides when the repo goes public)
 
 - GitHub (public, required): TODO
-- Live demo: the Telegram bot link, t.me/<bot username>: TODO. **The bot must be running during judging.** Landing page: `/` of the web app (set `NEXT_PUBLIC_TELEGRAM_BOT` so its button links to the bot); hosting is Jayant's call.
+- Live demo URL: TODO (hosting is Jayant's call; the caps stay on).
+- Telegram bot (optional): t.me/<bot username>: TODO, only if the bot is running.
 - Demo video (< 3 min): TODO. The script is in README.md.
 - Contracts: none.
 - Team: names, Telegram, X: TODO.
