@@ -16,6 +16,7 @@ type Beat =
   | { k: "day"; text: string };
 
 const SCRIPT: Beat[] = [
+  { k: "day", text: "Thursday, 11:48 pm" },
   { k: "s", text: "date on friday. should I get bangs or is that a mistake" },
   { k: "d", text: "Three of me have opinions." },
   { k: "views" },
@@ -27,7 +28,7 @@ const SCRIPT: Beat[] = [
 ];
 const N = SCRIPT.length;
 /** ms before each beat appears; Delulu beats show typing dots for the first 900 ms of their wait. */
-const WAIT = [700, 1300, 1500, 1600, 2200, 1700, 1400, 1500];
+const WAIT = [0, 700, 1200, 1300, 3000, 2200, 1700, 1400, 1500];
 const HOLD = 4200;
 
 const VIEWS = [
@@ -73,8 +74,7 @@ function Bubble({ beat }: { beat: Beat }): ReactNode {
             <Image src="/visuals-west/hair-west-curtain-bangs.jpg" alt="Sasha with curtain bangs, made by Delulu's try-on" fill sizes="200px" className="object-cover" />
           </div>
           <p className="px-1 pt-1.5 text-[12px]">Curtain bangs, on you.</p>
-          {/* no request ID here: an invented ID could pass as a real one (house rule); the real app shows the real ID */}
-          <p className="px-1 pb-0.5 font-mono text-[10px] text-l-muted">try-on on 0G</p>
+
         </div>
       );
   }
@@ -103,7 +103,8 @@ const motion = {
 
 export function HeroPhone() {
   const animated = useSyncExternalStore(motion.subscribe, motion.get, motion.server);
-  const [shown, setShown] = useState(1);
+  const [shown, setShown] = useState(2);
+  const screen = useRef<HTMLDivElement>(null);
   const [typing, setTyping] = useState(false);
   const done = useRef(false);
 
@@ -120,8 +121,8 @@ export function HeroPhone() {
         }
         timers.push(
           setTimeout(() => {
-            setShown(1);
-            run(1);
+            setShown(2);
+            run(2);
           }, HOLD),
         );
         return;
@@ -138,7 +139,7 @@ export function HeroPhone() {
         }, wait),
       );
     };
-    timers.push(setTimeout(() => run(1), 600));
+    timers.push(setTimeout(() => run(2), 600));
     return () => {
       cancelled = true;
       timers.forEach(clearTimeout);
@@ -146,6 +147,10 @@ export function HeroPhone() {
   }, [animated]);
 
   const beats = animated ? SCRIPT.slice(0, shown) : SCRIPT;
+  useEffect(() => {
+    const el = screen.current;
+    if (el && animated) el.scrollTo({ top: el.scrollHeight, behavior: shown <= 2 ? "auto" : "smooth" });
+  }, [shown, typing, animated]);
 
   return (
     <div className="relative mx-auto w-full max-w-[340px]">
@@ -158,13 +163,11 @@ export function HeroPhone() {
         </div>
         <div className="flex items-center gap-2 border-b border-l-line px-4 pb-2.5 pt-1.5">
           <Mark size={22} />
-          <div className="leading-tight">
-            <p className="text-[13px] font-semibold">Delulu</p>
-            <p className="font-mono text-[9.5px] text-l-muted">● sealed on 0G</p>
-          </div>
+          <p className="text-[13px] font-semibold">Delulu</p>
         </div>
         <div
-          className={`flex flex-1 flex-col gap-2 px-3 py-3 text-[13.5px] leading-snug ${animated ? "justify-end overflow-hidden" : "overflow-y-auto"}`}
+          ref={screen}
+          className={`flex flex-1 flex-col gap-2 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_27px,rgba(20,33,61,0.08)_27px,rgba(20,33,61,0.08)_28px)] bg-local px-3 py-3 text-[13.5px] leading-snug [mask-image:linear-gradient(to_bottom,transparent,black_28px)] ${animated ? "overflow-hidden" : "overflow-y-auto"}`}
           aria-label="Example chat: Sasha asks Delulu about bangs"
           role="log"
         >
