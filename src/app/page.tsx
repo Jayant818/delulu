@@ -69,10 +69,10 @@ function Bubble({ me, children }: { me?: boolean; children: ReactNode }) {
 const Sealed = () => <p className="mt-1.5 font-mono text-[11px] text-sealed">🔒 sealed on 0G · TEE ✓</p>;
 
 const STEPS = [
-  { n: 1, t: "You talk", d: "Anything. Your day, your people, your plans, your drama. She remembers you, so you never start from zero." },
-  { n: 2, t: "She catches the decision", d: "When you're stuck on a choice, she spots it in the chat: “Sounds like a decision. See 3 views?”" },
-  { n: 3, t: "Three honest voices", d: "Delulu, the sane one. Future You at 30. Your Bestie. Side by side, on one screen. You pick." },
-  { n: 4, t: "She checks back", d: "Thirty days later: “How did it go?” Plus reminders and a daily check-in, if you want them." },
+  { n: 1, t: "You talk", d: "Anything. Your day, your people, your plans, your drama. It remembers you, so you never start from zero." },
+  { n: 2, t: "It catches the decision", d: "When you're stuck on a choice, it spots it in the chat: “Sounds like a decision. See perspectives?”" },
+  { n: 3, t: "Different perspectives", d: "Three voices answer side by side: Delulu, the sane one. Future You at 30. Your Bestie. You pick." },
+  { n: 4, t: "It follows up", d: "Reminders, a daily check-in if you want one, and later a “how did it go?” on the choices you made." },
 ];
 
 const VOICES = [
@@ -96,7 +96,7 @@ const FAQ = [
     q: "What if I'm not okay?",
     a: `If you mention self-harm, abuse or being in danger, ${APP_NAME} stops giving advice and points you to people who can help. In India: 112 for emergencies, Tele-MANAS 14416 for mental health support.`,
   },
-  { q: "How do I delete everything?", a: "Just tell her: “delete everything”. She asks you to confirm, then your profile, chats, decisions and reminders are gone for good." },
+  { q: "How do I delete everything?", a: "Just tell it: “delete everything”. It asks you to confirm, then your profile, chats, decisions and reminders are gone for good." },
   {
     q: "What is 0G?",
     a: `0G Private Computer runs AI models inside secure hardware (TEEs), so prompts stay private and every answer can be checked. ${APP_NAME} uses it for every chat reply; ask “is this private?” to see the request IDs.`,
@@ -128,11 +128,11 @@ export default function Landing() {
             <h1 className="font-serif text-[clamp(2.6rem,9vw,4.4rem)] leading-[1.02] tracking-tight">
               Tell {APP_NAME} anything.
               <br />
-              <Em>She helps you decide.</Em>
+              <Em>It helps you decide.</Em>
             </h1>
             <p className="mt-5 max-w-md text-[17px] leading-relaxed text-l-muted">
-              A private AI big sister on your phone. Talk about your day, your people, your plans. When you&apos;re stuck on a choice, she
-              shows you three honest views and checks back on you later. And before the salon, see the new hair or nails on you.
+              Your AI companion, your split personality. Tell it anything: your day, your people, your plans. When you&apos;re stuck on a
+              choice, it helps you decide by showing you different perspectives. And before the salon, see the new hair or nails on you.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-4">
               <OpenCta big />
@@ -162,7 +162,7 @@ export default function Landing() {
                   </div>
                 </Bubble>
                 <div className="flex justify-center">
-                  <span className="rounded-full border border-l-line bg-l-card px-3 py-1 text-[12px] font-semibold text-brand">See 3 views 👀</span>
+                  <span className="rounded-full border border-l-line bg-l-card px-3 py-1 text-[12px] font-semibold text-brand">See perspectives 👀</span>
                 </div>
               </div>
             </div>
@@ -185,7 +185,7 @@ export default function Landing() {
         <section id="how" className="scroll-mt-24 py-16">
           <div className="text-center">
             <H2>
-              You talk. She catches it. <Em>She checks back.</Em>
+              You talk. It listens. <Em>You see every side.</Em>
             </H2>
             <p className="mt-3 text-l-muted">Four steps, and you only ever do the first one.</p>
           </div>
@@ -204,7 +204,7 @@ export default function Landing() {
         <section className="py-16">
           <div className="text-center">
             <H2>
-              Three voices. <Em>Your call.</Em>
+              Different perspectives. <Em>Your call.</Em>
             </H2>
             <p className="mx-auto mt-3 max-w-xl text-l-muted">Each voice is a separate, sealed answer. Read all three, then tap the one you&apos;ll follow.</p>
           </div>
@@ -223,11 +223,11 @@ export default function Landing() {
         <section className="grid items-center gap-10 py-16 md:grid-cols-2">
           <div>
             <H2>
-              A big sister <Em>with a calendar.</Em>
+              It remembers, <Em>so you don&apos;t have to.</Em>
             </H2>
             <p className="mt-5 max-w-md text-[17px] leading-relaxed text-l-muted">
-              Ask her to remind you, and she will. Pick a time, and she checks in every evening with something that is actually about your
-              life. Made a decision? Thirty days later she asks how it went, and remembers the answer.
+              Ask it to remind you, and it will. Pick a time, and it checks in every evening with something that is actually about your
+              life. Made a decision? Later it asks how it went, and remembers the answer.
             </p>
           </div>
           <div className="mx-auto w-full max-w-sm space-y-2.5 rounded-[28px] border border-l-line bg-[#f6ecdf] p-4">
@@ -258,8 +258,8 @@ export default function Landing() {
               Try the hair or nails <Em>before the salon.</Em>
             </H2>
             <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-l-muted">
-              Upload a selfie or a photo of your hand, pick a style (or describe one), and see it on you. Then the three voices weigh in,
-              and you get a ready-to-show brief for your stylist or nail tech.
+              Upload a selfie or a photo of your hand, pick a style (or describe one), and see it on you. Then you get different perspectives on it,
+              and a ready-to-show brief for your stylist or nail tech.
             </p>
             <p className="mt-4 max-w-2xl rounded-2xl border-l-4 border-honest bg-l-paper px-4 py-3 text-[14px] leading-relaxed">
               <b className="text-honest">Honest note:</b> try-on photos go to OpenAI&apos;s image model to make your look, then we delete
@@ -351,7 +351,7 @@ export default function Landing() {
             <br />
             <Em>deserves a sane answer.</Em>
           </H2>
-          <p className="mt-4 text-l-muted">Say hi. She&apos;ll ask you five questions, then it&apos;s just talking.</p>
+          <p className="mt-4 text-l-muted">Say hi. It&apos;ll ask you five questions, then it&apos;s just talking.</p>
           <div className="mt-8 flex flex-col items-center gap-3">
             <OpenCta big />
             <TelegramLink />

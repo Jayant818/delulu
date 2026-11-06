@@ -16,7 +16,7 @@ What I did NOT copy: any text, images, illustrations, logo, colours or font (tal
 ## Failure modes this design must avoid
 
 1. **Looks like a scammy Telegram crypto bot** (neon, coins, "earn", countdowns) → loses every parent, every cautious girl, every judge. Answer: paper, serif, no gradients, no glow; the anti-scam promise is a full section, not a footnote.
-2. **Looks like a clinical mental-health or banking app** → loses the Gen Z warmth and the joke in the name. Answer: a soft wonky serif (Fraunces italic), one playful pink, big-sister copy.
+2. **Looks like a clinical mental-health or banking app** → loses the Gen Z warmth and the joke in the name. Answer: a soft wonky serif (Fraunces italic), one playful pink, warm "split personality" companion copy (Jayant, TG 3428: "your AI companion, your split personality", not a big sister).
 
 ## Palette (assigned to claims first, components second)
 

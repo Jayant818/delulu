@@ -56,8 +56,8 @@ To try it on a real phone on the same Wi-Fi: `NEXT_PUBLIC_DEMO_FAST=1 npm run de
 |---|---|---|
 | 1 | Landing → **Open Delulu** → log in | the 5 setup questions |
 | 2 | answer them | Talk: "Tell Delulu anything", the 🔒 line, no "MOCK" warning |
-| 3 | "ugh my parents want me home but the bangalore offer pays 2x. should i take it or stay in jaipur?" | a reply with a chip `0G · xxxxxxxx… · TEE ✓` and "Sounds like a decision … See 3 views" |
-| 4 | **See 3 views** → **Hear all three** | three cards, each with its own `0G` chip |
+| 3 | "ugh my parents want me home but the bangalore offer pays 2x. should i take it or stay in jaipur?" | a reply with a chip `0G · xxxxxxxx… · TEE ✓` and "Sounds like a decision … See perspectives" |
+| 4 | **See perspectives** → **Hear all three** | three cards, each with its own `0G` chip |
 | 5 | **I'll go with this** on one | "Saved." Back in Talk the card says "Decided: …" |
 | 6 | wait about 1 minute in Talk | "💛 Check-back … How did it go?" → tap one → a reply |
 | 7 | "remind me in 2 minutes to call Riya", then "what are my reminders" | "⏰ Reminder set …", then the list with Cancel; about 2 minutes later "⏰ Reminder: call Riya" appears (keep the app open) |

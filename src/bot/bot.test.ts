@@ -63,12 +63,12 @@ test("telegram flow: onboarding -> chat -> decision card -> 3 views -> pick -> p
   for (const a of ["Product designer", "Freedom, family", "My sister", "Letting my parents down", "Bangalore job or Jaipur"]) await t.text(a);
   assert.match(String(t.lastSent().text), /Tell me anything/);
 
-  // Free talk with a decision in it -> reply + footer + "See 3 views" button.
+  // Free talk with a decision in it -> reply + footer + "See perspectives" button.
   await t.text("parents want me home but should I take the Bangalore job or stay in Jaipur?");
   const reply = t.lastSent();
   assert.match(String(reply.text), /MOCK · no AI called/, "footer marks the backend honestly");
   assert.match(String(reply.text), /Sounds like a decision:/);
-  const see = t.buttons(reply).find((b) => b.text.startsWith("See 3 views"));
+  const see = t.buttons(reply).find((b) => b.text.startsWith("See perspectives"));
   assert.ok(see, "decision card has a button");
 
   // Three views in one message, one "Go with" button per voice.

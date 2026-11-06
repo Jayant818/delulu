@@ -1,8 +1,8 @@
 # Delulu
 
-**Tell her anything; she helps you decide.** Delulu is a private AI companion for young women. **The website is the main product** (landing at `/`, the app at `/app`, mobile-first); the same brain also runs as a Telegram bot.
+**Delulu is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives.** Built for young women. **The website is the main product** (landing at `/`, the app at `/app`, mobile-first); the same brain also runs as a Telegram bot.
 
-She tells Delulu anything, and Delulu remembers her (setup answers, past chats, past decisions). When she is weighing a choice, Delulu pulls it out of the conversation ("Sounds like a decision: … See 3 views") into three honest voices: **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She picks one, and Delulu checks back later to ask how it went. Like a good secretary, it keeps her reminders ("remind me Sunday 6pm to call Riya") and checks in on her daily at a time she picks. And before the salon, **Try-on** shows a new hair or nail look on her own photo, then writes the brief for her stylist or nail tech.
+She tells Delulu anything, and it remembers her (setup answers, past chats, past decisions). When she is weighing a choice, Delulu pulls it out of the conversation ("Sounds like a decision: … See perspectives") and shows it from different perspectives, three voices side by side: **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She picks one; later Delulu asks how it went. Like a good secretary, it keeps her reminders ("remind me Sunday 6pm to call Riya") and checks in on her daily at a time she picks. And before the salon, **Try-on** shows a new hair or nail look on her own photo, then writes the brief for her stylist or nail tech.
 
 **Privacy, in one line (shown in the app):** "Your chats are sealed on 0G. Try-on photos go to OpenAI's image model to make your look, then we delete them." Every chat answer carries its 0G request ID.
 
@@ -78,12 +78,12 @@ Run `NEXT_PUBLIC_DEMO_FAST=1 npm run dev` so the check-back arrives 1 minute aft
 
 | Time | Screen | Do | Say |
 |---|---|---|---|
-| 0:00 | Landing | Scroll the hero, tap **Open Delulu** | "Every girl I know tells an AI things she'd never say out loud. Delulu gives the sane answer, and nobody else can read it." |
+| 0:00 | Landing | Scroll the hero, tap **Open Delulu** | "Every girl I know tells an AI things she'd never say out loud. Delulu is your AI companion, your split personality: tell it anything, it helps you decide by showing you different perspectives, and nobody else can read it." |
 | 0:10 | Login + setup | Log in, show 2 of the 5 answers | "Five questions so it actually knows her. Memory is encrypted on her phone." |
 | 0:20 | Talk | Type the Bangalore message | "She can tell Delulu anything, and it notices when she's stuck on a choice." |
 | 0:30 | Talk | Point at the chip `0G · … · TEE ✓` and the decision card | "Every answer is a sealed request on 0G Private Computer: here's its request ID and TEE check." |
-| 0:38 | Decide | **See 3 views** → three cards → **I'll go with this** | "Three voices: Delulu, the sane one; Future You at 30; Your Bestie. Three separate sealed requests. She picks." |
-| 0:55 | Talk | Wait for the check-back, tap **😊 Glad I did** | "And Delulu comes back to her: here after one minute, normally a month later." |
+| 0:38 | Decide | **See perspectives** → three cards → **I'll go with this** | "Different perspectives, as three voices: Delulu, the sane one; Future You at 30; Your Bestie. Three separate sealed requests. She picks." |
+| 0:55 | Talk | Wait for the check-back, tap **😊 Glad I did** | "And it follows up later, here after one minute." |
 | 1:05 | Talk | Type "remind me Sunday 6pm to call Riya", then "is this private?" | "No commands, just talk: reminders, check-ins, and the proof, with every request ID." |
 | 1:20 | Try-on | Hair → selfie → "Copper red, same cut" → **See it on me** (cut the wait) | "Before the salon: see it on you. This part uses OpenAI's image model, and the app says so: the photo is deleted right after." |
 | 1:40 | Try-on | Show the stylist brief, then **Ask the three voices** | "Then a brief she can show her stylist, and the three voices on whether to do it." |

@@ -30,7 +30,7 @@ function DecisionCard({ summary, decided }: { summary: string; decided?: Decisio
         <span className="font-semibold">Sounds like a decision:</span> {summary}
       </p>
       <Link href={`/decide?q=${encodeURIComponent(summary)}`} className="mt-2 inline-block font-semibold text-accent">
-        See 3 views →
+        See perspectives →
       </Link>
     </div>
   );
@@ -165,7 +165,7 @@ export default function Talk() {
           ✨ Try-on
         </Link>
       </div>
-      <p className="text-sm text-muted">She remembers you, and helps you decide. Only you can read this.</p>
+      <p className="text-sm text-muted">Your AI companion, your split personality. It remembers you and shows you different perspectives.</p>
       <PrivacyLine compact />
       <div className="mt-4 space-y-3">
         {chat.length === 0 && (

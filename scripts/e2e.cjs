@@ -51,7 +51,7 @@ const idb = (page, op) =>
   await page.screenshot({ path: `${out}/2-talk-decision.png`, fullPage: true });
 
   // Card -> Decide, pre-filled.
-  await page.getByRole("link", { name: /See 3 views/ }).click();
+  await page.getByRole("link", { name: /See perspectives/ }).click();
   await page.waitForURL("**/decide?q=**");
   ok((await page.getByPlaceholder(/Should I take/).inputValue()).includes("Bangalore design job"), "Decide pre-filled from the chat");
   ok(await page.getByText("Pulled from your chat.").isVisible(), "Decide says it came from chat");

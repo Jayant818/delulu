@@ -65,7 +65,7 @@ function pastDecisionsBlock(ds: DecisionSummary[]): string {
       .map(
         (d) =>
           `- ${clip(d.at, 10)}: "${clip(d.question, 200)}" -> she went with ${VIEWS[d.choice]?.title ?? d.choice}` +
-          (d.outcome ? ` (30 days later: ${OUTCOME_TEXT[d.outcome] ?? d.outcome})` : ""),
+          (d.outcome ? ` (later: ${OUTCOME_TEXT[d.outcome] ?? d.outcome})` : ""),
       )
       .join("\n")
   );
@@ -94,7 +94,7 @@ export function chatSystemPrompt(p: Profile, ds: DecisionSummary[], now = new Da
   // Both channels can schedule now (bot: timer; web: in-app, shown when she opens Delulu) and both have no commands.
   const bot = channel === "telegram" || channel === "web";
   return `VOICE: ${VIEWS.sane.voice}
-You are ${APP_NAME}, a private AI companion. She can tell you anything: her day, her feelings, her plans, her drama. You listen, remember, and help her think. The joke is the name: ${APP_NAME} gives the sane answer. Playful Gen Z tone (light slang, at most one emoji), grounded advice. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
+You are ${APP_NAME}: her AI companion, her split personality (the sane voice in her head). She can tell you anything: her day, her feelings, her plans, her drama. You listen, remember, and help her think. The joke is the name: ${APP_NAME} gives the sane answer. Playful Gen Z tone (light slang, at most one emoji), grounded advice. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
 
 ${profileBlock(p)}
 

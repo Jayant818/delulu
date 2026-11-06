@@ -34,25 +34,25 @@ Delulu is the solulu. We give you the sane answer.
 
 ## Short description (≤ 100 words)
 
-Tell her anything; she helps you decide. Delulu is a private AI big sister for young women that remembers her. When she is weighing a choice, Delulu pulls it out of the chat into three voices: Delulu (the sane one), Future You at 30, and Your Bestie. She picks one, and Delulu checks back later. Before the salon, Try-on shows new hair or nails on her own photo and writes the stylist brief. Chats run sealed on 0G Private Computer with visible request IDs [PENDING-KEY]. No commands, no wallet prompts, no links.
+Delulu is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives. It remembers you, catches the decisions hidden in your chats, and follows up on them. Before the salon, Try-on shows new hair or nails on your own photo and writes the brief for your stylist. Every chat runs sealed on 0G Private Computer, with a visible request ID on each answer [PENDING-KEY]. No commands, no wallet prompts, no links.
 
 ## Long description
 
 Girls already tell AI the things they would never say out loud: a job in another city, a relationship, money, family pressure. Today, every one of those messages sits in plain text at an AI company.
 
-Delulu is the app with the delulu name that gives the sane answer. **Tell her anything; she helps you decide.** It is a mobile-first website (and the same brain runs as a Telegram bot). Five setup questions (goals, values, who she trusts, what she fears, the big thing on her mind), then she just talks, and Delulu answers with her setup answers, past chats and past decisions in mind. There are no commands: "help me decide …", "remind me Sunday 6pm to call Riya", "what are my reminders", "check in on me every evening at 9", "is this private?" and "delete everything" (with a confirm) all work as plain sentences.
+**Delulu is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives.** Delusional name, sane answers. It is a mobile-first website (and the same brain runs as a Telegram bot). Five setup questions (goals, values, who she trusts, what she fears, the big thing on her mind), then she just talks, and Delulu answers with her setup answers, past chats and past decisions in mind. There are no commands: "help me decide …", "remind me Sunday 6pm to call Riya", "what are my reminders", "check in on me every evening at 9", "is this private?" and "delete everything" (with a confirm) all work as plain sentences.
 
-When she is actually stuck on a choice, Delulu notices. The reply carries "Sounds like a decision: take the Bangalore job or stay in Jaipur" and a **See 3 views** button [PENDING-KEY: detection quality on the real model]. One tap gives three voices on the same choice, side by side:
+When she is actually stuck on a choice, Delulu notices. The reply carries "Sounds like a decision: take the Bangalore job or stay in Jaipur" and a **See perspectives** button [PENDING-KEY: detection quality on the real model]. One tap shows the same choice from different perspectives, three voices side by side:
 
 - **Delulu**, the sane one: the real trade-off, the cost of each option, one next step this week.
 - **Future You at 30**: her own voice looking back.
 - **Your Bestie**: casual, protective, honest.
 
-She picks the one she will follow. Later, Delulu asks how it went (Glad / Mixed / Regret), and her answer becomes part of its memory. Reminders and a short, specific daily check-in work the same way: they appear in the app when they are due.
+She picks the one she will follow. Later, Delulu follows up and asks how it went (Glad / Mixed / Regret), and her answer becomes part of its memory. Reminders and a short, specific daily check-in work the same way: they appear in the app when they are due.
 
-**Try-on (hair + nails).** She uploads a selfie or a photo of her hand, picks one of six styles or describes her own, and sees the look on herself [PENDING-IMG]. Then Delulu writes a ready-to-show brief for her stylist or nail tech, and the three voices weigh in on whether to do it. The photo is never stored: not on our server, not in her saved memory.
+**Try-on (hair + nails).** She uploads a selfie or a photo of her hand, picks one of six styles or describes her own, and sees the look on herself [PENDING-IMG]. Then Delulu writes a ready-to-show brief for her stylist or nail tech, and shows different perspectives on whether to do it. The photo is never stored: not on our server, not in her saved memory.
 
-This is why it is not a chat wrapper: the persona remembers her, decisions are pulled out of free talk into a structured three-voice choice, Delulu follows up on its own, and every chat answer is sealed with a checkable request ID.
+This is why it is not a chat wrapper: the companion remembers her, decisions are pulled out of free talk and shown from different perspectives, Delulu follows up on its own, and every chat answer is sealed with a checkable request ID.
 
 Privacy, honestly (the app says this in one line: "Your chats are sealed on 0G. Try-on photos go to OpenAI's image model to make your look, then we delete them."):
 

@@ -20,9 +20,9 @@ const when = whenIST;
 const id = () => randomBytes(4).toString("hex");
 
 export const TEXT = {
-  intro: `Hi, I'm <b>${APP_NAME}</b> 💅 the app with the delulu name that gives you the sane answer.
+  intro: `Hi, I'm <b>${APP_NAME}</b> 💅 your AI companion, your split personality. Delusional name, sane answers.
 
-Tell me anything: your day, your drama, the choice keeping you up at night. When you're stuck on a decision, I'll show you three views and check back on you in 30 days.
+Tell me anything: your day, your drama, the choice keeping you up at night. When you're stuck on a decision, I'll help you decide by showing you different perspectives.
 
 🔒 My AI runs sealed on 0G Private Computer: not even 0G can read it. I store nothing readable. Telegram carries our messages (ask me "is this private?" any time).
 🚫 I will <b>never</b> ask for money, crypto, a wallet, passwords, codes, or ask you to click a link. If "${APP_NAME}" ever does, it isn't me.
@@ -336,7 +336,7 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
         const pid = id();
         u.pending[pid] = { question: decision };
         body += `\n\n<b>Sounds like a decision:</b> ${esc(decision)}`;
-        kb.text("See 3 views 👀", `v:${pid}`).row();
+        kb.text("See perspectives 👀", `v:${pid}`).row();
       }
       if (reminder) {
         const job: Job = { id: id(), kind: "reminder", at: reminder.at, text: reminder.text };

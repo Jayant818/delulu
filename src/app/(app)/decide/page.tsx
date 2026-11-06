@@ -115,7 +115,7 @@ function Decide({ fromChat }: { fromChat: string }) {
               </article>
             );
           })}
-          {picked && <p className="rounded-xl bg-accent-soft p-3 text-sm">Saved. I will ask you how it went in 30 days.</p>}
+          {picked && <p className="rounded-xl bg-accent-soft p-3 text-sm">Saved. I&apos;ll ask you how it went, later.</p>}
         </section>
       )}
 

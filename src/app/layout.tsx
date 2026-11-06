@@ -6,8 +6,8 @@ import "./globals.css";
 const fraunces = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], variable: "--font-fraunces", display: "swap" });
 
 export const metadata: Metadata = {
-  title: `${APP_NAME}: tell her anything, she helps you decide`,
-  description: `${APP_NAME} is a private AI big sister in Telegram. Tell her anything; when you're stuck on a choice she gives you three honest views and checks back on you. AI sealed on 0G.`,
+  title: `${APP_NAME}: your AI companion, your split personality`,
+  description: `${APP_NAME} is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives. Chats sealed on 0G.`,
   appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "default" },
 };
 
