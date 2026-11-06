@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test src/lib/core.test.ts src/bot/bot.test.ts",
-    "bot": "tsx --env-file=.env.local src/bot/index.ts"
+    "bot": "tsx --env-file=.env.local src/bot/index.ts",
+    "check:live": "tsx --env-file=.env.local scripts/live-check.ts"
   },
   "dependencies": {
     "@privy-io/react-auth": "^3.51.2",
