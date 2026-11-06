@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { APP_NAME } from "@/config";
+import { ArkivRestoreOffer } from "@/components/ArkivBackup";
 import { chatLines, decisionSummaries, postAi, aiMeta } from "@/lib/api";
 import { runDue } from "@/lib/assistant";
 import { useMemoryVault, type Memory } from "@/lib/memory";
@@ -97,7 +98,10 @@ export function Shell({ children }: { children: ReactNode }) {
     );
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col">
-      <main className="flex-1 px-4 pb-24 pt-6">{children}</main>
+      <main className="flex-1 px-4 pb-24 pt-6">
+        <ArkivRestoreOffer />
+        {children}
+      </main>
       <nav className="fixed inset-x-0 bottom-0 border-t border-line bg-paper/95 backdrop-blur">
         <div className="mx-auto flex max-w-md">
           {NAV.map((n) => (

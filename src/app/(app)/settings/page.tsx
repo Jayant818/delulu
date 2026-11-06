@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ArkivBackupCard } from "@/components/ArkivBackup";
 import { APP_NAME } from "@/config";
 import { useMemoryVault } from "@/lib/memory";
 import { useSession } from "@/lib/session";
@@ -40,6 +41,8 @@ export default function Settings() {
         </p>
       </section>
 
+      <ArkivBackupCard />
+
       <section className="rounded-2xl border border-line bg-paper p-4 text-sm">
         <h2 className="font-semibold">AI</h2>
         <p className="mt-1 text-muted">
@@ -65,7 +68,7 @@ export default function Settings() {
         {wiping ? "Deleting…" : "Delete everything"}
       </button>
       <p className="text-center text-xs text-muted">
-        Deletes what it knows about you, your chats and decisions from this device, and {APP_NAME} starts fresh. One tap, no undo.
+        Deletes what it knows about you, your chats and decisions from this device (and your Arkiv backup, if you made one), and {APP_NAME} starts fresh. One tap, no undo.
       </p>
     </div>
   );

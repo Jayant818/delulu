@@ -7,6 +7,7 @@ import { normalizeProfile, type Outcome, type Profile, type ViewId } from "@/lib
 import type { Job } from "@/lib/schedule";
 import { useSession } from "@/lib/session";
 import { deriveKey, KEY_MESSAGE, seal, unseal, type Sealed } from "@/lib/vault";
+import { arkivApi, type ArkivInfo } from "@/lib/arkiv-client";
 
 export type AiMeta = Omit<AiResult, "text">;
 // kind marks app-made messages that render with buttons (check-back, delete confirm, reminders list).
@@ -26,12 +27,21 @@ export type Memory = { profile: Profile; chat: ChatEntry[]; decisions: Decision[
 const EMPTY: Memory = { profile: { facts: [] }, chat: [], decisions: [], jobs: [], dailyAt: null };
 const storeKey = (address: string) => `memory:v1:${address.toLowerCase()}`;
 
+// Encrypted backup on Arkiv. enabled=false (server has no Arkiv key) hides all Arkiv UI.
+export type ArkivState = { enabled: boolean; phase: "idle" | "saving" | "saved" | "paused" | "restoring"; info: ArkivInfo | null; offer: boolean; note?: string };
+const ARKIV_OFF: ArkivState = { enabled: false, phase: "idle", info: null, offer: false };
+const BACKUP_DEBOUNCE_MS = 6000;
+const isEmpty = (m: Memory) => !m.chat.length && !m.decisions.length && !m.profile.facts.length;
+
 type Vault = {
   status: "locked" | "unlocking" | "unlocked" | "error";
   error?: string;
   memory: Memory;
   update: (fn: (m: Memory) => Memory) => Promise<void>;
   wipe: () => Promise<void>;
+  arkiv: ArkivState;
+  backupNow: () => Promise<void>;
+  restore: () => Promise<void>;
 };
 
 const Ctx = createContext<Vault | null>(null);
@@ -50,6 +60,9 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
   const keyRef = useRef<CryptoKey | null>(null);
   const memRef = useRef<Memory>(EMPTY);
   const saving = useRef<Promise<unknown>>(Promise.resolve());
+  const [arkiv, setArkiv] = useState<ArkivState>(ARKIV_OFF);
+  const arkivOn = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Privy's signMessage identity can change every render; a ref keeps unlock from re-running.
   const signRef = useRef(session.sign);
   useEffect(() => {
@@ -60,6 +73,8 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     keyRef.current = null;
     memRef.current = EMPTY;
+    arkivOn.current = false;
+    if (timer.current) clearTimeout(timer.current);
     if (!address) return;
     let cancelled = false;
     (async () => {
@@ -74,6 +89,15 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
         keyRef.current = key;
         memRef.current = m;
         setState({ for: address, status: "unlocked", memory: m });
+        // Ask Arkiv for her backup. A failure here only hides the feature; the app is already unlocked.
+        arkivApi
+          .read(address)
+          .then((r) => {
+            if (cancelled || !r.enabled) return;
+            arkivOn.current = true;
+            setArkiv({ enabled: true, phase: r.backup ? "saved" : "idle", info: r.backup, offer: !!r.backup && isEmpty(m) });
+          })
+          .catch(() => {});
       } catch (e) {
         if (!cancelled) setState({ for: address, status: "error", error: (e as Error).message, memory: EMPTY });
       }
@@ -97,19 +121,63 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
       // Writes are chained so a slow encrypt can never overwrite a newer one.
       saving.current = saving.current.then(async () => set(storeKey(address), await seal(key, snapshot)));
       await saving.current;
+      if (arkivOn.current) {
+        if (timer.current) clearTimeout(timer.current);
+        timer.current = setTimeout(() => void pushRef.current(), BACKUP_DEBOUNCE_MS);
+      }
     },
     [address],
   );
 
+  // Seal the CURRENT memory (gzip + AES-GCM, trimmed to 128 KiB), sign its hash, let the server write it to Arkiv.
+  const push = useCallback(async () => {
+    const key = keyRef.current;
+    if (!key || !address || !arkivOn.current) return;
+    setArkiv((a) => ({ ...a, phase: "saving", note: undefined }));
+    try {
+      const { info, trimmed } = await arkivApi.save(key, memRef.current, address, (m) => signRef.current(m));
+      setArkiv((a) => ({ ...a, phase: "saved", info, note: trimmed ? `${trimmed} oldest chat messages left out to fit 128 KiB` : undefined }));
+    } catch {
+      setArkiv((a) => ({ ...a, phase: "paused" }));
+    }
+  }, [address]);
+  const pushRef = useRef(push);
+  useEffect(() => {
+    pushRef.current = push;
+  });
+
+  const restore = useCallback(async () => {
+    const key = keyRef.current;
+    if (!key || !address) throw new Error("memory is locked");
+    setArkiv((a) => ({ ...a, phase: "restoring" }));
+    try {
+      const stored = await arkivApi.fetchMemory<Partial<Memory>>(key, address);
+      const m: Memory = { ...EMPTY, ...stored, profile: normalizeProfile(stored.profile) };
+      memRef.current = m;
+      setState({ for: address, status: "unlocked", memory: m });
+      saving.current = saving.current.then(async () => set(storeKey(address), await seal(key, m)));
+      await saving.current;
+      setArkiv((a) => ({ ...a, phase: "saved", offer: false, note: "Restored from Arkiv." }));
+    } catch (e) {
+      setArkiv((a) => ({ ...a, phase: "paused", note: (e as Error).message }));
+      throw e;
+    }
+  }, [address]);
+
   const wipe = useCallback(async () => {
     await saving.current.catch(() => {});
+    if (timer.current) clearTimeout(timer.current);
+    // "Delete everything" also deletes her Arkiv entity (signed by her). If that fails the entity is no longer renewed and expires.
+    if (arkivOn.current && address) await arkivApi.remove(address, (m) => session.sign(m)).catch(() => {});
+    arkivOn.current = false;
     if (address) await del(storeKey(address));
     await clear();
     keyRef.current = null;
     memRef.current = EMPTY;
     setState(null);
+    setArkiv(ARKIV_OFF);
     await session.logout();
   }, [address, session]);
 
-  return <Ctx.Provider value={{ status, error: mine?.error, memory, update, wipe }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ status, error: mine?.error, memory, update, wipe, arkiv: mine ? arkiv : ARKIV_OFF, backupNow: push, restore }}>{children}</Ctx.Provider>;
 }
