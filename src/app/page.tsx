@@ -136,33 +136,31 @@ export default function Landing() {
       <section className={`${WRAP} flex flex-wrap items-center gap-14 pb-24 pt-6 md:pt-10`}>
         <div className="flex min-w-0 flex-[1_1_440px] flex-col gap-[26px]">
           <Eyebrow>The diary that writes back</Eyebrow>
+          {/* Hero copy: Jayant's pick, TG 3533 ("Musk version", minus "Locked, even from us": our server sees each message in memory) */}
           <h1 className="font-serif text-[clamp(48px,6.2vw,84px)] font-normal leading-none tracking-[-0.01em]">
-            Dear diary,
-            <br />
-            <em>what should I do?</em>
+            Your diary has <em>opinions now.</em>
           </h1>
           <p className="max-w-[520px] text-[19px] leading-[1.6] text-l-body">
-            {APP_NAME} is your AI companion, your split personality. Write anything. It writes back with different perspectives, and shows
-            you new hair and nails on your own photo before the salon.
+            The sane one, you at 30, and your bestie write back. Later it asks how the date went.
           </p>
           {/* Plain GET form: works without JS; /app reads ?draft= and puts it in the chat box (she still taps Send). */}
           <form action="/app" method="get" className="flex max-w-[520px] flex-col gap-2.5">
             <label htmlFor="first-line" className="font-mono text-xs uppercase tracking-[0.12em] text-l-muted">
               Write your first line
             </label>
-            {/* phones: the button goes under the line, or the placeholder is cut to "Dear diary, he" */}
-            <div className="flex flex-col gap-2 rounded-[22px] border border-l-field bg-l-card p-2 focus-within:border-l-ink sm:flex-row sm:items-center sm:gap-2.5 sm:rounded-full sm:py-2 sm:pl-[22px]">
-              <input
+            {/* A two-line box with the button under it: side by side (the design's pill), the placeholder was cut at every
+                width we measured (375 to 1440 px), and "…Should I get bangs?" is the joke. Two lines also read as a diary page. */}
+            <div className="flex flex-col gap-2 rounded-[22px] border border-l-field bg-l-card p-2 focus-within:border-l-ink">
+              <textarea
                 id="first-line"
                 name="draft"
-                type="text"
+                rows={2}
                 maxLength={2000}
-                autoComplete="off"
-                placeholder="Dear diary, he texted me at 2am again..."
-                className="min-w-0 flex-auto bg-transparent px-3 py-2 font-serif text-lg italic text-l-ink outline-none placeholder:text-l-muted sm:p-0"
+                placeholder="Dear diary, first date Friday. Should I get bangs?"
+                className="min-w-0 resize-none bg-transparent px-3 py-2 font-serif text-lg italic leading-snug text-l-ink outline-none placeholder:text-l-muted"
               />
               <button type="submit" className="whitespace-nowrap rounded-full bg-brand px-5 py-3 text-[15px] font-semibold text-l-ink active:scale-[0.98]">
-                Write back to me
+                Make it write back
               </button>
             </div>
             <p className="text-[13px] text-l-muted">Free · in your browser · no sign-up · chats sealed on 0G</p>
@@ -191,13 +189,15 @@ export default function Landing() {
               <Mark size={22} />
               <span className="text-sm font-semibold">{APP_NAME} wrote back</span>
             </div>
-            <p className="font-serif text-base leading-[1.45]">
-              &ldquo;You don&apos;t owe a 2am text a 2am answer. Want three ways to reply, or none?&rdquo;
-            </p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-l-muted">Sat 10:14am</p>
+            <p className="font-serif text-base leading-[1.45]">so... how did the date go? And the bangs?</p>
             <p className="font-mono text-[11px] text-l-muted">● sealed on 0G</p>
           </div>
         </figure>
       </section>
+
+      {/* SLOT: "Sana's story", a scroll-driven chat walkthrough, goes right here after the hero (Secretary + Jayant are
+          writing the script, msg#1629). */}
 
       {/* TWO PAGES */}
       <section id="how" className="scroll-mt-4 bg-l-ink text-l-paper">
@@ -208,7 +208,7 @@ export default function Landing() {
               Two pages. <em>One you.</em>
             </h2>
             <p className="text-lg leading-[1.6] text-l-on-ink">
-              You write on the left page. Your other side writes back on the right. When you are stuck, it shows you the choice from more
+              Your AI companion, your split personality. You write on the left page. Your other side writes back on the right. When you are stuck, it shows you the choice from more
               than one side.
             </p>
           </div>
