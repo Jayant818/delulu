@@ -2,7 +2,8 @@
 // The open diary on the landing (Jayant TG 3622): three spreads, three things Delulu really does today
 // (hair try-on, nail try-on, a hair-colour test with the same try-on), each with the follow-up it sends later.
 // Turning a page is a real 3D page turn: the right page lifts at the spine and lands on the left (desktop), or the whole
-// page turns over (phones). Arrows, the dots, a tap on a page, a swipe, and the keyboard arrows all turn it.
+// page turns over (phones). The page tabs, a tap on a page, a swipe, and the keyboard arrows all turn it (no arrow
+// buttons: Jayant TG 3645). It also turns by itself, slowly, until the first interaction.
 // Reduced motion: a plain fade, no 3D. Every photo is fictional and made on 0G; every "after" is labelled AI preview.
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
@@ -358,7 +359,7 @@ export function DiaryBook() {
           const dx = e.clientX - downX.current;
           downX.current = null;
           if (Math.abs(dx) > 40) user(dx < 0 ? next : prev)();
-          else if (wide) {
+          else {
             // a tap on the right half turns forward, on the left half back (like lifting a page corner)
             const r = e.currentTarget.getBoundingClientRect();
             user(e.clientX > r.left + r.width / 2 ? next : prev)();
@@ -370,11 +371,8 @@ export function DiaryBook() {
           {`Page ${at + 1} of ${N}: ${cur.left.title}`}
         </span>
       </div>
-      <div className="flex items-center justify-between gap-3">
-        <button onClick={user(prev)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand font-semibold text-l-ink" aria-label="Previous page">
-          ←
-        </button>
-        <div className="flex items-center gap-0.5 sm:gap-4" role="tablist" aria-label="Diary pages">
+      <div className="flex justify-center">
+        <div className="flex items-center gap-2 sm:gap-4" role="tablist" aria-label="Diary pages">
           {SPREADS.map((s, i) => {
             const on = i === shown;
             return (
@@ -384,16 +382,13 @@ export function DiaryBook() {
                 aria-selected={on}
                 aria-label={`Page ${i + 1} of ${N}: ${s.tab}`}
                 onClick={user(() => flipTo(i, i > at ? 1 : -1))}
-                className={`min-h-11 whitespace-nowrap px-1 font-mono text-[12px] uppercase tracking-[0.06em] underline-offset-[6px] sm:px-2 sm:tracking-[0.12em] ${on ? "text-l-ink underline decoration-brand decoration-[3px]" : "text-l-muted"}`}
+                className={`min-h-11 whitespace-nowrap px-2 font-mono text-[12px] uppercase tracking-[0.12em] underline-offset-[6px] ${on ? "text-l-ink underline decoration-brand decoration-[3px]" : "text-l-muted"}`}
               >
                 {s.tab}
               </button>
             );
           })}
         </div>
-        <button onClick={user(next)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand font-semibold text-l-ink" aria-label="Next page">
-          →
-        </button>
       </div>
     </div>
   );
