@@ -29,7 +29,12 @@ export async function POST(req: Request) {
   const sig = str(b?.signature, 132);
   const ts = b?.ts;
   if (!ADDR.test(owner) || !SIG.test(sig) || !B64.test(blobB64) || !freshTs(ts)) return fail(400, "bad request");
-  const blob = fromB64(blobB64);
+  let blob: Uint8Array;
+  try {
+    blob = fromB64(blobB64);
+  } catch {
+    return fail(400, "bad base64");
+  }
   if (blob.length > MAX_BLOB_BYTES) return fail(413, "backup too big");
   if (!(await signedBy(owner, backupMessage(await sha256Hex(blob), ts), sig))) return fail(401, "signature does not match owner");
   try {
@@ -49,8 +54,9 @@ export async function DELETE(req: Request) {
   if (!ADDR.test(owner) || !SIG.test(sig) || !freshTs(b?.ts)) return fail(400, "bad request");
   if (!(await signedBy(owner, deleteMessage(b.ts), sig))) return fail(401, "signature does not match owner");
   try {
-    return NextResponse.json({ enabled: true, deleted: await deleteBackup(owner) });
+    return NextResponse.json({ enabled: true, deleted: await deleteBackup(owner, b.ts) });
   } catch (e) {
-    return fail(502, `Arkiv delete failed: ${(e as Error).message.slice(0, 200)}`);
+    const m = (e as Error).message;
+    return fail(m === "stale backup" ? 409 : 502, `Arkiv delete failed: ${m.slice(0, 200)}`);
   }
 }

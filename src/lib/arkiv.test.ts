@@ -55,7 +55,12 @@ test("size guard: an oversize memory loses its OLDEST chat and fits 128 KiB", as
 
 test("feature flag off: no Arkiv line, so the UI renders nothing", () => {
   assert.equal(arkivLine({ enabled: false, phase: "saved", info: { key: "0xabc", updatedAt: 1, expiresAt: 2, explorer: "x" } }), null);
-  const on = arkivLine({ enabled: true, phase: "saved", info: { key: "0x1234567890abcdef", updatedAt: 1_700_000_000, expiresAt: Date.now() + 10 * 86_400_000, explorer: "https://e/x" } });
+  const on = arkivLine({ enabled: true, phase: "saved", info: { key: "0x1234567890abcdef", updatedAt: 1_700_000_000_000, expiresAt: Date.now() + 10 * 86_400_000, explorer: "https://e/x" } });
   assert.match(on!.text, /Encrypted backup on Arkiv · entity 0x1234…cdef · saved .* · expires in 10 days/);
   assert.equal(arkivLine({ enabled: true, phase: "paused", info: null })!.text.startsWith("Backup paused"), true);
+});
+
+test("base64: malformed input throws in fromB64 (the route turns it into a 400)", async () => {
+  const { fromB64 } = await import("./backup");
+  assert.throws(() => fromB64("A"));
 });

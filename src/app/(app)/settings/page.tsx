@@ -13,6 +13,7 @@ export default function Settings() {
   const router = useRouter();
   const status = useAiStatus();
   const [wiping, setWiping] = useState(false);
+  const [wipeErr, setWipeErr] = useState<string | null>(null);
 
   const { chat, decisions, profile } = vault.memory;
 
@@ -24,7 +25,7 @@ export default function Settings() {
         <h2 className="font-semibold">Your private memory</h2>
         <p className="mt-1 text-muted">
           {chat.length} messages · {decisions.length} decisions · {profile.facts.length} {profile.facts.length === 1 ? "thing" : "things"} it knows about you. Encrypted on
-          this device (AES-GCM) with a key made from your wallet signature. Nothing is stored on a server.
+          this device (AES-GCM) with a key made from your wallet signature. No server keeps your words. With Arkiv on, an encrypted copy sits on a public network.
         </p>
         {profile.facts.length > 0 && (
           <details className="mt-3">
@@ -59,14 +60,21 @@ export default function Settings() {
       <button
         onClick={async () => {
           setWiping(true);
-          await vault.wipe();
-          router.replace("/app");
+          setWipeErr(null);
+          try {
+            await vault.wipe();
+            router.replace("/app");
+          } catch (e) {
+            setWipeErr((e as Error).message);
+            setWiping(false);
+          }
         }}
         disabled={wiping}
         className="w-full rounded-2xl bg-red-700 px-5 py-3 font-semibold text-white disabled:opacity-50"
       >
-        {wiping ? "Deleting…" : "Delete everything"}
+        {wiping ? "Deleting…" : wipeErr ? "Try delete again" : "Delete everything"}
       </button>
+      {wipeErr && <p className="text-center text-sm text-red-700">{wipeErr}</p>}
       <p className="text-center text-xs text-muted">
         Deletes what it knows about you, your chats and decisions from this device (and your Arkiv backup, if you made one), and {APP_NAME} starts fresh. One tap, no undo.
       </p>

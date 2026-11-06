@@ -11,5 +11,5 @@ const RELAYER = "0xB681D7d03b055EF0Ed26766fB21b0c1ff6520C54";
   const client = createPublicClient({ chain: rabdi({ accessKey: process.env.ARKIV_ACCESS_KEY ?? "" }), transport: http() });
   const { entities } = await client.select({ $key: true, $expiresAt: true, user: true, updatedAt: true, version: true }).from(Backup).createdBy(RELAYER).limit(100).fetch();
   console.log(`${entities.length} Delulu backup entities (schema ${Backup.name ?? "delulu.memory-backup"})`);
-  for (const e of entities) console.log(e.$key, "user", e.user.value, "version", e.version.value, "updatedAt", new Date(Number(e.updatedAt.value) * 1000).toISOString());
+  for (const e of entities) console.log(e.$key, "user", e.user.value, "version", e.version.value, "updatedAt", new Date(Number(e.updatedAt.value)).toISOString());
 })();

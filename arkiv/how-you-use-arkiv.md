@@ -9,7 +9,7 @@ Network: Rabdi (chain 7794095), SDK `@arkiv-network/sdk` 1.0.1. Feature: **encry
 3. She signs `Delulu encrypted backup (v1) / sha256:<hash of the blob> / ts:<unix ms>` with her wallet. This is a plain message signature: free, no transaction, silent with a Privy embedded wallet.
 4. `POST /api/arkiv/backup` sends blob (base64), her address, the signature and `ts`.
 5. The server checks: `ts` is within 10 minutes, the blob is at most 128 KiB, and the signature recovers exactly her address for exactly this blob hash. Otherwise 401.
-6. The relayer wallet writes one entity per user. First save: `createEntity`. Later saves: `patchEntity` of `blob`, `version`, `updatedAt`, then `extendEntity` to renew the expiry. A signed message older than the stored `updatedAt` is refused (409), so an old blob cannot overwrite a newer one.
+6. The relayer wallet writes one entity per user. First save: `createEntity`. Later saves: `patchEntity` of `blob`, `version`, `updatedAt`, then `extendEntity` to renew the expiry. A signed message whose `ts` is not strictly newer than the stored `updatedAt` (or the last `ts` seen for her) is refused (409), so an old blob cannot overwrite a newer one.
 7. Writes run one at a time on the server (one relayer nonce, no duplicate entities).
 
 The server sees only ciphertext. It never has her key.
@@ -25,11 +25,13 @@ publicClient.select({ $key: true, $expiresAt: true, updatedAt: true, blob: true 
 
 The app shows in Settings: "Encrypted backup on Arkiv · entity 0x… · saved <time> · expires in N days", a link to the explorer, and a **Restore from Arkiv** button. Restore fetches the blob, decrypts it in the browser with her key, replaces local memory and re-encrypts it locally.
 
+Saving is held (nothing is uploaded) while Arkiv has a backup and this device is empty, until she restores or chooses "replace the backup", so a new device never overwrites the only copy.
+
 On unlock with empty local memory, the app queries Arkiv and offers to restore (a banner above every screen). The same read also tells the app whether Arkiv is on.
 
 ## Delete
 
-"Delete everything" signs `Delulu delete my backup (v1) / ts:<unix ms>`. The relayer then calls `deleteEntity` for her entity. If that call fails (Arkiv down), the entity is no longer renewed and expires within about 182 days. The transaction history on the chain stays public.
+"Delete everything" signs `Delulu delete my backup (v1) / ts:<unix ms>`. The relayer then calls `deleteEntity` for every entity of hers. The app always tries this, even if the first Arkiv read failed. It waits for any save in flight first, and blocks new saves. If the delete fails, the app stops before it erases anything and says so, with a retry. If that call fails (Arkiv down), the entity is no longer renewed and expires within about 182 days. The transaction history on the chain stays public.
 
 ## Relayer
 

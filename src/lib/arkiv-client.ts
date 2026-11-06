@@ -20,7 +20,7 @@ export const arkivApi = {
     const signature = await sign(backupMessage(await sha256Hex(blob), ts));
     const r = await call("POST", "/api/arkiv/backup", { owner, blob: toB64(blob), signature, ts });
     // The write response has no expiry; it was just renewed to the maximum (~182 days).
-    return { trimmed, info: { key: r.key, explorer: r.explorer, updatedAt: Math.floor(ts / 1000), expiresAt: ts + 182 * 86_400_000 } as ArkivInfo };
+    return { trimmed, info: { key: r.key, explorer: r.explorer, updatedAt: ts, expiresAt: ts + 182 * 86_400_000 } as ArkivInfo };
   },
 
   async fetchMemory<T>(key: CryptoKey, owner: string): Promise<T> {

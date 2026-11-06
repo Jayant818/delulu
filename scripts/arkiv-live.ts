@@ -20,7 +20,7 @@ import { deriveKey, KEY_MESSAGE } from "../src/lib/vault";
   console.log("READ", got && { key: got.key, updatedAt: got.updatedAt, expiresAt: new Date(got.expiresAt).toISOString() });
   const back = await openBackup<typeof memory>(key, new Uint8Array(Buffer.from(got!.blob!, "base64")));
   console.log("ROUND TRIP", JSON.stringify(back) === JSON.stringify(memory) ? "OK" : "MISMATCH");
-  if (process.env.KEEP !== "1") console.log("DELETE", await deleteBackup(her.address));
+  if (process.env.KEEP !== "1") console.log("DELETE", await deleteBackup(her.address, Date.now()));
 })().catch((e) => {
   console.error("FAILED:", (e as Error).message);
   process.exit(1);
