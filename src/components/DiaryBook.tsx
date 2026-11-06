@@ -72,7 +72,7 @@ const SPREADS: Spread[] = [
       date: "Tuesday, 7:40 pm",
       delulu: "Did you tell your colorist? How's the honey?",
       sasha: "she said it's my color. I'm keeping it.",
-      foot: "See three colors on your own photo before you dye.",
+      foot: "Try any color on your own photo, one at a time.",
     },
   },
 ];
@@ -119,10 +119,10 @@ function LeftPage({ s, fill = true }: { s: Spread; fill?: boolean }) {
 function RightPage({ s, fill = true }: { s: Spread; fill?: boolean }) {
   return (
     <div className={`flex flex-col gap-5 px-6 pb-8 pt-6 md:min-h-[440px] md:px-9 ${fill ? "h-full" : ""}`}>
-      <Header date={s.right.date} />
+      <Header date={s.right.date} title="Delulu checks in" />
       <p className="max-w-[360px] font-serif text-[22px] leading-[1.3] md:text-[24px]">{s.right.delulu}</p>
       <p className="max-w-[320px] self-end rounded-[20px] rounded-br-[6px] bg-l-sasha px-4 py-3 text-[17px] leading-snug">{s.right.sasha}</p>
-      <p className="mt-auto max-w-[360px] pt-1 text-[16px] leading-[1.55] text-l-body">{s.right.foot}</p>
+      <p className="max-w-[360px] pt-1 text-[16px] font-medium leading-[1.55] text-l-ink">{s.right.foot}</p>
     </div>
   );
 }
@@ -208,20 +208,20 @@ export function DiaryBook() {
   const leafStyle = (deg: number, origin: string) => ({
     transform: `rotateY(${deg}deg)`,
     transformOrigin: origin,
-    transition: turn?.go ? `transform ${TURN_MS}ms cubic-bezier(0.33, 0.05, 0.2, 1)` : "none",
+    transition: turn?.go ? `transform ${TURN_MS}ms cubic-bezier(0.45, 0.05, 0.35, 1)` : "none",
   });
   // Light across the turning page: the front darkens as it lifts away; the back arrives dark and clears as it lands.
   const shade = (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(20,33,61,0.30),rgba(20,33,61,0.06)_70%)]"
+      className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(74,52,28,0.22),rgba(74,52,28,0.04)_70%)]"
       style={{ opacity: turn?.go ? 1 : 0, transition: turn?.go ? `opacity ${TURN_MS * 0.55}ms ease-in` : "none" }}
     />
   );
   const backShade = (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_left,rgba(20,33,61,0.28),transparent_70%)]"
+      className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_left,rgba(74,52,28,0.2),transparent_70%)]"
       style={{ opacity: turn?.half ? 0 : 1, transition: `opacity ${TURN_MS / 2}ms ease-out` }}
     />
   );
@@ -284,7 +284,7 @@ export function DiaryBook() {
   } else {
     // phones: one page per spread (left content above right); the whole page turns over at the left edge
     pages = (
-      <div className="grid overflow-hidden rounded-[10px] [perspective:1600px]">
+      <div className="grid overflow-hidden rounded-[10px] [perspective:1700px]">
         {/* All three pages sit invisibly in the same cell, so the card is always as tall as the tallest page:
             the arrows never move and nothing below jumps when a page turns. */}
         {SPREADS.map((s) => (
@@ -297,10 +297,13 @@ export function DiaryBook() {
         </div>
         {turn && (
           <div className="relative z-10 [grid-area:1/1] [transform-style:preserve-3d]" style={leafStyle(fwd ? angle(0, -180) : angle(-180, 0), "left center")}>
-            <div className="[backface-visibility:hidden]">
+            <div className="relative [backface-visibility:hidden]">
               <Stack s={fwd ? cur : tgt} />
+              {shade}
             </div>
-            {shade}
+            <div aria-hidden="true" className={`absolute inset-0 ${PAPER} rounded-[10px] [backface-visibility:hidden] [transform:rotateY(180deg)]`}>
+              {backShade}
+            </div>
           </div>
         )}
       </div>
@@ -341,7 +344,7 @@ export function DiaryBook() {
         </span>
       </div>
       <div className="flex items-center justify-between gap-3">
-        <button onClick={user(prev)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-l-ink text-l-ink" aria-label="Previous page">
+        <button onClick={user(prev)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand font-semibold text-l-ink" aria-label="Previous page">
           ←
         </button>
         <div className="flex items-center gap-1 sm:gap-4" role="tablist" aria-label="Diary pages">
@@ -354,14 +357,14 @@ export function DiaryBook() {
                 aria-selected={on}
                 aria-label={`Page ${i + 1} of ${N}: ${s.tab}`}
                 onClick={user(() => flipTo(i, i > at ? 1 : -1))}
-                className={`min-h-11 px-2 font-mono text-[12px] uppercase tracking-[0.12em] underline-offset-[6px] ${on ? "text-l-ink underline decoration-2" : "text-l-muted"}`}
+                className={`min-h-11 px-2 font-mono text-[12px] uppercase tracking-[0.12em] underline-offset-[6px] ${on ? "text-l-ink underline decoration-brand decoration-[3px]" : "text-l-muted"}`}
               >
                 {s.tab}
               </button>
             );
           })}
         </div>
-        <button onClick={user(next)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-l-ink text-l-ink" aria-label="Next page">
+        <button onClick={user(next)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand font-semibold text-l-ink" aria-label="Next page">
           →
         </button>
       </div>
