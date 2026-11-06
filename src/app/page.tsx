@@ -4,34 +4,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { FirstLineForm } from "@/components/FirstLineForm";
+import { Mark } from "@/components/Mark";
+import { SanaWalkthrough } from "@/components/SanaWalkthrough";
 import { APP_NAME } from "@/config";
-
-// Logo "Two pages" (brand/final/). Below ~48 px the text lines blur, so small marks use the favicon cut.
-const PAGE_L = "M256 172 C206 138 146 128 80 138 V388 C146 378 206 386 256 416 Z";
-const PAGE_R = "M256 172 C306 138 366 128 432 138 V388 C366 378 306 386 256 416 Z";
-const SPARK = "M256 52 Q262 86 296 92 Q262 98 256 132 Q250 98 216 92 Q250 86 256 52 Z";
-const LINES: [number, number, number][] = [
-  [118, 214, 96],
-  [118, 252, 104],
-  [118, 290, 76],
-  [298, 214, 96],
-  [290, 252, 104],
-  [318, 290, 76],
-];
-
-/** reversed = for navy grounds (cream left page, navy lines, cream spark). lines = the full mark, for 48 px and up. */
-function Mark({ size, reversed = false, lines = false }: { size: number; reversed?: boolean; lines?: boolean }) {
-  const page = reversed ? "#F4EDE0" : "#14213D";
-  return (
-    // viewBox cropped to the drawing (the 512 canvas has wide margins)
-    <svg viewBox="72 44 368 380" width={size} height={size} aria-hidden="true">
-      <path d={PAGE_L} fill={page} />
-      <path d={PAGE_R} fill="#FF6B5B" />
-      {lines && LINES.map(([x, y, w]) => <rect key={`${x}-${y}`} x={x} y={y} width={w} height={14} rx={7} fill={reversed ? "#14213D" : "#F4EDE0"} />)}
-      <path d={SPARK} fill={page} />
-    </svg>
-  );
-}
 
 /** The one pressable style on this page: coral fill, navy text (white on coral fails at 2.8:1). */
 function Pill({ href, children, big = false }: { href: string; children: ReactNode; big?: boolean }) {
@@ -143,28 +119,7 @@ export default function Landing() {
           <p className="max-w-[520px] text-[19px] leading-[1.6] text-l-body">
             The sane one, you at 30, and your bestie write back. Later it asks how the date went.
           </p>
-          {/* Plain GET form: works without JS; /app reads ?draft= and puts it in the chat box (she still taps Send). */}
-          <form action="/app" method="get" className="flex max-w-[520px] flex-col gap-2.5">
-            <label htmlFor="first-line" className="font-mono text-xs uppercase tracking-[0.12em] text-l-muted">
-              Write your first line
-            </label>
-            {/* A two-line box with the button under it: side by side (the design's pill), the placeholder was cut at every
-                width we measured (375 to 1440 px), and "…Should I get bangs?" is the joke. Two lines also read as a diary page. */}
-            <div className="flex flex-col gap-2 rounded-[22px] border border-l-field bg-l-card p-2 focus-within:border-l-ink">
-              <textarea
-                id="first-line"
-                name="draft"
-                rows={2}
-                maxLength={2000}
-                placeholder="Dear diary, first date Friday. Should I get bangs?"
-                className="min-w-0 resize-none bg-transparent px-3 py-2 font-serif text-lg italic leading-snug text-l-ink outline-none placeholder:text-l-muted"
-              />
-              <button type="submit" className="whitespace-nowrap rounded-full bg-brand px-5 py-3 text-[15px] font-semibold text-l-ink active:scale-[0.98]">
-                Make it write back
-              </button>
-            </div>
-            <p className="text-[13px] text-l-muted">Free · in your browser · no sign-up · chats sealed on 0G</p>
-          </form>
+          <FirstLineForm id="first-line" label="Write your first line" placeholder="Dear diary, first date Friday. Should I get bangs?" />
         </div>
 
         <figure className="relative min-w-0 flex-[1_1_460px] p-[18px]">
@@ -196,8 +151,14 @@ export default function Landing() {
         </figure>
       </section>
 
-      {/* SLOT: "Sana's story", a scroll-driven chat walkthrough, goes right here after the hero (Secretary + Jayant are
-          writing the script, msg#1629). */}
+      {/* Sana's Friday: the scroll-driven chat walkthrough (Jayant TG 3535), then her turn. */}
+      <SanaWalkthrough />
+      <section className={`${WRAP} flex flex-col items-center gap-6 pb-24 pt-10 text-center`}>
+        <h2 className="font-serif text-[clamp(36px,4.4vw,56px)] font-normal leading-[1.05]">
+          <em>Your turn.</em>
+        </h2>
+        <FirstLineForm id="first-line-2" placeholder="Dear diary, ..." />
+      </section>
 
       {/* TWO PAGES */}
       <section id="how" className="scroll-mt-4 bg-l-ink text-l-paper">
