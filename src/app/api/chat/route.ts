@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { chatTurn } from "@/lib/brain";
-import { fail, readDecisions, readHistory, readProfile, str } from "../_shared";
+import { fail, guardDemo, readDecisions, readHistory, readProfile, str } from "../_shared";
 
 // Free chat. The model answers in JSON: a reply plus an optional one-line decision pulled out of what she said.
 // Nothing here is logged or stored: her context arrives decrypted from her device for this one request only.
@@ -12,6 +12,7 @@ export async function POST(req: Request) {
   const profile = readProfile(body?.profile);
   const message = str(body?.message, 2000).trim();
   if (!message) return fail(400, "message is empty");
+  const blocked = guardDemo(req); if (blocked) return blocked;
 
   try {
     const { decision, reminder, intent, remember, ai } = await chatTurn(

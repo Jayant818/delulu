@@ -108,7 +108,7 @@ function Decide({ fromChat }: { fromChat: string }) {
               <article key={v} className="rounded-2xl border border-line bg-paper p-4">
                 <VoiceTitle view={v} />
                 {c?.loading && <p className="mt-2 animate-pulse text-sm text-muted">…</p>}
-                {c?.error && <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>}
+                {c?.error && <p role="status" className="mt-2 text-sm leading-relaxed text-ink">{c.error}</p>}
                 {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{c.text}</p>}
                 {c?.ai && <AiChip ai={c.ai} />}
                 {picked === v && <p className="mt-3 text-sm font-semibold text-ink">✓ Your pick</p>}

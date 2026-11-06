@@ -210,7 +210,7 @@ function Talk() {
           </div>
         ))}
         {busy && <p className="animate-pulse text-sm text-muted">{APP_NAME} is thinking privately…</p>}
-        {error && <p className="text-sm text-red-700">Not sent to the model: {error}</p>}
+        {error && <p role="status" className="max-w-[85%] rounded-2xl border border-line bg-paper px-4 py-2.5 text-[15px] leading-relaxed text-ink">{error}</p>}
         {/* spacer so the last bubble clears the fixed input + nav */}
         <div ref={end} className="h-20" />
       </div>

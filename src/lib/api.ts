@@ -8,7 +8,7 @@ export type ApiResult = AiResult & { decision?: string | null; reminder?: Remind
 export async function postAi(url: string, body: unknown): Promise<ApiResult> {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-  if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
+  if (!res.ok) throw new Error(data.error === "demo_limit" ? data.message : data.error ?? `HTTP ${res.status}`);
   return data as ApiResult;
 }
 

@@ -27,12 +27,16 @@ Without keys everything still runs, labelled: chat answers say MOCK, try-on retu
 
 **Try-on costs about $0.027 per image on 0G:** hard caps of 40 images per day for everyone and 5 per person per day (wallet and IP), in `src/lib/tryon.ts` (`TRYON_CAP_TOTAL`, `TRYON_CAP_USER`).
 
+**Public demo guard:** `/api/chat`, `/api/decide`, `/api/brief`, and `/api/checkin` share 20 requests per client per 10 minutes, 150 per client per day, and 3000 across clients per day. Each decision voice counts separately. Daily counters reset at midnight IST; failed model calls still count. Overrides: `DEMO_GUARD_BURST=20`, `DEMO_GUARD_BURST_WINDOW_SEC=600`, `DEMO_GUARD_PER_DAY=150`, `DEMO_GUARD_GLOBAL_PER_DAY=3000`; `DEMO_GUARD=off` disables the guard for local tests. Caps accept zero to pause calls; invalid values use defaults. Client identity uses the first `x-forwarded-for` IP, then `x-real-ip`, then `unknown`; the hosting proxy must overwrite these headers. Counters are in memory per serverless instance, reset on restart, and are not a deployment-wide spend guarantee. Upgrade to Upstash/Vercel KV INCR for a shared cap. `/api/status` stays unlimited; try-on keeps its existing image cap.
+
+Check a public deployment with `npm run check:url -- https://example.vercel.app`. It exits 1 for mock/missing 0G; status alone checks configuration. Add `--chat` to send exactly one tiny message and require `backend: "0g"` and `sealed: true`. No credentials are needed or sent.
+
 | Command | What it checks |
 |---|---|
-| `npm test` | 22 cases. **web**: assistant logic (intents performed by the app, reminders, in-app scheduler delivers once, daily reschedule, check-back answers become memory), memory crypto, 0G trace parsing, decision / reminder / intent parsing. **try-on**: caps (per user, per IP, total, per IST day, refunds), MOCK mode, the exact request to the image model against a fake OpenAI server (never `input_fidelity`), nothing on disk but hashed counts. **bot**: the whole Telegram flow offline, no slash commands, nothing readable on disk, scheduler. |
+| `npm test` | **web**: assistant logic, memory crypto, 0G trace parsing, decision / reminder / intent parsing. **demo guard**: burst/daily/global caps, resets, env overrides, forwarding headers, route 429s, friendly errors; public URL checker against a local fixture on port 3200. **try-on**: caps, refunds, MOCK mode, exact image-model requests, hashed usage only on disk. **bot**: Telegram flow offline, encrypted storage, scheduler. |
 | `npm run check:live` | with real keys: replays the demo against 0G (chat, decisions, reminders, intents, three voices, check-in, try-on brief) and probes the image model; exits 1 unless every answer is 0G private mode with a verified TEE signature |
 | `npm run build` | production build |
-| `node scripts/e2e.cjs <playwright-core> <dir>` | the web app in a headless browser, 22 checks: open → chat (no setup questions) → decision card → Decide → three voices → pick → reload → in-app check-back → reminders and "delete everything" by plain text → try-on (MOCK) → brief → three voices → no photo stored → delete everything. Start the dev server with `ZG_API_KEY= NEXT_PUBLIC_CHECKBACK_MS=8000 npm run dev` for it (empty `ZG_API_KEY` keeps it on MOCK: the test checks MOCK labels and costs nothing). |
+| `node scripts/e2e.cjs <playwright-core> <dir>` | Headless app flow plus chat/decision/brief limit notes and recovery. Start with `DEMO_GUARD=off ZG_API_KEY= OPENAI_API_KEY= OPENAI_COMPAT_API_KEY= NEXT_PUBLIC_CHECKBACK_MS=8000 npm run dev -- --port 3200`, then run the script with `E2E_BASE_URL=http://localhost:3200` and `CHROME_PATH` if needed. MOCK responses cost nothing; 429 UI checks use intercepted responses. |
 
 ## Real vs stubbed (2026-11-06)
 

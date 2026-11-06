@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
+import { demoRetryAfter } from "@/lib/demoGuard";
 import { normalizeProfile, type DecisionSummary, type ViewId } from "@/lib/persona";
 
-// Trust boundary: the browser sends her (decrypted) context per request. The server keeps nothing.
-// ponytail: no auth or rate limit on these routes; anyone who can reach the server can spend the 0G key.
-// Fine on localhost for the demo. Before a public deploy, verify the Privy access token here.
+// Trust boundary: context is transient; only demo usage counters stay in memory.
+// The deployment proxy must overwrite client-supplied forwarding headers.
+
+export function guardDemo(req: Request) {
+  const retry = demoRetryAfter(req.headers);
+  if (retry) return NextResponse.json(
+    { error: "demo_limit", message: "Delulu is resting. This demo has a daily limit so it stays free. Try again later." },
+    { status: 429, headers: { "Retry-After": String(retry) } },
+  );
+}
 
 export const str = (v: unknown, n: number) => (typeof v === "string" ? v.slice(0, n) : "");
 

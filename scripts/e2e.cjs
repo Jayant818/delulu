@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-// E2E smoke test (DEV wallet + MOCK model, dev server on :3000).
+// E2E smoke test (DEV wallet + MOCK model). Start server with DEMO_GUARD=off.
 // Usage: CHROME_PATH=/path/to/chrome node scripts/e2e.cjs <path to playwright-core> <screenshot dir>
 const { chromium } = require(process.argv[2]);
 const out = process.argv[3];
-const B = "http://localhost:3000";
+const B = process.env.E2E_BASE_URL || "http://localhost:3000";
 const ok = (c, m) => {
   if (!c) throw new Error("FAIL: " + m);
   console.log("PASS:", m);
@@ -25,9 +25,12 @@ const idb = (page, op) =>
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  // Vercel serves this script only on deployments; keep the local browser test independent of analytics.
+  await page.route("**/_vercel/insights/script.js", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
   const errors = [];
+  let testingLimits = false;
   page.on("pageerror", (e) => errors.push(e.message));
-  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  page.on("console", (m) => m.type() === "error" && !(testingLimits && /429/.test(m.text())) && errors.push(m.text()));
 
   // No login screen in DEV mode and no setup questions: opening the app lands in the chat, input focused.
   await page.goto(B + "/app");
@@ -131,6 +134,41 @@ const idb = (page, op) =>
   await page.getByRole("button", { name: "Delete everything" }).click();
   await page.getByText(/What's on your mind\?/).waitFor();
   ok((await idb(page, "count")) === 0, "delete everything wipes IndexedDB and starts fresh in the chat");
+
+  // Deterministic 429 UI checks; the mock server itself runs with DEMO_GUARD=off.
+  testingLimits = true;
+  const resting = "Delulu is resting. This demo has a daily limit so it stays free. Try again later.";
+  const limited = (route) => route.fulfill({ status: 429, contentType: "application/json", headers: { "Retry-After": "600" }, body: JSON.stringify({ error: "demo_limit", message: resting }) });
+  await page.route("**/api/chat", limited);
+  await say("hello");
+  const note = page.getByRole("status").filter({ hasText: resting });
+  await note.waitFor();
+  ok(await note.evaluate((el) => getComputedStyle(el).color) === "rgb(20, 33, 61)", "chat limit is a calm navy assistant note");
+  await input.fill("hi again");
+  ok(await page.getByRole("button", { name: "Send" }).isEnabled(), "chat remains usable after a limit");
+  await page.unroute("**/api/chat", limited);
+  await page.getByRole("button", { name: "Send" }).click();
+  await page.locator("button", { hasText: "MOCK" }).first().waitFor();
+  ok((await note.count()) === 0, "a later chat can succeed and clears the limit note");
+
+  await page.route("**/api/decide", limited);
+  await page.goto(B + "/decide");
+  await page.getByPlaceholder(/Should I take/).fill("Should I go?");
+  await page.getByRole("button", { name: "Hear all three" }).click();
+  await page.getByRole("status").filter({ hasText: resting }).nth(2).waitFor();
+  ok(await page.getByRole("button", { name: "Hear all three" }).isEnabled(), "limited decision views keep the form usable");
+
+  await page.route("**/api/brief", limited);
+  await page.goto(B + "/tryon");
+  await page.locator('input[type="file"]').setInputFiles({ name: "selfie.png", mimeType: "image/png", buffer: png });
+  await page.getByRole("img", { name: "Your photo" }).waitFor();
+  await page.getByRole("button", { name: "Sleek chin-length bob" }).click();
+  await page.getByRole("button", { name: /See it on me/ }).click();
+  await page.getByRole("status").filter({ hasText: resting }).waitFor();
+  ok(await page.getByRole("img", { name: /AI preview/ }).isVisible() && !(await page.getByText("Writing it privately…").count()), "limited brief keeps the image and stops loading");
+  await page.getByRole("button", { name: /Ask the three voices/ }).click();
+  await page.getByRole("status").filter({ hasText: resting }).nth(3).waitFor();
+  ok(true, "try-on decision limits also render calm notes");
 
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();
