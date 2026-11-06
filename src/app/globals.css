@@ -24,6 +24,7 @@
   --l-on-ink: #d9d2c4; /* body text on navy: 10.6:1 */
   --l-on-ink-muted: #c9c2b4; /* labels on navy: 9.0:1 */
   --l-hover: #b23a2b; /* text-link hover only: 5.1:1 on cream */
+  --l-sasha: #f6c9d3; /* Sasha's chat bubbles in the walkthrough only (navy text 10.8:1); not a pressable colour */
   --brand: #ff6b5b; /* the landing's pressable: coral */
 }
 
@@ -48,6 +49,7 @@
   --color-l-on-ink: var(--l-on-ink);
   --color-l-on-ink-muted: var(--l-on-ink-muted);
   --color-l-hover: var(--l-hover);
+  --color-l-sasha: var(--l-sasha);
   --color-brand: var(--brand);
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -70,7 +72,7 @@ html {
   }
 }
 
-/* Sana's Friday walkthrough: each new bubble rises in (only used when the user has not asked for reduced motion). */
+/* Sasha's Friday walkthrough: each new bubble rises in (only used when the user has not asked for reduced motion). */
 @keyframes bubble-in {
   from {
     opacity: 0;

@@ -6,14 +6,16 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { FirstLineForm } from "@/components/FirstLineForm";
 import { Mark } from "@/components/Mark";
-import { SanaWalkthrough } from "@/components/SanaWalkthrough";
+import { SashaWalkthrough } from "@/components/SashaWalkthrough";
 import { APP_NAME } from "@/config";
 
 /** The one pressable style on this page: coral fill, navy text (white on coral fails at 2.8:1). */
-function Pill({ href, children, big = false }: { href: string; children: ReactNode; big?: boolean }) {
+function Pill({ href, children, where, big = false }: { href: string; children: ReactNode; where: string; big?: boolean }) {
   return (
     <Link
       href={href}
+      data-track="cta_open_app"
+      data-where={where}
       className={`inline-block whitespace-nowrap rounded-full bg-brand font-semibold text-l-ink no-underline transition-transform active:scale-[0.98] ${big ? "px-[30px] py-4 text-[17px]" : "px-5 py-3 text-[15px]"}`}
     >
       {children}
@@ -104,7 +106,9 @@ export default function Landing() {
           <a href="#privacy" className={`hidden sm:inline ${LINK}`}>
             Privacy
           </a>
-          <Pill href="/app">Open your diary</Pill>
+          <Pill href="/app" where="nav">
+            Open your diary
+          </Pill>
         </div>
       </nav>
 
@@ -119,7 +123,7 @@ export default function Landing() {
           <p className="max-w-[520px] text-[19px] leading-[1.6] text-l-body">
             The sane one, you at 30, and your bestie write back. Later it asks how the date went.
           </p>
-          <FirstLineForm id="first-line" label="Write your first line" placeholder="Dear diary, first date Friday. Should I get bangs?" />
+          <FirstLineForm id="first-line" where="hero" label="Write your first line" placeholder="Dear diary, first date Friday. Should I get bangs?" />
         </div>
 
         <figure className="relative min-w-0 flex-[1_1_460px] p-[18px]">
@@ -151,13 +155,13 @@ export default function Landing() {
         </figure>
       </section>
 
-      {/* Sana's Friday: the scroll-driven chat walkthrough (Jayant TG 3535), then her turn. */}
-      <SanaWalkthrough />
+      {/* Sasha's Friday: the scroll-driven chat walkthrough (Jayant TG 3535 / 3538), then her turn. */}
+      <SashaWalkthrough />
       <section className={`${WRAP} flex flex-col items-center gap-6 pb-24 pt-10 text-center`}>
         <h2 className="font-serif text-[clamp(36px,4.4vw,56px)] font-normal leading-[1.05]">
           <em>Your turn.</em>
         </h2>
-        <FirstLineForm id="first-line-2" placeholder="Dear diary, ..." />
+        <FirstLineForm id="first-line-2" where="your-turn" placeholder="Dear diary, ..." />
       </section>
 
       {/* TWO PAGES */}
@@ -190,10 +194,10 @@ export default function Landing() {
                 </div>
               ))}
               <div className="flex flex-wrap gap-2.5 pt-1.5">
-                <Link href="/app" className="rounded-full bg-brand px-[18px] py-[11px] text-sm font-semibold text-l-ink no-underline">
+                <Link href="/app" data-track="cta_open_app" data-where="spread" className="rounded-full bg-brand px-[18px] py-[11px] text-sm font-semibold text-l-ink no-underline">
                   I&apos;ll go with this
                 </Link>
-                <Link href="/app" className="rounded-full border border-l-ink px-[18px] py-2.5 text-sm font-semibold text-l-ink no-underline">
+                <Link href="/app" data-track="cta_open_app" data-where="spread" className="rounded-full border border-l-ink px-[18px] py-2.5 text-sm font-semibold text-l-ink no-underline">
                   Talk it through
                 </Link>
               </div>
@@ -240,7 +244,9 @@ export default function Landing() {
                 nail tech.
               </p>
             </div>
-            <Pill href="/tryon">Try a look on me</Pill>
+            <Pill href="/tryon" where="tryon">
+              Try a look on me
+            </Pill>
           </div>
           <div className="grid grid-cols-3 gap-2.5 md:gap-[18px]">
             {HAIR.map((h) => (
@@ -326,7 +332,7 @@ export default function Landing() {
             Dear diary, <em>let&apos;s begin.</em>
           </h2>
           <p className="max-w-[560px] text-lg leading-[1.6] text-l-on-ink">Your AI companion, your split personality. Free to start, in your browser.</p>
-          <Pill href="/app" big>
+          <Pill href="/app" where="final" big>
             Open your diary
           </Pill>
         </div>

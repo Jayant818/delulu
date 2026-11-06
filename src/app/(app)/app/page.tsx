@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { AiChip } from "@/components/AiChip";
 import { PrivacyLine } from "@/components/PrivacyLine";
+import { trackEvent } from "@/components/SiteAnalytics";
 import { APP_NAME, DEMO_FAST } from "@/config";
 import { sealLabel } from "@/lib/ai/labels";
 import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
@@ -151,6 +152,7 @@ function Talk() {
   async function send() {
     const message = text.trim();
     if (!message || busy) return;
+    if (vault.memory.chat.length === 0) trackEvent("app_first_message");
     setText("");
     setError(undefined);
     setBusy(true);

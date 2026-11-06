@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { privateKeyToAccount } from "viem/accounts";
 import { APP_NAME } from "../config";
 import { complete, configuredBackends, parse0g } from "./ai/provider";
+import { stripQuery } from "./analytics";
 import { MAX_FACTS, mergeFacts, normalizeProfile, parseChatReply } from "./persona";
 import { deriveKey, KEY_MESSAGE, seal, unseal } from "./vault";
 
@@ -118,4 +119,10 @@ test("intents (Telegram, no commands): only known types with valid fields surviv
   assert.equal(i({ type: "reminder_cancel", match: "" }), null);
   assert.equal(i({ type: "transfer_money" }), null, "unknown intent types are dropped");
   assert.equal(i("forget"), null, "not an object");
+});
+
+test("analytics never sees her words: query and hash are cut from every URL", () => {
+  assert.equal(stripQuery({ type: "pageview", url: "https://delulu.app/app?draft=he%20texted%20me#x" }).url, "https://delulu.app/app");
+  assert.equal(stripQuery({ type: "event", url: "https://delulu.app/decide?q=Chicago%20or%20Ohio" }).url, "https://delulu.app/decide");
+  assert.equal(stripQuery({ type: "pageview", url: "https://delulu.app/" }).url, "https://delulu.app/");
 });

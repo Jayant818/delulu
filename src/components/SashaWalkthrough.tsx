@@ -1,11 +1,12 @@
 "use client";
-// "Sana's Friday" (script: Jayant TG 3535, Secretary msg#1631). A phone stays in place (sticky) while the page scrolls;
+// "Sasha's Friday" (script: Jayant TG 3535; Sasha + her pink: TG 3538; Secretary msg#1631/#1633). A phone stays in place (sticky) while the page scrolls;
 // each scroll step adds the next bubble. Reduced motion, no JS and the server render all show the whole chat, scrollable
 // inside the phone. Every person and product image is fictional, made on 0G. Salon names, ratings and prices are
 // placeholders on purpose: no real business is shown.
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Mark } from "@/components/Mark";
+import { trackEvent } from "@/components/SiteAnalytics";
 
 /** Salon search, the voice note and heel picks are not in the product yet. ponytail: one switch for the "soon" tags. */
 const SHOW_SOON = true;
@@ -21,18 +22,18 @@ type Item =
 const W = "/visuals-west";
 const SCRIPT: Item[] = [
   { k: "part", text: "Part 1 · The haircut" },
-  { k: "s", text: "Hi, my name is Sana" },
-  { k: "d", text: "Hey Sana! How are you doing today?" },
+  { k: "s", text: "Hi, my name is Sasha" },
+  { k: "d", text: "Hey Sasha! How are you doing today?" },
   { k: "s", text: "ok honestly? I want a new hairstyle but I have no idea which one" },
   { k: "d", text: "I can help. Send me a selfie in daylight, hair down." },
-  { k: "s-photo", pic: { src: `${W}/hair-base-west.jpg`, label: "", alt: "Sana's selfie: long straight dark-blonde hair, daylight" } },
+  { k: "s-photo", pic: { src: `${W}/hair-base-west.jpg`, label: "", alt: "Sasha's selfie: long straight dark-blonde hair, daylight" } },
   { k: "d", text: "Love it. Oval face, warm undertone, thick straight hair. 3 looks that suit you:" },
   {
     k: "d-pics",
     pics: [
-      { src: `${W}/hair-west-curtain-bangs.jpg`, label: "Curtain bangs", alt: "Sana with curtain bangs" },
-      { src: "/walkthrough/hair-west-honey-layers.webp", label: "Long honey layers", alt: "Sana with long honey layers" },
-      { src: `${W}/hair-west-bob.jpg`, label: "Sleek bob", alt: "Sana with a sleek bob" },
+      { src: `${W}/hair-west-curtain-bangs.jpg`, label: "Curtain bangs", alt: "Sasha with curtain bangs" },
+      { src: "/walkthrough/hair-west-honey-layers.webp", label: "Long honey layers", alt: "Sasha with long honey layers" },
+      { src: `${W}/hair-west-bob.jpg`, label: "Sleek bob", alt: "Sasha with a sleek bob" },
     ],
   },
   { k: "d", text: "Curtain bangs frame your cheekbones, and warm honey tones match your skin. My pick: #1." },
@@ -48,9 +49,9 @@ const SCRIPT: Item[] = [
   {
     k: "d-pics",
     pics: [
-      { src: `${W}/nails-west-chrome.jpg`, label: "Glazed chrome", alt: "Sana's hand with glazed chrome nails" },
-      { src: `${W}/nails-west-coral.jpg`, label: "Coral gloss", alt: "Sana's hand with coral gloss nails" },
-      { src: `${W}/nails-west-french.jpg`, label: "French tips", alt: "Sana's hand with French tips" },
+      { src: `${W}/nails-west-chrome.jpg`, label: "Glazed chrome", alt: "Sasha's hand with glazed chrome nails" },
+      { src: `${W}/nails-west-coral.jpg`, label: "Coral gloss", alt: "Sasha's hand with coral gloss nails" },
+      { src: `${W}/nails-west-french.jpg`, label: "French tips", alt: "Sasha's hand with French tips" },
     ],
   },
   { k: "part", text: "Part 2 · The heels" },
@@ -97,12 +98,13 @@ function Bubble({ item }: { item: Item }): ReactNode {
     case "part":
       return <p className="self-center py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-l-muted">{item.text}</p>;
     case "s":
-      return <p className="max-w-[80%] self-end rounded-2xl rounded-br-md bg-l-ink px-3 py-2 text-l-paper">{item.text}</p>;
+      // Sasha's colour is pink (Jayant TG 3538), navy text on it (10.8:1); it is not a pressable colour, coral still is.
+      return <p className="max-w-[80%] self-end rounded-2xl rounded-br-md bg-l-sasha px-3 py-2 text-l-ink">{item.text}</p>;
     case "d":
       return <p className={D_BUBBLE}>{item.text}</p>;
     case "s-photo":
       return (
-        <div className="w-[52%] self-end overflow-hidden rounded-2xl rounded-br-md border-4 border-l-ink">
+        <div className="w-[52%] self-end overflow-hidden rounded-2xl rounded-br-md border-4 border-l-sasha">
           <div className="relative aspect-square">
             <Image src={item.pic.src} alt={item.pic.alt} fill sizes="200px" className="object-cover" />
           </div>
@@ -191,10 +193,13 @@ const motion = {
 /** Scroll distance per bubble (vh). 28 bubbles x 18vh is about five screens of story. */
 const STEP_VH = 18;
 
-export function SanaWalkthrough() {
+export function SashaWalkthrough() {
   const animated = useSyncExternalStore(motion.subscribe, motion.get, motion.server);
   const [shown, setShown] = useState(3);
   const track = useRef<HTMLDivElement>(null);
+  const last = useRef<HTMLDivElement>(null);
+  const done = useRef(false);
+  const isLast = (i: number) => i === N - 1;
 
   useEffect(() => {
     if (!animated) return;
@@ -222,6 +227,22 @@ export function SanaWalkthrough() {
   }, [animated]);
 
   const items = animated ? SCRIPT.slice(0, shown) : SCRIPT;
+  const lastShown = items.length === N;
+
+  // walkthrough_complete: once per page view, when the last bubble is actually on screen (clipping by the phone counts).
+  useEffect(() => {
+    const el = last.current;
+    if (!lastShown || !el || done.current) return;
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting) && !done.current) {
+        done.current = true;
+        trackEvent("walkthrough_complete");
+        io.disconnect();
+      }
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [lastShown]);
 
   const phone = (
     <div className="mx-auto flex h-[min(720px,82svh)] w-full max-w-[380px] flex-col overflow-hidden rounded-[40px] border-[10px] border-l-ink bg-l-paper shadow-[0_30px_60px_-20px_rgba(20,33,61,0.45)]">
@@ -238,7 +259,11 @@ export function SanaWalkthrough() {
         aria-live={animated ? "polite" : undefined}
       >
         {items.map((it, i) => (
-          <div key={i} className={`flex flex-col ${animated && i === items.length - 1 ? "animate-[bubble-in_280ms_ease-out]" : ""}`}>
+          <div
+            key={i}
+            ref={isLast(i) ? last : undefined}
+            className={`flex flex-col ${animated && i === items.length - 1 ? "animate-[bubble-in_280ms_ease-out]" : ""}`}
+          >
             <Bubble item={it} />
           </div>
         ))}
@@ -247,10 +272,10 @@ export function SanaWalkthrough() {
   );
 
   return (
-    <section aria-label="Sana's Friday: an example chat with Delulu" className="bg-l-paper">
+    <section aria-label="Sasha's Friday: an example chat with Delulu" className="bg-l-paper">
       <div className="mx-auto w-full max-w-[1200px] px-6 pt-8 text-center">
-        <p className="font-mono text-[13px] uppercase tracking-[0.16em] text-l-muted">Sana&apos;s Friday</p>
-        <p className="mt-2 text-[13px] text-l-muted">An example chat. Sana is fictional, and so is every photo in it.</p>
+        <p className="font-mono text-[13px] uppercase tracking-[0.16em] text-l-muted">Sasha&apos;s Friday</p>
+        <p className="mt-2 text-[13px] text-l-muted">An example chat. Sasha is fictional, and so is every photo in it.</p>
       </div>
       {animated ? (
         <div ref={track} className="relative" style={{ height: `calc(${N * STEP_VH}vh + 100svh)` }}>

@@ -132,6 +132,20 @@ brand/                      DESIGN.md, SVG logo set, favicons, contact sheet
 - The bot handles one update at a time (grammY long-polling default); slow 0G calls for one person delay others. Use `@grammyjs/runner` with per-chat sequentialize for real traffic.
 - Privy's optional Solana / smart-wallet peers are stubbed in `next.config.ts` (EVM only).
 
+## Analytics (Vercel Web Analytics)
+
+`@vercel/analytics` is in the root layout (`src/components/SiteAnalytics.tsx`). **Jayant enables it in the Vercel project: Analytics tab → Enable**; until then nothing is collected. Cookieless page views, plus these events:
+
+| Event | When |
+|---|---|
+| (page view) | every page, automatic; the landing view is the `/` page view |
+| `walkthrough_complete` | the last bubble of "Sasha's Friday" is on screen (once per page view) |
+| `cta_open_app` | any landing button into the app ("Open your diary", "Make it write back", the spread buttons, "Try a look on me"), with `where` = nav / hero / your-turn / spread / tryon / final |
+| `cta_telegram` | any element with `data-track="cta_telegram"` (no Telegram link on the site yet) |
+| `app_first_message` | her first message on this device in `/app` |
+
+Privacy: every URL is cut at `?` and `#` before it is sent (`/app?draft=…` and `/decide?q=…` carry her words; `src/lib/analytics.ts`, unit-tested). Events carry no text, no IDs, no wallet address. Custom events need a Vercel Pro plan; on Hobby only page views are recorded.
+
 ## Pricing (planned, not built)
 
 Delulu is free in the hackathon build: there are no payments in the code. The planned plan, for the docs only (Jayant, TG 3506): **₹99/month in India, $8-9/month abroad**. The target audience is now international (Western); the app copy stays English.

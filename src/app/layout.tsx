@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, IBM_Plex_Mono, Inter } from "next/font/google";
+import { SiteAnalytics } from "@/components/SiteAnalytics";
 import { APP_NAME } from "@/config";
 import "./globals.css";
 
@@ -23,7 +24,10 @@ export const viewport: Viewport = { themeColor: "#f4ede0", width: "device-width"
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${plexMono.variable} ${inter.variable} h-full antialiased`}>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <SiteAnalytics />
+      </body>
     </html>
   );
 }
