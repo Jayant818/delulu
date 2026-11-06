@@ -89,7 +89,7 @@ const FAQ = [
   },
   {
     q: "What happens to my try-on photo?",
-    a: "It goes to OpenAI's image model, only to make your look, and then we delete it. We never save it, and Delulu keeps only the text (the style you picked and the brief). This part is not sealed on 0G, so we say so.",
+    a: "It is processed by an image model on 0G's network (standard tier, not sealed), only to make your look, and then deleted. We never save it, and Delulu keeps only the text (the style you picked and the brief). Your chats are sealed; this part is not, so we say so.",
   },
   { q: "Will it tell me what to do?", a: "No. It helps you see your options clearly and remembers what you chose. The decision is always yours." },
   {
@@ -262,8 +262,8 @@ export default function Landing() {
               and a ready-to-show brief for your stylist or nail tech.
             </p>
             <p className="mt-4 max-w-2xl rounded-2xl border-l-4 border-honest bg-l-paper px-4 py-3 text-[14px] leading-relaxed">
-              <b className="text-honest">Honest note:</b> try-on photos go to OpenAI&apos;s image model to make your look, then we delete
-              them. That part is not sealed on 0G; your chats are.
+              <b className="text-honest">Honest note:</b> try-on photos are processed by an image model on 0G&apos;s network (standard tier,
+              not sealed), then deleted. Your chats are sealed; try-on photos are not.
             </p>
           </div>
         </section>
@@ -296,14 +296,14 @@ export default function Landing() {
               <p className="font-mono text-xs text-l-muted">TRY-ON</p>
               <h3 className="mt-2 font-serif text-2xl">Photos, honestly</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-l-muted">
-                Try-on photos go to OpenAI&apos;s image model to make your look, then we delete them. That part is not sealed, and we&apos;d
+                Try-on photos are processed by an image model on 0G&apos;s network (standard tier, not sealed), then deleted. We&apos;d
                 rather tell you than hide it.
               </p>
             </article>
           </div>
           <p className="mx-auto mt-6 max-w-3xl rounded-2xl border-l-4 border-honest bg-l-card px-5 py-4 text-[15px] leading-relaxed">
-            <b className="text-honest">What we don&apos;t claim:</b> try-on photos are not sealed (OpenAI&apos;s image model sees them before we
-            delete them). In the Telegram version, Telegram carries the messages, and whoever runs the {APP_NAME} server holds the key to
+            <b className="text-honest">What we don&apos;t claim:</b> try-on photos are not sealed (the image model on 0G&apos;s standard tier
+            sees them before they are deleted). In the Telegram version, Telegram carries the messages, and whoever runs the {APP_NAME} server holds the key to
             stored memory: &ldquo;nothing readable at rest&rdquo; is our promise there, not &ldquo;unreadable to us&rdquo;.
           </p>
         </section>

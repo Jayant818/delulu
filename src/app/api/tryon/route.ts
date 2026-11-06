@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { CAP_TOTAL, CAP_USER, editImage, IMAGE_MODEL, imageKeyConfigured, PRESETS, refund, reserve, tryonPrompt, usageKeys, withUsage, type TryonKind } from "@/lib/tryon";
+import { CAP_TOTAL, CAP_USER, editImage, imageBackend, imageModel, PRESETS, refund, reserve, tryonPrivacyLine, tryonPrompt, usageKeys, withUsage, type TryonKind } from "@/lib/tryon";
 import { fail, str } from "../_shared";
 
 // Try-on. The photo stays in this request's memory only: it is sent to the image model, the result is returned to
@@ -8,7 +8,8 @@ const MAX_BYTES = 6 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export async function GET() {
-  return NextResponse.json({ presets: PRESETS, caps: { total: CAP_TOTAL, user: CAP_USER }, mock: !imageKeyConfigured(), model: IMAGE_MODEL });
+  const backend = imageBackend();
+  return NextResponse.json({ presets: PRESETS, caps: { total: CAP_TOTAL, user: CAP_USER }, mock: backend === "mock", backend, model: imageModel(), privacy: tryonPrivacyLine(backend) });
 }
 
 export async function POST(req: Request) {
@@ -24,9 +25,9 @@ export async function POST(req: Request) {
   if (photo.size > MAX_BYTES) return fail(413, "photo is too big (max 6 MB)");
 
   // No key: MOCK. The photo comes straight back, labelled, and nothing is spent.
-  if (!imageKeyConfigured()) {
+  if (imageBackend() === "mock") {
     const dataUrl = `data:${photo.type};base64,${Buffer.from(await photo.arrayBuffer()).toString("base64")}`;
-    return NextResponse.json({ image: dataUrl, mock: true, model: "mock", ms: 0 });
+    return NextResponse.json({ image: dataUrl, mock: true, backend: "mock", model: "mock", ms: 0, requestId: null });
   }
 
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
@@ -38,8 +39,8 @@ export async function POST(req: Request) {
   if (blocked) return fail(429, blocked);
 
   try {
-    const { dataUrl, ms } = await editImage(photo, tryonPrompt(kind as TryonKind, style));
-    return NextResponse.json({ image: dataUrl, mock: false, model: IMAGE_MODEL, ms });
+    const r = await editImage(photo, tryonPrompt(kind as TryonKind, style));
+    return NextResponse.json({ image: r.dataUrl, mock: false, backend: r.backend, model: r.model, ms: r.ms, requestId: r.requestId });
   } catch (e) {
     await withUsage((u) => ({ usage: refund(u, keys), result: null })); // failed call: nothing was spent
     console.error("[tryon]", (e as Error).message); // never the photo or the prompt

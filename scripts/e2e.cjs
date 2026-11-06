@@ -106,7 +106,7 @@ const idb = (page, op) =>
   // Try-on (MOCK without OPENAI_API_KEY): photo -> style -> look -> brief (0G) -> three voices -> pick.
   await page.getByRole("link", { name: "Try-on", exact: true }).click();
   await page.getByRole("heading", { name: "Try the look" }).waitFor();
-  ok(await page.getByText(/Try-on photos go to OpenAI's image model to make your look, then we delete them/).isVisible(), "honest try-on privacy line");
+  ok(await page.getByText(/Try-on photos are processed by an image model on 0G's network \(standard tier, not sealed\), then deleted/).isVisible(), "honest try-on privacy line");
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAKklEQVR4nO3NQQkAAAgEsIttEjMZyxQ+hMH+y1SfikAgEAgEAoFAIPgSLPAYWGrIjiB9AAAAAElFTkSuQmCC", "base64");
   await page.locator('input[type="file"]').setInputFiles({ name: "selfie.png", mimeType: "image/png", buffer: png });
   await page.getByRole("img", { name: "Your photo" }).waitFor();

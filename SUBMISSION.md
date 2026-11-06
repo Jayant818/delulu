@@ -1,11 +1,11 @@
 # ETHGlobal Mumbai 2026: submission draft
 
-Draft for the ETHGlobal form. **PENDING-KEY** tags were cleared on 2026-11-06 after `npm run check:live` passed on real 0G. **PENDING-IMG** = true only after a real try-on runs with `OPENAI_API_KEY`. Remove each tag only after you check the claim in the running app (REHEARSAL.md).
+Draft for the ETHGlobal form. **PENDING-KEY** tags were cleared on 2026-11-06 after `npm run check:live` passed on real 0G. **PENDING-IMG** cleared 2026-11-06: try-on runs on 0G and was verified with synthetic test photos. Remove each tag only after you check the claim in the running app (REHEARSAL.md).
 
 ## Before you press submit (deadline Sat 7 Nov, 09:00 IST)
 
 - [ ] Keys in `.env.local`, then `npm run check:live` prints "All good" (REHEARSAL.md, step 2). Only then delete the `[PENDING-…]` tags below.
-- [ ] Five-minute live check passes, including one real try-on (REHEARSAL.md, step 4).
+- [ ] Five-minute live check passes, including one real try-on on 0G (REHEARSAL.md, step 4).
 - [ ] Demo video under 3 minutes, recorded from the README script with `NEXT_PUBLIC_DEMO_FAST=1`.
 - [ ] Public GitHub repo (Jayant's call; ETHGlobal and 0G both require it). The repo contains no secrets: `.env.local` and `data/` are git-ignored.
 - [ ] A URL judges can open during judging (Jayant's hosting call), with the caps still on.
@@ -50,15 +50,15 @@ When she is actually stuck on a choice, Delulu notices. The reply carries "Sound
 
 She picks the one she will follow. Later, Delulu follows up and asks how it went (Glad / Mixed / Regret), and her answer becomes part of its memory. Reminders and a short, specific daily check-in work the same way: they appear in the app when they are due.
 
-**Try-on (hair + nails).** She uploads a selfie or a photo of her hand, picks one of six styles or describes her own, and sees the look on herself [PENDING-IMG]. Then Delulu writes a ready-to-show brief for her stylist or nail tech, and shows different perspectives on whether to do it. The photo is never stored: not on our server, not in her saved memory.
+**Try-on (hair + nails).** She uploads a selfie or a photo of her hand, picks one of six styles or describes her own, and sees the look on herself. Then Delulu writes a ready-to-show brief for her stylist or nail tech, and shows different perspectives on whether to do it. The photo is never stored: not on our server, not in her saved memory.
 
 This is why it is not a chat wrapper: the companion remembers her, decisions are pulled out of free talk and shown from different perspectives, Delulu follows up on its own, and every chat answer is sealed with a checkable request ID.
 
-Privacy, honestly (the app says this in one line: "Your chats are sealed on 0G. Try-on photos go to OpenAI's image model to make your look, then we delete them."):
+Privacy, honestly (the app says this in one line: "Your chats are sealed on 0G. Try-on photos are processed by an image model on 0G's network (standard tier, not sealed), then deleted."):
 
 - **Chats are sealed.** Every chat, decision, check-in and brief call goes to 0G Private Computer in `private` trust mode, so only TeeML providers serve it: the model runs inside an Intel TDX enclave, and 0G documents that neither 0G nor the GPU operator can read the prompt; every response we measured carried `x-0g-e2ee: sealed`.
 - **Memory stays hers.** In the web app, her memory is encrypted on her own device (a key derived from her wallet signature, AES-256-GCM); nothing readable is stored on a server.
-- **Try-on is the one exception, and we say so.** The photo goes to OpenAI's image model to make the look; it exists only in that request's memory and her browser tab, and is gone afterwards.
+- **Try-on is the one exception, and we say so.** The photo is processed by an image model on 0G's network, standard tier (no enclave: 0G has no sealed image-edit model today); it exists only in that request's memory and her browser tab, and is gone afterwards.
 
 Not scammy, by design: Delulu never asks for money, crypto, a wallet, passwords or codes, and never asks her to click a link.
 
@@ -70,14 +70,14 @@ Safety: if she mentions self-harm, abuse or danger, every voice stops advising a
 - **AI on 0G:** 0G Private Computer router, `https://router-api.0g.ai/v1`, OpenAI-compatible. Model `0gm-1.0-35b-a3b`: on 2026-11-06 the only chat model with a TeeML (sealed) provider in the live `/v1/models` list. Every request sends `X-0G-Provider-Trust-Mode: private` (TeeML only; it fails with 503 instead of downgrading) and `verify_tee: true`; we read `x_0g_trace.request_id`, `provider`, `billing` (USD micro) and the `x-0g-e2ee` header; `tee_verified` is shown only if the router returns it (it did not for this model on 2026-11-06). Chat runs in JSON mode and returns `{reply, decision, reminder, intent}`, with the current IST time in the prompt; a tolerant parser falls back to plain text. The three voices are three parallel requests, so each has its own request ID.
 - **No commands:** the model's `intent` is validated against a fixed list and the app performs the action itself (`src/lib/assistant.ts`, pure functions), so the model's words never stand in for real data.
 - **Follow-ups without push:** check-backs, reminders and daily check-ins are jobs inside her encrypted memory; an in-app scheduler delivers them when she opens Delulu and every 15 s while it is open.
-- **Try-on:** OpenAI `gpt-image-2.5-sunburst` on `/v1/images/edits` (1024 px, quality medium; never `input_fidelity`, which this model rejects). The browser shrinks the photo to 1024 px first. A hard spend cap (40 images per day in total, 5 per person per day, on wallet and IP, failed calls refunded) protects the key; only hashed per-day counts are written to disk. The brief is a 0G call (text only).
+- **Try-on on 0G:** `bytedance/seedream-5.0-flash` via the router's `/v1/images/generations` with her photo as a reference image (1024 px): ~17 s for hair, ~14 s for nails, $0.027 per image, standard tier (not sealed; labelled). Each image shows its 0G request ID. OpenAI's image edit API is an optional backend that must be chosen explicitly; a 0G failure never falls back to it, so the photo only ever goes where the copy says. The browser shrinks the photo to 1024 px first. A hard spend cap (40 images per day in total, 5 per person per day, on wallet and IP, failed calls refunded) protects the key; only hashed per-day counts are written to disk. The brief is a 0G call (text only).
 - **Encrypted memory:** WebCrypto: wallet signature (deterministic RFC 6979) → HKDF-SHA256 → AES-256-GCM, key not extractable, ciphertext in IndexedDB.
 - **Same brain on Telegram:** grammY bot with the same persona, intents and scheduler; per-user records encrypted at rest.
 - **Tests:** 22 unit/integration cases (assistant logic, crypto, 0G parsing, try-on caps and the exact request to the image model against a fake OpenAI server, the whole Telegram flow offline) and a 22-step headless-browser run of the website (chat → decision → three voices → check-back → plain-text intents → try-on → no photo stored → delete everything). `npm run check:live` replays the demo against the real 0G router and fails if any answer is not sealed.
 
 ## Tracks
 
-1. **0G: Build with 0G Private Computer** ($5,000). 0G inference is the main user flow (every chat reply, the three voices, check-ins and briefs), each answer carries its request ID, judges can try it in a phone browser, she has a reason to come back tomorrow, and the "what breaks if 0G is removed" line is in the app and the README. Try-on is an extra feature on OpenAI's image model and is labelled that way. **iAI bonus: NOT CLAIMED.**
+1. **0G: Build with 0G Private Computer** ($5,000). Every model call is on 0G: chat replies, the three voices, check-ins and briefs in private (sealed) mode, try-on images on 0G's image model (standard tier, labelled). Each answer and each image carries its request ID, judges can try it in a phone browser, she has a reason to come back tomorrow, and the "what breaks if 0G is removed" line is in the app and the README. **iAI bonus: NOT CLAIMED.**
 
 Not a fit (checked against the prize page): 0G Physical AI, 0G Agents That Pay, 0G Keep Building, Ethereum Foundation CROPS (dropped earlier), World ID, Uniswap, Arc, Hedera, Arkiv, Whitechain, ENS, Flash, Chainlink, EF Anon-RPC and alt mempool.
 

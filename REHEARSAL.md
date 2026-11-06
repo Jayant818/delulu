@@ -7,8 +7,8 @@ Everything below runs from `~/Desktop/ethglobal-mumbai-2026`. Total: about 15 mi
 `.env.local` already holds `BOT_MASTER_KEY` and `RELAYER_*` (do not change them). Add:
 
 ```bash
-ZG_API_KEY=sk-<from pc.0g.ai, Dashboard -> API Keys, trust mode = Private>     # chat, decisions, briefs
-OPENAI_API_KEY=sk-<Jayant's key>                                              # try-on images (his money, capped)
+ZG_API_KEY=sk-<from pc.0g.ai, Dashboard -> API Keys, trust mode = Private>     # chat, decisions, briefs AND try-on
+# OPENAI_API_KEY=… only if you want TRYON_BACKEND=openai; try-on runs on 0G by default
 # optional
 NEXT_PUBLIC_PRIVY_APP_ID=<Privy app ID>        # real Google/email login; without it a labelled DEV wallet is used
 TELEGRAM_BOT_TOKEN=<from @BotFather>           # only for the Telegram bot
@@ -27,7 +27,7 @@ npm test          # expect: # pass 22, # fail 0
 npm run check:live
 ```
 
-Expect every line to start with `PASS`, `0g` as the backend, `sealed=true`, `PASS image model gpt-image-2.5-sunburst`, and a final "All good". Exit code 1 means something is not on 0G private mode; do not demo until it is fixed. The check does not make a try-on image (that costs money); step 4 makes exactly one.
+Expect every line to start with `PASS`, `0g` as the backend, `sealed=true`, `PASS image model 0G bytedance/seedream-5.0-flash is listed`, and a final "All good". Exit code 1 means something is not on 0G private mode; do not demo until it is fixed. The check does not make a try-on image (that costs money); step 4 makes exactly one.
 
 | What you see | Meaning | Fix |
 |---|---|---|
@@ -38,7 +38,7 @@ Expect every line to start with `PASS`, `0g` as the backend, `sealed=true`, `PAS
 | `decision: NONE` | the model did not flag the demo message as a decision | reword the demo message to state both options plainly ("should I take X or Y?") and rerun |
 | `reminder: NONE` | the model did not return a reminder time | try "remind me on Sunday at 6 pm to call Riya"; if still none, leave reminders out of the video |
 | `"…" -> NONE <- expected …` (intent lines) | the model did not route a plain-text request | rerun once; if it still fails, use the exact phrasing from the live check in the demo |
-| `FAIL image model … HTTP 404` | this key cannot use `gpt-image-2.5-sunburst` | set `OPENAI_IMAGE_MODEL` in `.env.local` to a model the key has (ask Jayant which) |
+| `FAIL image model … not in /v1/models` | the 0G image model is gone or renamed | set `ZG_IMAGE_MODEL=tencent/hy-image-3.5-preview` (also verified, ~24 s) and restart |
 
 ## 3. Start the website in demo mode (30 s)
 
@@ -62,13 +62,13 @@ To try it on a real phone on the same Wi-Fi: `NEXT_PUBLIC_DEMO_FAST=1 npm run de
 | 6 | wait about 1 minute in Talk | "💛 Check-back … How did it go?" → tap one → a reply |
 | 7 | "remind me in 2 minutes to call Riya", then "what are my reminders" | "⏰ Reminder set …", then the list with Cancel; about 2 minutes later "⏰ Reminder: call Riya" appears (keep the app open) |
 | 8 | "is this private?" | the privacy text with the try-on sentence, plus the request IDs |
-| 9 | Try-on → Hair → selfie → "Copper red, same cut" → **See it on me** | after ~20-40 s: before/after (no "MOCK"), then the stylist brief with a `0G` chip. **Note the time it took.** This is 1 of today's 40 images. |
+| 9 | Try-on → Hair → selfie → "Copper red, same cut" → **See it on me** | after ~20-40 s: before/after (no "MOCK") with `0G · req … · standard tier, not sealed`, then the stylist brief with a `0G … sealed` chip. Expect ~17 s. This is 1 of today's 40 images. |
 | 10 | **Ask the three voices** → pick | three cards, "Saved." |
 | 11 | "delete everything" → **No, keep it**, then again → **Yes** | "Okay, keeping everything", then back to the login screen |
 
 Any chip that says `MOCK`, `FALLBACK` or `no seal reported` means that answer did not come from 0G. Stop and go back to step 2.
 
-If the try-on is too slow for the demo: set `OPENAI_IMAGE_QUALITY=low` in `.env.local` and restart `npm run dev`.
+If the try-on is too slow for the demo, cut the wait in editing; `tencent/hy-image-3.5-preview` is slower, not faster.
 
 ## 5. Record the demo
 
@@ -77,7 +77,7 @@ Fresh browser profile (or "delete everything" → Yes), `NEXT_PUBLIC_DEMO_FAST=1
 ## 6. During judging
 
 - Judges need a URL. On localhost only Jayant's laptop can open it; a public deploy (and the public repo) is Jayant's call. Without `NEXT_PUBLIC_DEMO_FAST`, check-backs are 30 days out.
-- Every try-on spends his money; the caps (40/day total, 5/day per person) hold during judging too.
+- Every try-on costs about $0.027 on 0G; the caps (40/day total, 5/day per person) hold during judging too.
 - Keep that morning's `npm run check:live` output: it is the quickest proof that every chat answer is sealed on 0G.
 
 ## Optional: the Telegram bot

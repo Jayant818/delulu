@@ -103,3 +103,53 @@ test("real path: exact request to the image model, caps enforced, failures refun
     srv.close();
   }
 });
+
+test("0G path (default with a 0G key): reference-image request, request id back, and NO silent fallback to OpenAI", async () => {
+  const bodies: string[] = [];
+  let openaiHits = 0;
+  let fail = false;
+  const zg = createServer((req, res) => {
+    let body = "";
+    req.on("data", (c) => (body += c));
+    req.on("end", () => {
+      bodies.push(`${req.url} ${body}`);
+      if (fail) return void res.writeHead(500).end("{}");
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ data: [{ b64_json: "WkdH" }], x_0g_trace: { request_id: "req-0g-1" } }));
+    });
+  });
+  const oa = createServer((_req, res) => {
+    openaiHits++;
+    res.writeHead(200).end("{}");
+  });
+  await new Promise<void>((r) => zg.listen(0, r));
+  await new Promise<void>((r) => oa.listen(0, r));
+  process.env.TRYON_USAGE_FILE = path.join(await mkdtemp(path.join(tmpdir(), "delulu-tryon2-")), "usage.json"); // fresh caps
+  process.env.ZG_API_KEY = "sk-zg-test";
+  process.env.ZG_BASE_URL = `http://127.0.0.1:${(zg.address() as { port: number }).port}`;
+  process.env.OPENAI_API_KEY = "sk-oa-test";
+  process.env.OPENAI_BASE_URL = `http://127.0.0.1:${(oa.address() as { port: number }).port}`;
+  try {
+    const lib = (await ready).lib;
+    assert.equal(lib.imageBackend(), "0g", "0G wins when both keys exist");
+    assert.match(lib.tryonPrivacyLine("0g"), /image model on 0G's network \(standard tier, not sealed\), then deleted/);
+    const ok = await (await call({ kind: "hair", style: "Copper red", address: "0xZ" }, undefined, "7.7.7.7")).json();
+    assert.equal(ok.backend, "0g");
+    assert.equal(ok.requestId, "req-0g-1");
+    assert.equal(ok.image, "data:image/png;base64,WkdH");
+    const [url, raw] = [bodies[0].split(" ")[0], bodies[0].slice(bodies[0].indexOf(" ") + 1)];
+    assert.equal(url, "/images/generations");
+    const sent = JSON.parse(raw);
+    assert.equal(sent.model, "bytedance/seedream-5.0-flash");
+    assert.equal(sent.response_format, "b64_json");
+    assert.match(sent.image[0], /^data:image\/png;base64,/, "the photo goes as a reference image");
+    fail = true;
+    assert.equal((await call({ kind: "hair", style: "Bob", address: "0xZ" }, undefined, "7.7.7.7")).status, 502);
+    assert.equal(openaiHits, 0, "a 0G failure never sends her photo to OpenAI");
+  } finally {
+    delete process.env.ZG_API_KEY;
+    delete process.env.ZG_BASE_URL;
+    delete process.env.OPENAI_API_KEY;
+    zg.close();
+    oa.close();
+  }
+});

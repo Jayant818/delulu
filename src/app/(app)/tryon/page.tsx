@@ -1,5 +1,5 @@
 "use client";
-// Try-on: hair (selfie) or nails (photo of her hand) -> a style -> the look via OpenAI's image model ->
+// Try-on: hair (selfie) or nails (photo of her hand) -> a style -> the look via the image model (0G by default) ->
 // Delulu's three voices on it (0G) -> a stylist / nail tech brief (0G). Photos live only in this tab's memory:
 // never saved to IndexedDB, never written on the server. Memory keeps only text (the style, the brief, her pick).
 import { useEffect, useState } from "react";
@@ -12,7 +12,7 @@ import { VIEWS, type ViewId } from "@/lib/persona";
 import { useSession } from "@/lib/session";
 
 type Kind = "hair" | "nails";
-type Info = { presets: Record<Kind, string[]>; caps: { total: number; user: number }; mock: boolean; model: string };
+type Info = { presets: Record<Kind, string[]>; caps: { total: number; user: number }; mock: boolean; backend: string; model: string; privacy: string };
 type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string };
 const ORDER: ViewId[] = ["sane", "future", "bestie"];
 
@@ -37,7 +37,7 @@ export default function TryOn() {
   const [style, setStyle] = useState("");
   const [making, setMaking] = useState(false);
   const [error, setError] = useState<string>();
-  const [result, setResult] = useState<{ image: string; mock: boolean; ms: number }>();
+  const [result, setResult] = useState<{ image: string; mock: boolean; ms: number; backend: string; requestId: string | null }>();
   const [brief, setBrief] = useState<{ text: string; ai: AiMeta } | "loading">();
   const [cards, setCards] = useState<Partial<Record<ViewId, Card>>>({});
   const [picked, setPicked] = useState<ViewId | null>(null);
@@ -150,7 +150,7 @@ export default function TryOn() {
     <div>
       <h1 className="font-serif text-3xl">Try the look</h1>
       <p className="mt-1 text-sm text-muted">See it on you before the salon. Then ask the three voices.</p>
-      <p className="mt-2 rounded-xl border-l-4 border-amber-600 bg-paper px-3 py-2 text-xs leading-relaxed">{PRIVACY_LINE}</p>
+      <p className="mt-2 rounded-xl border-l-4 border-amber-600 bg-paper px-3 py-2 text-xs leading-relaxed">{info?.privacy ?? PRIVACY_LINE}</p>
 
       <div className="mt-4 flex gap-1 rounded-2xl border border-line bg-paper p-1">
         {tab("hair", "💇 Hair")}
@@ -216,6 +216,11 @@ export default function TryOn() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={result.image} alt={`After: ${style}`} className="w-full rounded-xl" />
               <figcaption className="mt-1 text-center text-xs text-muted">{result.mock ? "MOCK: no image model configured" : `After · ${style}`}</figcaption>
+              {!result.mock && (
+                <p className="mt-0.5 text-center font-mono text-[10px] text-muted">
+                  {result.backend === "0g" ? "0G" : "OpenAI"} · {result.requestId ? `req ${result.requestId.slice(0, 8)}… · ` : ""}standard tier, not sealed
+                </p>
+              )}
             </figure>
           </div>
           <p className="mt-2 text-center text-[11px] text-muted">Not saved anywhere. Leave this page and it&apos;s gone.</p>

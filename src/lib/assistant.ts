@@ -6,7 +6,7 @@ import type { ChatEntry, Memory } from "@/lib/memory";
 import type { Outcome } from "@/lib/persona";
 import { nextDaily, OUTCOMES, whenIST, type Job } from "@/lib/schedule";
 
-export const PRIVACY_LINE = "Your chats are sealed on 0G. Try-on photos go to OpenAI's image model to make your look, then we delete them.";
+export const PRIVACY_LINE = "Your chats are sealed on 0G. Try-on photos are processed by an image model on 0G's network (standard tier, not sealed), then deleted.";
 
 export const WEB_HELP = `Just talk to me, like you'd text a friend. No commands. You can also say:
 • "help me decide between the Bangalore job and staying in Jaipur"
@@ -20,7 +20,7 @@ Or tap Try-on to see a new hair or nail look on you. Reminders and check-ins sho
 export const WEB_PRIVACY = `${PRIVACY_LINE}
 • Chat: every answer comes from a model inside a hardware enclave on 0G Private Computer. Not even 0G or the GPU owner can read it. The request IDs are below.
 • Memory: encrypted on this device with a key only your wallet can make. Nothing readable is stored on a server.
-• Try-on: your photo goes to OpenAI's image model (not sealed), only to make the look. We never save it, and Delulu keeps only the text.`;
+• Try-on: your photo goes to an image model on 0G's network (standard tier, not sealed), only to make the look. We never save it, and Delulu keeps only the text.`;
 
 const rid = () => Math.random().toString(16).slice(2, 10);
 const entry = (content: string, extra: Partial<ChatEntry> = {}, now = Date.now()): ChatEntry => ({

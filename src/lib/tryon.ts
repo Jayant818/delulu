@@ -72,17 +72,59 @@ export function usageKeys(address: string, ip: string): string[] {
 }
 
 // ---- Image call -------------------------------------------------------------------------------------
-export const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-2.5-sunburst";
-const SIZE = process.env.OPENAI_IMAGE_SIZE ?? "1024x1024";
+// Default: 0G (Jayant, TG 3443). Measured 2026-11-06 on 0G: bytedance/seedream-5.0-flash edits a hair photo in ~17 s and
+// nails in ~14 s, $0.027 per image, keeping the face/hand; tencent/hy-image-3.5-preview was slower (~24 s). Both are
+// STANDARD tier (no TeeML image-edit model exists on 0G; responses carry x-0g-e2ee: none), so try-on is NOT sealed.
+// No silent cross-provider fallback: the copy she reads names ONE provider, so the photo only ever goes there.
+export type ImageBackend = "0g" | "openai" | "mock";
+
+export function imageBackend(): ImageBackend {
+  const want = process.env.TRYON_BACKEND?.trim();
+  if (want === "openai") return process.env.OPENAI_API_KEY?.trim() ? "openai" : "mock";
+  if (process.env.ZG_API_KEY?.trim()) return "0g";
+  if (process.env.OPENAI_API_KEY?.trim()) return "openai";
+  return "mock";
+}
+
+export const ZG_IMAGE_MODEL = process.env.ZG_IMAGE_MODEL ?? "bytedance/seedream-5.0-flash";
+export const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-2.5-sunburst";
+export const imageModel = () => (imageBackend() === "0g" ? ZG_IMAGE_MODEL : imageBackend() === "openai" ? OPENAI_IMAGE_MODEL : "mock");
+/** @deprecated kept for the live check; use imageModel() */
+export const IMAGE_MODEL = OPENAI_IMAGE_MODEL;
+const SIZE = process.env.TRYON_IMAGE_SIZE ?? process.env.OPENAI_IMAGE_SIZE ?? "1024x1024";
 const QUALITY = process.env.OPENAI_IMAGE_QUALITY ?? "medium";
 
-export const imageKeyConfigured = () => !!process.env.OPENAI_API_KEY?.trim();
+export const imageKeyConfigured = () => imageBackend() !== "mock";
 
-/** Returns a PNG/JPEG as a data URL. Never sends input_fidelity: this model rejects it (400 invalid_input_fidelity_model). */
-export async function editImage(photo: Blob, prompt: string): Promise<{ dataUrl: string; ms: number }> {
+export type EditResult = { dataUrl: string; ms: number; requestId: string | null; backend: ImageBackend; model: string };
+
+export async function editImage(photo: Blob, prompt: string): Promise<EditResult> {
+  return imageBackend() === "0g" ? edit0g(photo, prompt) : editOpenAI(photo, prompt);
+}
+
+/** 0G: /v1/images/generations with the photo as a reference image (data URL). Sync; ~15-25 s. */
+async function edit0g(photo: Blob, prompt: string): Promise<EditResult> {
+  const t = Date.now();
+  const ref = `data:${photo.type || "image/jpeg"};base64,${Buffer.from(await photo.arrayBuffer()).toString("base64")}`;
+  const res = await fetch(`${process.env.ZG_BASE_URL ?? "https://router-api.0g.ai/v1"}/images/generations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.ZG_API_KEY}` },
+    body: JSON.stringify({ model: ZG_IMAGE_MODEL, prompt, image: [ref], size: SIZE, n: 1, response_format: "b64_json" }),
+    signal: AbortSignal.timeout(150_000),
+  });
+  const body = await res.text();
+  if (!res.ok) throw new Error(`0G image model ${res.status}: ${body.slice(0, 300)}`);
+  const j = JSON.parse(body);
+  const b64 = j?.data?.[0]?.b64_json;
+  if (!b64) throw new Error("0G image model returned no image");
+  return { dataUrl: `data:image/png;base64,${b64}`, ms: Date.now() - t, requestId: j?.x_0g_trace?.request_id ?? null, backend: "0g", model: ZG_IMAGE_MODEL };
+}
+
+/** OpenAI (only if chosen): /v1/images/edits. Never sends input_fidelity: this model rejects it (400). */
+async function editOpenAI(photo: Blob, prompt: string): Promise<EditResult> {
   const t = Date.now();
   const form = new FormData();
-  form.set("model", IMAGE_MODEL);
+  form.set("model", OPENAI_IMAGE_MODEL);
   form.set("prompt", prompt);
   form.set("size", SIZE);
   form.set("quality", QUALITY);
@@ -98,5 +140,11 @@ export async function editImage(photo: Blob, prompt: string): Promise<{ dataUrl:
   if (!res.ok) throw new Error(`image model ${res.status}: ${body.slice(0, 300)}`);
   const b64 = JSON.parse(body)?.data?.[0]?.b64_json;
   if (!b64) throw new Error("image model returned no image");
-  return { dataUrl: `data:image/png;base64,${b64}`, ms: Date.now() - t };
+  return { dataUrl: `data:image/png;base64,${b64}`, ms: Date.now() - t, requestId: null, backend: "openai", model: OPENAI_IMAGE_MODEL };
+}
+
+/** What she is told, per backend. Must stay exactly true. */
+export function tryonPrivacyLine(b: ImageBackend): string {
+  if (b === "openai") return "Your chats are sealed on 0G. Try-on photos go to OpenAI's image model to make your look, then we delete them.";
+  return "Your chats are sealed on 0G. Try-on photos are processed by an image model on 0G's network (standard tier, not sealed), then deleted.";
 }

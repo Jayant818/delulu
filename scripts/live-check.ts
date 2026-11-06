@@ -4,7 +4,7 @@
 import { Bot } from "grammy";
 import { complete, configuredBackends, ZG_MODEL, ZG_TRUST_MODE, type AiResult } from "../src/lib/ai/provider";
 import { allViews, briefFor, chatTurn, checkInText, type Context } from "../src/lib/brain";
-import { IMAGE_MODEL } from "../src/lib/tryon";
+import { imageBackend, imageModel } from "../src/lib/tryon";
 
 const ctx: Context = {
   profile: {
@@ -105,16 +105,23 @@ async function main() {
   // 7. Try-on: the brief is a 0G call; the image model is only PROBED here (a real image costs money: --image).
   const [b, t7] = await timed(() => briefFor("hair", "Copper red, same cut", ctx.profile));
   show("brief", b, t7);
-  const okey = process.env.OPENAI_API_KEY?.trim();
-  if (!okey) console.log("SKIP  image model    OPENAI_API_KEY not set (try-on runs in MOCK)");
-  else {
-    const r = await fetch(`https://api.openai.com/v1/models/${IMAGE_MODEL}`, { headers: { Authorization: `Bearer ${okey}` } });
-    if (r.ok) console.log(`PASS  image model    ${IMAGE_MODEL} is available to this key`);
+  const ib = imageBackend();
+  if (ib === "mock") console.log("SKIP  image model    no image backend (try-on runs in MOCK)");
+  else if (ib === "0g") {
+    const r = await fetch(`${process.env.ZG_BASE_URL ?? "https://router-api.0g.ai/v1"}/models`, { headers: { Authorization: `Bearer ${process.env.ZG_API_KEY}` } });
+    const listed = r.ok && ((await r.json()).data ?? []).some((m: { id: string }) => m.id === imageModel());
+    if (listed) console.log(`PASS  image model    0G ${imageModel()} is listed (standard tier: try-on is NOT sealed)`);
     else {
       failures++;
-      console.log(`FAIL  image model    ${IMAGE_MODEL}: HTTP ${r.status} ${(await r.text()).slice(0, 160)}`);
+      console.log(`FAIL  image model    0G ${imageModel()} not in /v1/models`);
     }
-    if (process.argv.includes("--image")) console.log("      (--image: make one real try-on from the app instead, so the spend cap counts it)");
+  } else {
+    const r = await fetch(`https://api.openai.com/v1/models/${imageModel()}`, { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` } });
+    if (r.ok) console.log(`PASS  image model    OpenAI ${imageModel()} is available to this key`);
+    else {
+      failures++;
+      console.log(`FAIL  image model    OpenAI ${imageModel()}: HTTP ${r.status}`);
+    }
   }
 
   console.log(failures ? `\n${failures} problem(s). Fix before the demo (see REHEARSAL.md).` : "\nAll good: every answer came from 0G private mode, reported sealed by the router.");

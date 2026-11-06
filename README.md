@@ -4,7 +4,7 @@
 
 She tells Delulu anything, and it remembers her (setup answers, past chats, past decisions). When she is weighing a choice, Delulu pulls it out of the conversation ("Sounds like a decision: … See perspectives") and shows it from different perspectives, three voices side by side: **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She picks one; later Delulu asks how it went. Like a good secretary, it keeps her reminders ("remind me Sunday 6pm to call Riya") and checks in on her daily at a time she picks. And before the salon, **Try-on** shows a new hair or nail look on her own photo, then writes the brief for her stylist or nail tech.
 
-**Privacy, in one line (shown in the app):** "Your chats are sealed on 0G. Try-on photos go to OpenAI's image model to make your look, then we delete them." Every chat answer carries its 0G request ID.
+**Privacy, in one line (shown in the app):** "Your chats are sealed on 0G. Try-on photos are processed by an image model on 0G's network (standard tier, not sealed), then deleted." Every chat answer carries its 0G request ID.
 
 **No commands, English only.** She just talks; the model routes requests like "help me decide …", "what are my reminders", "check in on me every evening at 9", "is this private?" or "delete everything" (which asks her to confirm), and the app performs them.
 
@@ -12,20 +12,20 @@ She tells Delulu anything, and it remembers her (setup answers, past chats, past
 
 The name is one constant: `src/config.ts` → `APP_NAME`. Storage keys and the signed key message do not use it, so a rename keeps existing memory readable.
 
-Built for ETHGlobal Mumbai 2026, track **Build with 0G Private Computer** (chat and decisions are 0G; try-on is an extra feature on OpenAI's image model, labelled as such).
+Built for ETHGlobal Mumbai 2026, track **Build with 0G Private Computer**. Everything runs on 0G: chat, decisions and briefs sealed (private/TeeML tier); try-on on 0G's image model (standard tier, not sealed, and labelled as such).
 
 ## Run it
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in ZG_API_KEY (0G) and OPENAI_API_KEY (try-on); see REHEARSAL.md
+cp .env.example .env.local   # fill in ZG_API_KEY (0G): chat AND try-on; see REHEARSAL.md
 npm run dev                  # landing on http://localhost:3000, the app on /app
 npm run bot                  # optional: the Telegram bot (needs TELEGRAM_BOT_TOKEN)
 ```
 
 Without keys everything still runs, labelled: chat answers say MOCK, try-on returns your photo unchanged with "MOCK", login uses a DEV wallet unless `NEXT_PUBLIC_PRIVY_APP_ID` is set. `NEXT_PUBLIC_DEMO_FAST=1` makes check-backs and the first daily check-in due after 1 minute (for the demo video). Stop the dev server when idle (`.next` grows).
 
-**Try-on spends Jayant's OpenAI money:** hard caps of 40 images per day for everyone and 5 per person per day (wallet and IP), in `src/lib/tryon.ts` (`TRYON_CAP_TOTAL`, `TRYON_CAP_USER`).
+**Try-on costs about $0.027 per image on 0G:** hard caps of 40 images per day for everyone and 5 per person per day (wallet and IP), in `src/lib/tryon.ts` (`TRYON_CAP_TOTAL`, `TRYON_CAP_USER`).
 
 | Command | What it checks |
 |---|---|
@@ -41,7 +41,7 @@ Without keys everything still runs, labelled: chat answers say MOCK, try-on retu
 | Telegram bot (`src/bot/`), text only: Start → 5 questions, free chat, decision card, 3 voices with "Go with …" buttons, saved decision + check-back date; plain-text intents for help, privacy + proof, delete everything (with confirm), check-ins, reminders, "help me decide" | **Real**, tested offline with a fake Telegram API; startup checked against the real Bot API (401 with a fake token). **Not yet run with a real token.** |
 | Bot memory | **Real.** Encrypted at rest: per-user random data key (AES-256-GCM), wrapped by `BOT_MASTER_KEY`; file names are HMACs, not Telegram IDs; "delete everything" (confirmed) deletes the record. |
 | Secretary layer (T3): 30-day check-back message with "Glad / Mixed / Regret" buttons (the answer becomes memory), daily check-in at her time ("check in on me every evening at 9", an AI message with its 0G footer), reminders from chat ("what are my reminders", "cancel the Riya reminder", or the cancel button) | **Real**, tested offline (due times, no double delivery, schedule survives a restart, deleting clears it). The schedule lives inside each encrypted record; a 15 s timer delivers what is due. IST only. Reminder-time and intent routing on the real model are **untested until the key arrives** (`npm run check:live` tests both). |
-| Try-on (hair + nails): `/tryon`, `/api/tryon` (OpenAI `gpt-image-2.5-sunburst`, `/v1/images/edits`, 1024 px, quality medium, no `input_fidelity`), `/api/brief` (0G) | **Real code; runs in MOCK until `OPENAI_API_KEY` is set.** The real request is tested against a fake OpenAI server; the model and its speed/quality are **untested until the key arrives**. Photo and result live only in the request and in her browser tab; nothing is written to the server's disk except hashed per-day counts; her stored memory keeps only text. |
+| Try-on (hair + nails): `/tryon`, `/api/tryon`, `/api/brief` (0G) | **Real, on 0G, verified 2026-11-06** with synthetic test photos (no real person): `bytedance/seedream-5.0-flash` via `/v1/images/generations` with the photo as a reference image; hair edit ~17 s, nails ~14 s, $0.027 per image, face/hand kept. It is **standard tier** (0G has no TeeML image-edit model; responses carry `x-0g-e2ee: none`), so the app says try-on is not sealed. `tencent/hy-image-3.5-preview` also works (~24 s, $0.025). OpenAI (`gpt-image-2.5-sunburst`, `/v1/images/edits`) is an optional backend only if `TRYON_BACKEND=openai`; a 0G failure never falls back to OpenAI. Photo and result live only in the request and her browser tab; nothing on the server's disk except hashed per-day counts. |
 | Web assistant: plain-text intents + in-app scheduler (check-backs, reminders, daily check-ins appear in Talk when due, checked on open and every 15 s) | **Real**, unit-tested and E2E-tested. No web push: she sees them when the app is open. |
 | Voice | **Dropped** (Jayant, TG 3399). |
 | Web screens (landing, onboarding, Talk = home chat, Decide, Try-on, Settings) | **Real**, tested end to end in a browser |
@@ -59,7 +59,7 @@ Without keys everything still runs, labelled: chat answers say MOCK, try-on retu
 
 - **Chats are sealed.** Every chat, decision, check-in and brief call goes to 0G Private Computer in `private` trust mode: TeeML providers only, the model runs inside an Intel TDX enclave, and 0G documents that neither 0G nor the GPU operator can read the prompt.
 - **We store nothing readable.** The bot keeps each person's memory encrypted at rest (per-user key, wrapped by a server master key). The web app keeps memory encrypted on her own device. Neither logs message content.
-- **Try-on photos are NOT sealed.** They go to OpenAI's image model to make the look, then we delete them: the photo and the result exist only in that request's memory and in her browser tab, never on our disk, never in her stored memory. OpenAI's own API data policy applies to what it receives. The app says this on the try-on screen.
+- **Try-on photos are NOT sealed.** They are processed by an image model on 0G's network (standard tier: no enclave), then deleted: the photo and the result exist only in that request's memory and in her browser tab, never on our disk, never in her stored memory. The app says this on the try-on screen and shows the 0G request ID of each image.
 - **Telegram carries the messages** (bot only). Telegram can read bot chats, like any Telegram chat. That part is outside our control, and the bot says so when she asks "is this private?".
 - **What we do not claim:** whoever runs the bot server holds the master key and could decrypt the store. "Nothing readable at rest" is the claim, not "unreadable to us".
 
@@ -86,7 +86,7 @@ Run `NEXT_PUBLIC_DEMO_FAST=1 npm run dev` so the check-back arrives 1 minute aft
 | 0:38 | Decide | **See perspectives** → three cards → **I'll go with this** | "Different perspectives, as three voices: Delulu, the sane one; Future You at 30; Your Bestie. Three separate sealed requests. She picks." |
 | 0:55 | Talk | Wait for the check-back, tap **😊 Glad I did** | "And it follows up later, here after one minute." |
 | 1:05 | Talk | Type "remind me Sunday 6pm to call Riya", then "is this private?" | "No commands, just talk: reminders, check-ins, and the proof, with every request ID." |
-| 1:20 | Try-on | Hair → selfie → "Copper red, same cut" → **See it on me** (cut the wait) | "Before the salon: see it on you. This part uses OpenAI's image model, and the app says so: the photo is deleted right after." |
+| 1:20 | Try-on | Hair → selfie → "Copper red, same cut" → **See it on me** (cut the ~17 s wait) | "Before the salon: see it on you, made by an image model on 0G. This part is not sealed, and the app says so: the photo is deleted right after." |
 | 1:40 | Try-on | Show the stylist brief, then **Ask the three voices** | "Then a brief she can show her stylist, and the three voices on whether to do it." |
 | 1:55 | Talk | Type "delete everything" → **Yes** | "One sentence and it's all gone. Delulu: delusional name, sane answers, sealed by 0G." |
 
@@ -94,7 +94,7 @@ Before recording: follow REHEARSAL.md (keys, `npm run check:live`, one warm-up c
 
 ## What breaks if 0G is removed (draft for the submission)
 
-Without 0G, everything she tells Delulu (and every decision she weighs) is readable by whichever AI company runs the model; with 0G Private Computer, every chat reply, all three voices and every brief run sealed inside a hardware enclave, and every answer carries its 0G request ID and the router's "sealed" flag. (Try-on images are the one exception, and the app says so.)
+Without 0G, everything she tells Delulu (and every decision she weighs) is readable by whichever AI company runs the model; with 0G Private Computer, every chat reply, all three voices and every brief run sealed inside a hardware enclave, and every answer carries its 0G request ID and the router's "sealed" flag. (Try-on images run on 0G's standard tier, not sealed, and the app says so.)
 
 The bot says it in its intro and whenever she asks "is this private?"; every bot answer has a footer that says `MOCK` or "fallback model, not sealed" when it is not on 0G. The web app shows the same line under the Talk header and the Decide button (`src/components/PrivacyLine.tsx`), with "Right now: MOCK / FALLBACK" when it applies, so no screen claims more than is true.
 
@@ -120,8 +120,8 @@ src/app/api/{chat,decide,status}  web API routes (input clipped and validated, n
 src/app/page.tsx            landing page (static; "Open Delulu" -> /app; Telegram link from NEXT_PUBLIC_TELEGRAM_BOT)
 src/app/(app)/              the web app behind the wallet gate: app/ (Talk), decide/, tryon/, onboarding/, settings/
 src/lib/assistant.ts        web intents + in-app scheduler (pure, unit-tested)
-src/lib/tryon.ts            image edit call, prompts, presets, spend caps
-src/app/api/{tryon,brief,checkin}  try-on (OpenAI), brief + check-in (0G)
+src/lib/tryon.ts            image edit call (0G default, OpenAI optional), prompts, presets, spend caps, privacy line per backend
+src/app/api/{tryon,brief,checkin}  try-on (0G image model), brief + check-in (0G chat)
 brand/                      DESIGN.md, SVG logo set, favicons, contact sheet
 ```
 
