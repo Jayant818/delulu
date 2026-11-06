@@ -4,8 +4,8 @@
 // Scroll turns the pages (Jayant TG 3650): the diary pins for three screens of scroll, and the scroll position scrubs a
 // real 3D page turn (desktop: the right page lifts at the spine and lands on the left; phones: the whole page turns
 // over). Scrolling up turns back. The tabs, a tap on a page, a swipe and the arrow keys scroll to a spread.
-// Reduced motion: no pin, the three spreads one under the other. Every photo is fictional and made on 0G; every
-// "after" is labelled AI preview.
+// Reduced motion: no pin, the three spreads one under the other. Every person is fictional: Sasha's hair photos were made
+// with GPT Image from one base face (Jayant TG 3670), the nail photos on 0G. Every "after" is labelled AI preview.
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { scrollToY } from "@/components/SmoothScroll";
@@ -28,10 +28,10 @@ const SPREADS: Spread[] = [
       date: "Friday, 9:10 am",
       title: "The brief for her stylist",
       photos: [
-        { src: `${W}/hair-base-west.jpg`, label: "before", alt: "Sasha before: long straight hair" },
+        { src: `${W}/hair-base-west.jpg`, label: "before", alt: "Sasha before: long dark brown hair, no bangs" },
         { src: `${W}/hair-west-curtain-bangs.jpg`, label: "AI preview", alt: "Sasha with curtain bangs, an AI preview" },
       ],
-      note: "Soft curtain bangs from the cheekbone. Keep the length. Warm honey tone. No blunt cut.",
+      note: "Soft curtain bangs from the cheekbone. Keep the length and the dark brown. No blunt cut.",
     },
     right: {
       date: "Saturday, 10:14 am",
@@ -66,15 +66,15 @@ const SPREADS: Spread[] = [
       date: "Sunday, 4:15 pm",
       title: "Which hair color looks good on her?",
       photos: [
-        { src: `${W}/hair-color-copper.jpg`, label: "AI · copper", alt: "Sasha with copper red hair, an AI preview" },
+        { src: `${W}/hair-color-brunette.jpg`, label: "AI · brown", alt: "Sasha with brunette hair and soft lighter pieces, an AI preview" },
         { src: `${W}/hair-color-honey.jpg`, label: "AI · honey", alt: "Sasha with honey blonde hair, an AI preview" },
-        { src: `${W}/hair-color-brunette.jpg`, label: "AI · brown", alt: "Sasha with dark brown hair, an AI preview" },
+        { src: `${W}/hair-color-copper.jpg`, label: "AI · copper", alt: "Sasha with copper red hair, an AI preview" },
       ],
-      note: "Delulu's pick: honey. It looks the most like her, just brighter.",
+      note: "Delulu's pick: brown. It looks the most like her, just brighter.",
     },
     right: {
       date: "Tuesday, 7:40 pm",
-      delulu: "Did you tell your colorist? How's the honey?",
+      delulu: "Did you tell your colorist? How's the new brown?",
       sasha: "she said it's my color. I'm keeping it.",
       foot: "See a hair color on your own photo before you dye. One at a time.",
     },

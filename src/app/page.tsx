@@ -2,7 +2,7 @@
 // A diary entry for a hero (date line, headline, Sasha's Thursday night playing in the phone) -> the next page of the
 // diary (Friday's brief, Saturday's check-in) -> privacy -> the last call. One CTA: "Open Delulu".
 // Palette rule (brand/delulu-DESIGN.md): coral only on things you press, navy text on it. Every person shown is
-// fictional, generated on 0G (public/visuals-west/).
+// fictional (public/visuals-west/): Sasha's photos made with GPT Image (TG 3670), the rest on 0G.
 import Link from "next/link";
 import { DiaryBook } from "@/components/DiaryBook";
 import { HeroPhone } from "@/components/HeroPhone";

@@ -1,7 +1,8 @@
 "use client";
 // The hero phone: Sasha's chat plays by itself, like a real app (typing dots, then the message; the screen scrolls).
 // Four beats: the problem -> three views -> the bangs try-on -> Saturday's check-in. Then it waits and starts again.
-// Reduced motion and the server render show the finished chat. Sasha and every photo are fictional, made on 0G.
+// Reduced motion and the server render show the finished chat. Everyone is fictional: Sasha's photos were made with GPT
+// Image (Jayant TG 3670), the three voices' portraits on 0G.
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Mark } from "@/components/Mark";
@@ -63,14 +64,14 @@ function Bubble({ beat }: { beat: Beat }): ReactNode {
     case "s-photo":
       return (
         <div className="relative aspect-square w-[30%] self-end overflow-hidden rounded-[18px] rounded-br-[6px] border-[3px] border-l-sasha">
-          <Image src="/visuals-west/hair-base-west.jpg" alt="Sasha's selfie" fill sizes="140px" className="object-cover" />
+          <Image src="/visuals-west/hair-base-west.jpg" alt="Sasha's selfie: long dark brown hair" fill sizes="140px" className="object-cover" />
         </div>
       );
     case "tryon":
       return (
         <div className={`${d} w-[70%] p-1.5`}>
           <div className="relative aspect-square overflow-hidden rounded-xl">
-            <Image src="/visuals-west/hair-west-curtain-bangs.jpg" alt="Sasha with curtain bangs, made by Delulu's try-on" fill sizes="200px" className="object-cover" />
+            <Image src="/visuals-west/hair-west-curtain-bangs.jpg" alt="Sasha with curtain bangs, an AI preview" fill sizes="200px" className="object-cover" />
           </div>
           <p className="px-1 pt-1.5 text-[12px]">Curtain bangs, on you.</p>
 
