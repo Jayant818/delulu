@@ -5,11 +5,23 @@ import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import { useEffect } from "react";
 
+let lenis: Lenis | null = null;
+
+/** Scroll the window to y: through Lenis while it runs (so its smoothing stays in step), else natively. */
+export function scrollToY(y: number) {
+  if (lenis) lenis.scrollTo(y);
+  else window.scrollTo({ top: y, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+
 export function SmoothScroll() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const lenis = new Lenis({ autoRaf: true });
-    return () => lenis.destroy();
+    const l = new Lenis({ autoRaf: true });
+    lenis = l;
+    return () => {
+      l.destroy();
+      lenis = null;
+    };
   }, []);
   return null;
 }

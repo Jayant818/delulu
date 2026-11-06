@@ -65,11 +65,10 @@ export default function Landing() {
         </header>
       </div>
 
-      {/* THE DIARY (Jayant TG 3622): three things it really does today, as pages you turn. */}
+      {/* THE DIARY (Jayant TG 3622): three things it really does today, as pages that turn as you scroll (TG 3650). */}
       <section className="border-t border-l-line">
-        <div className={`${WRAP} flex flex-col gap-10 py-20 md:gap-12 md:py-28`}>
-          <h2 className={H2}>Try it on. Then it asks how it went.</h2>
-          <DiaryBook />
+        <div className={WRAP}>
+          <DiaryBook heading={<h2 className={H2}>Try it on. Then it asks how it went.</h2>} />
         </div>
       </section>
 
