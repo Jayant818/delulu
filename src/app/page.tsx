@@ -66,7 +66,7 @@ function Bubble({ me, children }: { me?: boolean; children: ReactNode }) {
   );
 }
 
-const Sealed = () => <p className="mt-1.5 font-mono text-[11px] text-sealed">🔒 sealed on 0G · TEE ✓</p>;
+const Sealed = () => <p className="mt-1.5 font-mono text-[11px] text-sealed">🔒 sealed on 0G</p>;
 
 const STEPS = [
   { n: 1, t: "You talk", d: "Anything. Your day, your people, your plans, your drama. It remembers you, so you never start from zero." },

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { AiChip } from "@/components/AiChip";
 import { PrivacyLine } from "@/components/PrivacyLine";
 import { APP_NAME, DEMO_FAST } from "@/config";
+import { sealLabel } from "@/lib/ai/labels";
 import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
 import { answerCheckback, applyChatResult } from "@/lib/assistant";
 import { useMemoryVault, type ChatEntry, type Decision, type Memory } from "@/lib/memory";
@@ -112,7 +113,7 @@ function Extras({ e, i, m }: { e: ChatEntry; i: number; m: Memory }) {
         {proofs.map((p, k) => (
           <li key={k}>
             {p.ai!.backend === "0g" ? `0G ${p.ai!.model}` : p.ai!.backend === "openai" ? "fallback (not sealed)" : "MOCK"} · {p.ai!.requestId ?? "no-id"} ·{" "}
-            {p.ai!.teeVerified === true ? "TEE ✓" : p.ai!.teeVerified === false ? "TEE ✗" : "no TEE check"}
+            {sealLabel(p.ai!)}
           </li>
         ))}
       </ul>

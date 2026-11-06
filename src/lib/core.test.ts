@@ -37,17 +37,20 @@ test("parse0g reads request_id, provider, tee_verified, cost from x_0g_trace", (
       x_0g_trace: {
         request_id: "0852f405-6c56-40c2-a800-e6fd70785065",
         provider: "0xd9966e13a6026Fcca4b13E7ff95c94DE268C471C",
-        billing: { total_cost: "1935800000000000" },
+        billing: { currency: "usd", total_cost: "13", total_cost_usd_micro: "13" },
         tee_verified: true,
       },
     },
     "x",
+    "sealed",
   );
   assert.equal(r.text, "Go for it.");
   assert.equal(r.requestId, "0852f405-6c56-40c2-a800-e6fd70785065");
   assert.equal(r.provider, "0xd9966e13a6026Fcca4b13E7ff95c94DE268C471C");
   assert.equal(r.teeVerified, true);
-  assert.equal(r.costNeuron, "1935800000000000");
+  assert.equal(r.costUsd, 0.000013, "router bills in USD micro (measured 2026-11-06)");
+  assert.equal(r.sealed, true, "x-0g-e2ee: sealed header");
+  assert.equal(parse0g({ x_0g_trace: {} }, "m").teeVerified, null, "no tee_verified in the trace -> null, never a claimed tick");
 });
 
 test("no keys configured -> mock only; a configured 0G key never silently becomes mock", async () => {

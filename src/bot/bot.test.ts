@@ -138,8 +138,9 @@ test("anti-scam: no outgoing message ever asks for a wallet, seed, payment or li
 });
 
 test("footer: 0G shows request id + TEE flag; fallback is labelled not sealed", () => {
-  const base = { model: "m", provider: null, costNeuron: null } as const;
+  const base = { model: "m", provider: null, costUsd: null, sealed: null } as const;
   assert.equal(footer({ ...base, backend: "0g", requestId: "0852f405-6c56", teeVerified: true }), "<i>🔒 0G · 0852f405 · TEE ✓</i>");
+  assert.equal(footer({ ...base, backend: "0g", requestId: "7edd2a7a-4dd1", teeVerified: null, sealed: true }), "<i>🔒 0G · 7edd2a7a · sealed</i>", "what the router reports today");
   assert.match(footer({ ...base, backend: "openai", requestId: "chatcmpl-1", teeVerified: null }), /not sealed/);
 });
 

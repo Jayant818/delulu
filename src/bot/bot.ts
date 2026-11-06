@@ -8,6 +8,7 @@ import type { UserFromGetMe } from "grammy/types";
 import { randomBytes } from "node:crypto";
 import { APP_NAME } from "@/config";
 import type { AiResult } from "@/lib/ai/provider";
+import { sealLabel } from "@/lib/ai/labels";
 import { allViews, chatTurn, checkInText, VIEW_ORDER, type Context as BrainContext } from "@/lib/brain";
 import { ONBOARDING, VIEWS, type Intent, type Outcome, type Profile, type ViewId } from "@/lib/persona";
 export { nextDaily } from "@/lib/schedule";
@@ -47,7 +48,7 @@ First, 5 quick questions so I actually know you.`,
 /** Small, discreet footer under every AI message. */
 export function footer(ai: Omit<AiResult, "text">): string {
   const rid = (ai.requestId ?? "no-id").slice(0, 8);
-  if (ai.backend === "0g") return `<i>🔒 0G · ${esc(rid)}${ai.teeVerified === true ? " · TEE ✓" : ai.teeVerified === false ? " · TEE ✗" : ""}</i>`;
+  if (ai.backend === "0g") return `<i>🔒 0G · ${esc(rid)} · ${sealLabel(ai)}</i>`;
   if (ai.backend === "openai") return `<i>⚠️ fallback model, not sealed · ${esc(rid)}</i>`;
   return `<i>MOCK · no AI called</i>`;
 }
@@ -161,7 +162,7 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
 
   async function sendPrivacy(ctx: Context, u: BotUser) {
     const lines = u.proofs.slice(-10).map((p) => {
-      const tee = p.teeVerified === true ? "TEE ✓" : p.teeVerified === false ? "TEE ✗" : "no TEE check";
+      const tee = sealLabel(p);
       const where = p.backend === "0g" ? `0G ${p.model}` : p.backend === "openai" ? "fallback (not sealed)" : "MOCK";
       return `• ${p.kind} · ${where} · <code>${esc(p.requestId ?? "no-id")}</code> · ${tee}`;
     });

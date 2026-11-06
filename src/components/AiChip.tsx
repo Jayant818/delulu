@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { isSealedAnswer, sealLabel } from "@/lib/ai/labels";
 import type { AiMeta } from "@/lib/memory";
 
 // Small debug chip under every AI answer: which backend answered, the request ID (tap to copy), TEE status.
@@ -7,9 +8,8 @@ export function AiChip({ ai }: { ai: AiMeta }) {
   const [copied, setCopied] = useState(false);
   const id = ai.requestId ?? "no-id";
   const label = ai.backend === "0g" ? "0G" : ai.backend === "openai" ? "FALLBACK" : "MOCK";
-  const tee = ai.teeVerified === true ? "TEE ✓" : ai.teeVerified === false ? "TEE ✗" : null;
-  const tone =
-    ai.backend === "0g" && ai.teeVerified !== false ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-amber-50 text-amber-900 border-amber-200";
+  const tee = ai.backend === "0g" ? sealLabel(ai) : null;
+  const tone = isSealedAnswer(ai) ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-amber-50 text-amber-900 border-amber-200";
 
   return (
     <button

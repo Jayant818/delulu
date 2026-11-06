@@ -32,7 +32,7 @@ Without keys everything still runs, labelled: chat answers say MOCK, try-on retu
 | `npm test` | 22 cases. **web**: assistant logic (intents performed by the app, reminders, in-app scheduler delivers once, daily reschedule, check-back answers become memory), memory crypto, 0G trace parsing, decision / reminder / intent parsing. **try-on**: caps (per user, per IP, total, per IST day, refunds), MOCK mode, the exact request to the image model against a fake OpenAI server (never `input_fidelity`), nothing on disk but hashed counts. **bot**: the whole Telegram flow offline, no slash commands, nothing readable on disk, scheduler. |
 | `npm run check:live` | with real keys: replays the demo against 0G (chat, decisions, reminders, intents, three voices, check-in, try-on brief) and probes the image model; exits 1 unless every answer is 0G private mode with a verified TEE signature |
 | `npm run build` | production build |
-| `node scripts/e2e.cjs <playwright-core> <dir>` | the web app in a headless browser, 22 checks: login → onboarding → chat → decision card → Decide → three voices → pick → reload → in-app check-back → reminders and "delete everything" by plain text → try-on (MOCK) → brief → three voices → no photo stored → delete everything. Start the dev server with `NEXT_PUBLIC_CHECKBACK_MS=8000` for it. |
+| `node scripts/e2e.cjs <playwright-core> <dir>` | the web app in a headless browser, 22 checks: login → onboarding → chat → decision card → Decide → three voices → pick → reload → in-app check-back → reminders and "delete everything" by plain text → try-on (MOCK) → brief → three voices → no photo stored → delete everything. Start the dev server with `ZG_API_KEY= NEXT_PUBLIC_CHECKBACK_MS=8000 npm run dev` for it (empty `ZG_API_KEY` keeps it on MOCK: the test checks MOCK labels and costs nothing). |
 
 ## Real vs stubbed (2026-11-06)
 
@@ -45,9 +45,9 @@ Without keys everything still runs, labelled: chat answers say MOCK, try-on retu
 | Web assistant: plain-text intents + in-app scheduler (check-backs, reminders, daily check-ins appear in Talk when due, checked on open and every 15 s) | **Real**, unit-tested and E2E-tested. No web push: she sees them when the app is open. |
 | Voice | **Dropped** (Jayant, TG 3399). |
 | Web screens (landing, onboarding, Talk = home chat, Decide, Try-on, Settings) | **Real**, tested end to end in a browser |
-| Decision detection (bot and web) | **Real code; with MOCK it uses a keyword stand-in.** With a model, the chat call runs in JSON mode and returns `{reply, decision, reminder, intent}`; a tolerant parser falls back to plain text. Quality of detection on `0gm-1.0` is **untested until the key arrives.** |
-| 0G inference (`src/lib/ai/provider.ts`) | **Real code, not yet run with a key.** Endpoint and error shape checked live (401 with a fake key). Needs `ZG_API_KEY`. |
-| Request IDs | **Real.** Bot: a small footer on every answer (`🔒 0G · 0852f405 · TEE ✓`), and the last ten when she asks "is this private?". Web: a chip on every answer (`x_0g_trace.request_id`, `tee_verified`, provider, cost). Shows `MOCK` / `FALLBACK` when not on 0G. |
+| Decision detection, reminders, intents (bot and web) | **Real, verified live on `0gm-1.0`:** the demo message gave "Take the Bangalore job or stay in Jaipur"; "remind me sunday 6pm to call riya" gave Sun 8 Nov 18:00 IST; small talk gave no card; "delete everything", "check in on me every evening at 9" (21:00), "what can you do", "what are my reminders" all routed correctly. With MOCK, a keyword stand-in is used. |
+| 0G inference (`src/lib/ai/provider.ts`) | **Real, verified live 2026-11-06** (`npm run check:live`, all PASS): 13 calls, every one private mode, `sealed`, with a request ID. Latency: chat 1.6-3.3 s, the three voices 5.3 s (parallel), brief 3.3 s. Cost: about $0.00005-0.0001 per call; a full live check costs under $0.001. |
+| Request IDs | **Real.** Bot: a small footer on every answer (`🔒 0G · 7edd2a7a · sealed`), and the last ten when she asks "is this private?". Web: a chip on every answer (`x_0g_trace.request_id`, `tee_verified`, provider, cost). Shows `MOCK` / `FALLBACK` when not on 0G. |
 | Fallback to an OpenAI-compatible endpoint | **Real**, only when `OPENAI_COMPAT_*` is set. The chip then says `FALLBACK` and the tooltip shows the 0G error. |
 | Web login: email/Google + embedded EVM wallet, no seed phrase (Privy) | **Real code, not yet run with an app ID.** Needs `NEXT_PUBLIC_PRIVY_APP_ID`. Without it: **DEV** wallet (local key in localStorage, labelled). |
 | Web encrypted memory | **Real.** Key = HKDF-SHA256(wallet signature over a fixed message) → AES-256-GCM, not extractable. IndexedDB holds ciphertext only (checked in the E2E test). |
@@ -69,7 +69,8 @@ Without keys everything still runs, labelled: chat answers say MOCK, try-on retu
 - **API** ([Router quickstart](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/router/quickstart)): OpenAI-compatible, `https://router-api.0g.ai/v1`, `Authorization: Bearer sk-…`. Keys come from [pc.0g.ai](https://pc.0g.ai) → Dashboard → API Keys. Keys stay server-side ([Authentication](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/router/authentication)).
 - **Request ID** ([Chat Completions](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/router/features/chat-completions)): every response carries `x_0g_trace` = `request_id`, `provider` (on-chain address), `billing.total_cost` (neuron, 1e18 = 1 0G).
 - **Private mode** ([Privacy](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/router/privacy)): header `X-0G-Provider-Trust-Mode: private` routes only to TeeML providers (model runs in a TDX enclave; 0G and the operator cannot see the prompt). It fails with 503 instead of downgrading. Claude and GPT models on the router are on the `standard` tier, which is **not** private.
-- **TEE check** ([Verifiable Execution](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/router/features/verifiable-execution)): `verify_tee: true` adds `x_0g_trace.tee_verified`.
+- **TEE check** ([Verifiable Execution](https://docs.0g.ai/developer-hub/building-on-0g/compute-network/router/features/verifiable-execution)): documented as `verify_tee: true` → `x_0g_trace.tee_verified`. **Measured 2026-11-06: the router did not return `tee_verified` for `0gm-1.0` in private mode**, but every response carried the header `x-0g-e2ee: sealed`. The app therefore shows "sealed" (from that header) and only ever shows "TEE ✓" if the router actually returns `tee_verified: true`.
+- **Billing** (measured): `x_0g_trace.billing` is in USD micro (`currency: "usd"`, `total_cost_usd_micro`).
 - **Models** (live `GET https://router-api.0g.ai/v1/models`, no auth): 86 models. TeeML (private-capable): `0gm-1.0-35b-a3b` (the only chat model), `whisper-large-v3`, two embedding models, and two "decision" models (`laya`, `vela-2.0-9b`). This app uses `0gm-1.0-35b-a3b` with thinking off.
 
 ## Demo script (about 2 min, the website on a phone)
@@ -81,7 +82,7 @@ Run `NEXT_PUBLIC_DEMO_FAST=1 npm run dev` so the check-back arrives 1 minute aft
 | 0:00 | Landing | Scroll the hero, tap **Open Delulu** | "Every girl I know tells an AI things she'd never say out loud. Delulu is your AI companion, your split personality: tell it anything, it helps you decide by showing you different perspectives, and nobody else can read it." |
 | 0:10 | Login + setup | Log in, show 2 of the 5 answers | "Five questions so it actually knows her. Memory is encrypted on her phone." |
 | 0:20 | Talk | Type the Bangalore message | "She can tell Delulu anything, and it notices when she's stuck on a choice." |
-| 0:30 | Talk | Point at the chip `0G · … · TEE ✓` and the decision card | "Every answer is a sealed request on 0G Private Computer: here's its request ID and TEE check." |
+| 0:30 | Talk | Point at the chip `0G · req … · sealed` and the decision card | "Every answer is a sealed request on 0G Private Computer: here's its request ID." |
 | 0:38 | Decide | **See perspectives** → three cards → **I'll go with this** | "Different perspectives, as three voices: Delulu, the sane one; Future You at 30; Your Bestie. Three separate sealed requests. She picks." |
 | 0:55 | Talk | Wait for the check-back, tap **😊 Glad I did** | "And it follows up later, here after one minute." |
 | 1:05 | Talk | Type "remind me Sunday 6pm to call Riya", then "is this private?" | "No commands, just talk: reminders, check-ins, and the proof, with every request ID." |
@@ -89,11 +90,11 @@ Run `NEXT_PUBLIC_DEMO_FAST=1 npm run dev` so the check-back arrives 1 minute aft
 | 1:40 | Try-on | Show the stylist brief, then **Ask the three voices** | "Then a brief she can show her stylist, and the three voices on whether to do it." |
 | 1:55 | Talk | Type "delete everything" → **Yes** | "One sentence and it's all gone. Delulu: delusional name, sane answers, sealed by 0G." |
 
-Before recording: follow REHEARSAL.md (keys, `npm run check:live`, one warm-up chat message, one real try-on to see the timing). Every chat chip must say `0G` and `TEE ✓`, not `MOCK`. Record a backup take.
+Before recording: follow REHEARSAL.md (keys, `npm run check:live`, one warm-up chat message, one real try-on to see the timing). Every chat chip must say `0G` and `sealed`, not `MOCK`. Record a backup take.
 
 ## What breaks if 0G is removed (draft for the submission)
 
-Without 0G, everything she tells Delulu (and every decision she weighs) is readable by whichever AI company runs the model; with 0G Private Computer, every chat reply, all three voices and every brief run sealed inside a hardware enclave, and every answer carries its 0G request ID and a verified-TEE flag. (Try-on images are the one exception, and the app says so.)
+Without 0G, everything she tells Delulu (and every decision she weighs) is readable by whichever AI company runs the model; with 0G Private Computer, every chat reply, all three voices and every brief run sealed inside a hardware enclave, and every answer carries its 0G request ID and the router's "sealed" flag. (Try-on images are the one exception, and the app says so.)
 
 The bot says it in its intro and whenever she asks "is this private?"; every bot answer has a footer that says `MOCK` or "fallback model, not sealed" when it is not on 0G. The web app shows the same line under the Talk header and the Decide button (`src/components/PrivacyLine.tsx`), with "Right now: MOCK / FALLBACK" when it applies, so no screen claims more than is true.
 

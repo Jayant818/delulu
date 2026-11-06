@@ -20,10 +20,11 @@ const ctx: Context = {
 
 let failures = 0;
 function show(label: string, r: AiResult, ms: number) {
-  const ok = r.backend === "0g" && r.teeVerified === true;
+  // Sealed = 0G private mode AND the router says so (x-0g-e2ee: sealed) or verified the TEE signature.
+  const ok = r.backend === "0g" && r.teeVerified !== false && (r.teeVerified === true || r.sealed === true);
   if (!ok) failures++;
   console.log(
-    `${ok ? "PASS" : "FAIL"}  ${label.padEnd(14)} ${r.backend.padEnd(6)} req=${r.requestId ?? "-"} tee=${r.teeVerified} model=${r.model} ${ms} ms` +
+    `${ok ? "PASS" : "FAIL"}  ${label.padEnd(14)} ${r.backend.padEnd(6)} req=${r.requestId ?? "-"} sealed=${r.sealed} tee=${r.teeVerified ?? "not reported"} ${ms} ms cost=${r.costUsd != null ? `$${r.costUsd.toFixed(6)}` : "-"}` +
       (r.fallbackReason ? `\n      0G error: ${r.fallbackReason}` : ""),
   );
 }
@@ -116,7 +117,7 @@ async function main() {
     if (process.argv.includes("--image")) console.log("      (--image: make one real try-on from the app instead, so the spend cap counts it)");
   }
 
-  console.log(failures ? `\n${failures} problem(s). Fix before the demo (see REHEARSAL.md).` : "\nAll good: every answer came from 0G private mode with a verified TEE signature.");
+  console.log(failures ? `\n${failures} problem(s). Fix before the demo (see REHEARSAL.md).` : "\nAll good: every answer came from 0G private mode, reported sealed by the router.");
   process.exit(failures ? 1 : 0);
 }
 

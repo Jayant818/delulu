@@ -11,8 +11,10 @@ export type AiResult = {
   model: string;
   requestId: string | null;
   provider: string | null; // on-chain address of the 0G provider that served the request
-  teeVerified: boolean | null; // from x_0g_trace.tee_verified (verify_tee: true)
-  costNeuron: string | null; // 1e18 neuron = 1 0G
+  teeVerified: boolean | null; // x_0g_trace.tee_verified, when the router reports it (verify_tee: true). Measured
+  // 2026-11-06: the router did NOT include it for 0gm-1.0 in private mode, so it stays null rather than a claimed ✓.
+  sealed: boolean | null; // response header "x-0g-e2ee: sealed" (measured 2026-11-06 on every private-mode call)
+  costUsd: number | null; // x_0g_trace.billing.total_cost_usd_micro / 1e6 (the router bills in USD micro)
   fallbackReason?: string; // set when 0G failed and the OpenAI-compatible backend answered
 };
 
@@ -36,8 +38,9 @@ export function configuredBackends(): Backend[] {
 const stripThinking = (s: string) => s.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parse0g(data: any, model: string): AiResult {
+export function parse0g(data: any, model: string, e2eeHeader: string | null = null): AiResult {
   const t = data?.x_0g_trace ?? {};
+  const micro = Number(t.billing?.total_cost_usd_micro ?? (t.billing?.currency === "usd" ? t.billing?.total_cost : NaN));
   return {
     text: stripThinking(data?.choices?.[0]?.message?.content ?? ""),
     backend: "0g",
@@ -45,14 +48,15 @@ export function parse0g(data: any, model: string): AiResult {
     requestId: t.request_id ?? null,
     provider: t.provider ?? null,
     teeVerified: typeof t.tee_verified === "boolean" ? t.tee_verified : null,
-    costNeuron: t.billing?.total_cost ?? null,
+    sealed: e2eeHeader === null ? null : e2eeHeader === "sealed",
+    costUsd: Number.isFinite(micro) ? micro / 1e6 : null,
   };
 }
 
 type Opts = { maxTokens?: number; temperature?: number; json?: boolean };
 const jsonMode = (o: Opts) => (o.json ? { response_format: { type: "json_object" } } : {});
 
-async function postJson(url: string, headers: Record<string, string>, body: unknown) {
+async function postJsonWithHeaders(url: string, headers: Record<string, string>, body: unknown) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
@@ -61,11 +65,12 @@ async function postJson(url: string, headers: Record<string, string>, body: unkn
   });
   const text = await res.text();
   if (!res.ok) throw new Error(`${new URL(url).host} ${res.status}: ${text.slice(0, 300)}`);
-  return JSON.parse(text);
+  return { json: JSON.parse(text), headers: res.headers };
 }
+const postJson = async (url: string, headers: Record<string, string>, body: unknown) => (await postJsonWithHeaders(url, headers, body)).json;
 
 async function call0g(messages: ChatMessage[], o: Opts): Promise<AiResult> {
-  const data = await postJson(
+  const { json: data, headers } = await postJsonWithHeaders(
     `${zgBaseUrl()}/chat/completions`,
     { Authorization: `Bearer ${env("ZG_API_KEY")}`, "X-0G-Provider-Trust-Mode": ZG_TRUST_MODE },
     {
@@ -73,12 +78,12 @@ async function call0g(messages: ChatMessage[], o: Opts): Promise<AiResult> {
       messages,
       max_tokens: o.maxTokens ?? 700,
       temperature: o.temperature ?? 0.8,
-      verify_tee: true, // Router checks the provider's TEE signature; result lands in x_0g_trace.tee_verified
+      verify_tee: true, // documented to add x_0g_trace.tee_verified; not returned for 0gm-1.0 as of 2026-11-06 (kept: harmless, future-proof)
       ...jsonMode(o), // 0gm-1.0 lists response_format in supported_parameters (/v1/models, 2026-11-06)
       chat_template_kwargs: { enable_thinking: false }, // 0gm thinks by default; off = faster, cheaper replies
     },
   );
-  return parse0g(data, ZG_MODEL);
+  return parse0g(data, ZG_MODEL, headers.get("x-0g-e2ee"));
 }
 
 async function callOpenAI(messages: ChatMessage[], o: Opts): Promise<AiResult> {
@@ -95,7 +100,8 @@ async function callOpenAI(messages: ChatMessage[], o: Opts): Promise<AiResult> {
     requestId: data?.id ?? null,
     provider: null,
     teeVerified: null,
-    costNeuron: null,
+    sealed: null,
+    costUsd: null,
   };
 }
 
@@ -135,7 +141,8 @@ async function callMock(messages: ChatMessage[], o: Opts): Promise<AiResult> {
     requestId: `mock-${crypto.randomUUID()}`,
     provider: null,
     teeVerified: null,
-    costNeuron: null,
+    sealed: null,
+    costUsd: null,
   };
 }
 

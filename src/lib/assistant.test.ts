@@ -8,7 +8,7 @@ import type { Memory } from "./memory";
 const NOW = Date.parse("2026-11-06T12:00:00Z"); // 17:30 IST
 const base = (): Memory => ({ profile: { goals: "g", values: "v", trusts: "t", fears: "f", bigDecision: "b" }, chat: [], decisions: [], jobs: [], dailyAt: null });
 const res = (over: Partial<ApiResult>): ApiResult =>
-  ({ text: "ok", backend: "mock", model: "mock", requestId: "r1", provider: null, teeVerified: null, costNeuron: null, ...over }) as ApiResult;
+  ({ text: "ok", backend: "mock", model: "mock", requestId: "r1", provider: null, teeVerified: null, sealed: null, costUsd: null, ...over }) as ApiResult;
 const apply = (m: Memory, over: Partial<ApiResult>, demo = false) => applyChatResult(m, res(over), undefined, NOW, demo);
 
 test("plain reply + decision card + reminder (job + note in the reply)", () => {

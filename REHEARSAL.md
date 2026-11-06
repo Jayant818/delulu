@@ -27,14 +27,14 @@ npm test          # expect: # pass 22, # fail 0
 npm run check:live
 ```
 
-Expect every line to start with `PASS`, `0g` as the backend, `tee=true`, `PASS image model gpt-image-2.5-sunburst`, and a final "All good". Exit code 1 means something is not on 0G private mode; do not demo until it is fixed. The check does not make a try-on image (that costs money); step 4 makes exactly one.
+Expect every line to start with `PASS`, `0g` as the backend, `sealed=true`, `PASS image model gpt-image-2.5-sunburst`, and a final "All good". Exit code 1 means something is not on 0G private mode; do not demo until it is fixed. The check does not make a try-on image (that costs money); step 4 makes exactly one.
 
 | What you see | Meaning | Fix |
 |---|---|---|
 | `401 invalid_api_key` | wrong or revoked 0G key | create a new `sk-` key on pc.0g.ai |
 | `402 insufficient_balance` | team credits not on this account | claim the team credits at the 0G booth. Do not deposit real money without Jayant's OK |
 | `503 no_provider_for_trust_mode` | no TeeML provider free right now | wait a minute and rerun. Do NOT switch trust mode for the demo: anything but `private` is not sealed |
-| `tee=null` or `tee=false` | answer came back without a verified TEE signature | rerun; if it persists, ask at the 0G booth (the chip shows it honestly either way) |
+| `sealed=false` or `sealed=null` | the router did not report the answer as sealed (`x-0g-e2ee` header) | rerun; if it persists, ask at the 0G booth. `tee=not reported` is normal today: the router does not return `tee_verified` for this model |
 | `decision: NONE` | the model did not flag the demo message as a decision | reword the demo message to state both options plainly ("should I take X or Y?") and rerun |
 | `reminder: NONE` | the model did not return a reminder time | try "remind me on Sunday at 6 pm to call Riya"; if still none, leave reminders out of the video |
 | `"…" -> NONE <- expected …` (intent lines) | the model did not route a plain-text request | rerun once; if it still fails, use the exact phrasing from the live check in the demo |
@@ -56,7 +56,7 @@ To try it on a real phone on the same Wi-Fi: `NEXT_PUBLIC_DEMO_FAST=1 npm run de
 |---|---|---|
 | 1 | Landing → **Open Delulu** → log in | the 5 setup questions |
 | 2 | answer them | Talk: "Tell Delulu anything", the 🔒 line, no "MOCK" warning |
-| 3 | "ugh my parents want me home but the bangalore offer pays 2x. should i take it or stay in jaipur?" | a reply with a chip `0G · xxxxxxxx… · TEE ✓` and "Sounds like a decision … See perspectives" |
+| 3 | "ugh my parents want me home but the bangalore offer pays 2x. should i take it or stay in jaipur?" | a reply with a chip `0G · req xxxxxxxx… · sealed` and "Sounds like a decision … See perspectives" |
 | 4 | **See perspectives** → **Hear all three** | three cards, each with its own `0G` chip |
 | 5 | **I'll go with this** on one | "Saved." Back in Talk the card says "Decided: …" |
 | 6 | wait about 1 minute in Talk | "💛 Check-back … How did it go?" → tap one → a reply |
@@ -66,7 +66,7 @@ To try it on a real phone on the same Wi-Fi: `NEXT_PUBLIC_DEMO_FAST=1 npm run de
 | 10 | **Ask the three voices** → pick | three cards, "Saved." |
 | 11 | "delete everything" → **No, keep it**, then again → **Yes** | "Okay, keeping everything", then back to the login screen |
 
-Any chip that says `MOCK` or `FALLBACK` means that answer did not come from 0G. Stop and go back to step 2.
+Any chip that says `MOCK`, `FALLBACK` or `no seal reported` means that answer did not come from 0G. Stop and go back to step 2.
 
 If the try-on is too slow for the demo: set `OPENAI_IMAGE_QUALITY=low` in `.env.local` and restart `npm run dev`.
 
