@@ -57,29 +57,22 @@ export default function Landing() {
         </Link>
       </nav>
 
-      {/* HERO: a diary entry. Date line, the headline across the page, then the words and the phone side by side. */}
-      <header className={`${WRAP} pb-16 pt-1 md:pb-20 md:pt-2`}>
-        <div className="flex items-center gap-4 border-b border-l-ink/25 pb-2">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-l-muted">The diary that writes back</span>
+      {/* HERO (Jayant TG 3605): centred words beside the phone; the phone stays on the first screen (TG 3552). */}
+      <header className={`${WRAP} grid items-center gap-10 pb-16 pt-4 md:grid-cols-[1fr_auto] md:gap-12 md:pb-20 md:pt-6`}>
+        <div className="flex flex-col items-center gap-6 text-center">
+          <h1 className="font-serif text-[clamp(44px,5.9vw,86px)] font-normal leading-[0.98] tracking-[-0.02em] [text-wrap:balance]">
+            Your diary has <em>opinions now.</em>
+          </h1>
+          <p className="max-w-[480px] text-[18px] leading-[1.55] text-l-body md:text-[21px]">
+            Your AI companion, your split personality: the sane one, you at 30 and your bestie, all writing back.
+          </p>
+          <div className="flex flex-col items-center gap-2">
+            <OpenDelulu where="hero" />
+            <p className="text-[14px] text-l-muted">Free. No sign-up.</p>
+          </div>
         </div>
-        {/* the headline keeps clear of the phone column; the phone rises into the space beside it */}
-        <h1 className="pt-4 font-serif text-[clamp(44px,5.9vw,86px)] font-normal leading-[0.98] tracking-[-0.02em] [text-wrap:balance] md:max-w-[calc(100%-400px)] md:pt-5">
-          Your diary has <em>opinions now.</em>
-        </h1>
-        <div className="mt-7 grid items-start gap-9 md:mt-8 md:grid-cols-[1fr_auto] md:gap-12">
-          <div className="flex max-w-[480px] flex-col gap-6 md:pt-2">
-            <p className="text-[18px] leading-[1.55] text-l-body md:text-[21px]">
-              Your AI companion, your split personality: the sane one, you at 30 and your bestie, all writing back.
-            </p>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-              <OpenDelulu where="hero" />
-              <p className="text-[14px] text-l-muted">Free. No sign-up.</p>
-            </div>
-          </div>
-          <div className="md:-mt-[210px] md:w-[340px]">
-            <HeroPhone />
-            <p className="pt-3 text-center font-mono text-[11px] text-l-muted">Example chat · Sasha is fictional</p>
-          </div>
+        <div className="md:w-[340px]">
+          <HeroPhone />
         </div>
       </header>
 
@@ -119,7 +112,6 @@ export default function Landing() {
               </p>
             </Page>
           </div>
-          <p className="text-[13px] text-l-muted">An example. Sasha and her photos are AI-generated; the brief and the check-in are real {APP_NAME} features.</p>
         </div>
       </section>
 
@@ -133,27 +125,6 @@ export default function Landing() {
               Sealed AI on 0G · nothing stored in readable form · memory encrypted on your phone · delete everything in one line · no ads,
               ever.
             </p>
-            {/* The precise explanation next to the claim (design.md §4.6). The try-on line lives here too (Jayant TG 3486). */}
-            <details className="group text-[15px] leading-[1.65] text-l-on-ink">
-              <summary className="inline-flex min-h-11 cursor-pointer list-none items-center font-semibold text-l-paper underline underline-offset-4">
-                How exactly?
-              </summary>
-              <ul className="mt-2 flex flex-col gap-2">
-                <li>
-                  <b className="text-l-paper">Chats.</b> Your words go to an AI model in 0G&apos;s private (TEE) mode; 0G reports each answer as
-                  sealed, and every answer in the app shows its 0G request ID. Our server passes your message to 0G in memory and never
-                  stores or logs it.
-                </li>
-                <li>
-                  <b className="text-l-paper">Memory.</b> What {APP_NAME} remembers is encrypted on your phone, with a key only your device can
-                  make. You can forget any single fact, or everything.
-                </li>
-                <li>
-                  <b className="text-l-paper">Try-on photos.</b> They go to an image model on 0G&apos;s standard tier, not the sealed mode, and are
-                  deleted right after. We never save them.
-                </li>
-              </ul>
-            </details>
           </div>
         </div>
       </section>
@@ -169,7 +140,7 @@ export default function Landing() {
           <Mark size={18} />
           <span className="font-serif text-[16px] italic text-l-ink">delulu</span>
         </span>
-        <span>ETHGlobal Mumbai 2026 · People shown are AI-generated · MIT</span>
+        <span>ETHGlobal Mumbai 2026 · MIT</span>
       </footer>
     </div>
   );

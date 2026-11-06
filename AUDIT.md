@@ -7,7 +7,7 @@ Fix size: S < 15 min, M < 45 min, L more. Priority: P0 honesty, P1 states, P2 mo
 | # | Area | Problem | design.md | Size | Priority | Status |
 |---|---|---|---|---|---|---|
 | A1 | Landing hero phone | Sasha's last line "ok I'm booking it" can read as an in-app booking feature (booking is not built) | §2, §3 | S | P0 | fixed 6c9c126 |
-| A2 | Landing hero phone + spread | The scripted chat and the Friday/Saturday spread are not visibly labelled as an example; only an aria-label says so | §9 "transparently labeled illustrative" | S | P0 | fixed 6c9c126 |
+| A2 | Landing hero phone + spread | The scripted chat and the Friday/Saturday spread are not visibly labelled as an example; only an aria-label says so | §9 "transparently labeled illustrative" | S | P0 | fixed 6c9c126; labels removed by Jayant TG 3605 |
 | A3 | Landing spread | The "after" polaroid says "after · try-on", not that it is an AI-generated preview | §4.3 | S | P0 | fixed 6c9c126 |
 | A4 | Repo | Unused salon/heel images from the cut walkthrough sit in `public/walkthrough/` (reachable by URL, linked nowhere) | §2 | S | P0 | fixed 6c9c126 |
 | A5 | README / persona comment | README analytics row describes the removed "Sasha's Friday" walkthrough; a code comment says "the photo never reaches 0G" (it does, for try-on) | §2, §7 | S | P0 | fixed 6c9c126 |
@@ -24,8 +24,8 @@ Fix size: S < 15 min, M < 45 min, L more. Priority: P0 honesty, P1 states, P2 mo
 | C3 | App | Bottom nav and composer ignore the iPhone home-indicator safe area; no `viewport-fit=cover`, no keyboard-resize hint | §5 Chat-first | S | P2 | fixed f5d2f3c |
 | C4 | App + landing | Reduced motion: `animate-pulse` and bubble animations still run app-wide | §5 Accessibility | S | P2 | fixed f5d2f3c |
 | C5 | App + landing | 360 px: check every screen for sideways scroll | §9 | S | P2 | fixed f5d2f3c |
-| D1 | Landing privacy | "Every chat is fully private." has no link to a precise explanation | §4.6, §7 | S | P3 | fixed 6fad795 |
-| D2 | Landing | The try-on photo caveat is in the footer, not near the privacy statement | §4.6 | S | P3 | fixed 6fad795 |
+| D1 | Landing privacy | "Every chat is fully private." has no link to a precise explanation | §4.6, §7 | S | P3 | fixed 6fad795; disclosure removed by Jayant TG 3605 (H2 + proof line kept) |
+| D2 | Landing | The try-on photo caveat is in the footer, not near the privacy statement | §4.6 | S | P3 | fixed 6fad795; landing caveat removed with D1 (TG 3605); the in-app consent line at upload stays |
 | D3 | App try-on | Subtitle "Then ask the three voices." / unclear next step; result has no "next step" suggestion | §5 One action | S | P3 | fixed 6fad795 |
 | E1 | App | App body uses the system sans; the landing uses Inter: two body fonts | §6 typography | S | P4 | fixed 66a938c |
 
