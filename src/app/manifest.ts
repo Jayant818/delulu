@@ -7,10 +7,10 @@ export default function manifest(): MetadataRoute.Manifest {
     name: APP_NAME,
     short_name: APP_NAME,
     description: "A private AI that helps you make your own decisions.",
-    start_url: "/",
+    start_url: "/app",
     display: "standalone",
     background_color: "#fbf6ef",
     theme_color: "#fbf6ef",
-    icons: [{ src: "/favicon.ico", sizes: "any", type: "image/x-icon" }],
+    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
   };
 }

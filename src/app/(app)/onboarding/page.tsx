@@ -20,7 +20,7 @@ export default function Onboarding() {
     if (!last) return setStep(step + 1);
     setSaving(true);
     await vault.update((m) => ({ ...m, profile: answers }));
-    router.replace("/");
+    router.replace("/app");
   }
 
   return (

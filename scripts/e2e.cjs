@@ -30,7 +30,7 @@ const idb = (page, op) =>
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
 
   // Login + onboarding -> home is the chat.
-  await page.goto(B);
+  await page.goto(B + "/app");
   await page.getByRole("button", { name: /DEV wallet/ }).click();
   await page.waitForURL("**/onboarding");
   await page.screenshot({ path: `${out}/1-onboarding.png` });
@@ -39,7 +39,7 @@ const idb = (page, op) =>
     await page.locator("textarea").fill(answers[i]);
     await page.getByRole("button", { name: i < 4 ? "Next" : /Meet/, exact: i < 4 }).click();
   }
-  await page.waitForURL(B + "/");
+  await page.waitForURL(B + "/app");
   ok(await page.getByRole("heading", { name: /Tell Delulu anything/ }).isVisible(), "home is the 'Tell Delulu anything' chat");
 
   // Free talk with a decision in it -> inline decision card.

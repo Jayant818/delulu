@@ -47,7 +47,7 @@ export default function Settings() {
         onClick={async () => {
           setWiping(true);
           await vault.wipe();
-          router.replace("/");
+          router.replace("/app");
         }}
         disabled={wiping}
         className="w-full rounded-2xl bg-red-700 px-5 py-3 font-semibold text-white disabled:opacity-50"

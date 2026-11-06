@@ -7,7 +7,7 @@ import { useMemoryVault } from "@/lib/memory";
 import { useSession } from "@/lib/session";
 
 const NAV = [
-  { href: "/", label: "Talk" },
+  { href: "/app", label: "Talk" },
   { href: "/decide", label: "Decide" },
   { href: "/settings", label: "Settings" },
 ];

@@ -2,7 +2,7 @@
 
 **Tell her anything; she helps you decide.** Delulu is a private AI companion for young women, and it lives where she already talks: **Telegram**. She tells Delulu anything, and Delulu remembers her (setup answers, past chats, past decisions). When she is weighing a choice, Delulu pulls it out of the conversation ("Sounds like a decision: … See 3 views 👀") and answers with three honest voices: **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She taps the one she will follow, and 30 days later Delulu messages her to ask how it went. Like a good secretary, it also keeps her reminders ("remind me Sunday 6pm to call Riya") and checks in on her every day at a time she picks. Every model call runs sealed on 0G Private Computer, with request IDs one command away (`/proof`).
 
-A web app with the same brain (`src/lib/brain.ts`) is in the repo too: chat-first home, the Decide screen, and on-device encrypted memory.
+The repo also has a **landing page** at `/` (brand: `brand/delulu-DESIGN.md`, logo set in `brand/`) and a **web app** with the same brain (`src/lib/brain.ts`) at `/app`: chat-first, the Decide screen, and on-device encrypted memory.
 
 **Anti-scam by design:** the bot never asks for money, crypto, a wallet, passwords or codes, and never asks her to click a link. There is no wallet anywhere in the Telegram flow. It says so in its first message.
 
@@ -16,7 +16,7 @@ Built for ETHGlobal Mumbai 2026, track **Build with 0G Private Computer**.
 npm install
 cp .env.example .env.local   # then fill in TELEGRAM_BOT_TOKEN, BOT_MASTER_KEY, ZG_API_KEY
 npm run bot                  # Telegram bot, long polling (no public URL needed)
-npm run dev                  # optional: the web app on http://localhost:3000
+npm run dev                  # landing page on http://localhost:3000, web app on /app
 ```
 
 Without `ZG_API_KEY`, every answer is a labelled MOCK ("MOCK · no AI called"). The web app also runs with no keys at all (DEV wallet + MOCK model). Use port **3000** (or 3001 / 5173) for the web app: the Privy app ID that 0G shares for the iAI bonus only works on those ports.
@@ -108,7 +108,9 @@ src/bot/bot.ts              Telegram bot (grammY): onboarding, chat, decision ca
 src/bot/store.ts            encrypted-at-rest per-user store (HMAC file names, per-user data key)
 src/bot/index.ts            entry: npm run bot
 src/app/api/{chat,decide,status}  web API routes (input clipped and validated, no storage)
-src/app/page.tsx (Talk: home chat + decision card), src/app/{decide,onboarding,settings}/page.tsx
+src/app/page.tsx            landing page (static; Telegram CTA from NEXT_PUBLIC_TELEGRAM_BOT)
+src/app/(app)/              the web app behind the wallet gate: app/ (Talk), decide/, onboarding/, settings/
+brand/                      DESIGN.md, SVG logo set, favicons, contact sheet
 ```
 
 ## Before a public deploy

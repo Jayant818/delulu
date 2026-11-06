@@ -61,7 +61,7 @@ Not a fit (checked against the prize page): 0G Physical AI, 0G Agents That Pay, 
 ## Links (fill in; Jayant decides when the repo goes public)
 
 - GitHub (public, required): TODO
-- Live demo: the Telegram bot link, t.me/<bot username>: TODO. **The bot must be running during judging.**
+- Live demo: the Telegram bot link, t.me/<bot username>: TODO. **The bot must be running during judging.** Landing page: `/` of the web app (set `NEXT_PUBLIC_TELEGRAM_BOT` so its button links to the bot); hosting is Jayant's call.
 - Demo video (< 3 min): TODO. The script is in README.md.
 - Contracts: none.
 - Team: names, Telegram, X: TODO.
