@@ -36,6 +36,7 @@ export function readDecisions(v: unknown): DecisionSummary[] {
     }));
 }
 
+// Only "user" / "assistant" turns pass: a "system" message sent from the browser could otherwise rewrite the persona.
 export function readHistory(v: unknown, max: number): { role: "user" | "assistant"; content: string }[] {
   if (!Array.isArray(v)) return [];
   return v

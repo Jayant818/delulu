@@ -3,7 +3,8 @@ import { useState } from "react";
 import { isSealedAnswer, sealLabel } from "@/lib/ai/labels";
 import type { AiMeta } from "@/lib/memory";
 
-// Small debug chip under every AI answer: which backend answered, the request ID (tap to copy), TEE status.
+// The proof under every AI answer: which backend answered, its 0G request ID (tap to copy) and the seal status.
+// Green only when the 0G router reports the answer sealed; MOCK / FALLBACK are amber so a demo can never pass as 0G.
 export function AiChip({ ai }: { ai: AiMeta }) {
   const [copied, setCopied] = useState(false);
   const id = ai.requestId ?? "no-id";

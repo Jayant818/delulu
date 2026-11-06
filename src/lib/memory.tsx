@@ -64,6 +64,7 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
+        // The signature lives only in this expression: it becomes a non-extractable key and is never stored or sent.
         const key = await deriveKey(await signRef.current(KEY_MESSAGE), address);
         const blob = await get<Sealed>(storeKey(address));
         const m: Memory = blob ? { ...EMPTY, ...(await unseal<Partial<Memory>>(key, blob)) } : EMPTY; // older records lack jobs

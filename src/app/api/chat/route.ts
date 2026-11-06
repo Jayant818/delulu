@@ -3,6 +3,7 @@ import { chatTurn } from "@/lib/brain";
 import { fail, readDecisions, readHistory, readProfile, str } from "../_shared";
 
 // Free chat. The model answers in JSON: a reply plus an optional one-line decision pulled out of what she said.
+// Nothing here is logged or stored: her context arrives decrypted from her device for this one request only.
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const profile = readProfile(body?.profile);

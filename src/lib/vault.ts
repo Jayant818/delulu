@@ -21,6 +21,8 @@ function hexToBytes(hex: string): Uint8Array {
 export async function deriveKey(signatureHex: string, address: string): Promise<CryptoKey> {
   const ikm = await crypto.subtle.importKey("raw", hexToBytes(signatureHex) as BufferSource, "HKDF", false, ["deriveKey"]);
   return crypto.subtle.deriveKey(
+    // A fixed salt is fine: the input is a 65-byte signature, already high-entropy. The address in `info` binds the key to
+    // one wallet, so two wallets on one phone never share a key.
     { name: "HKDF", hash: "SHA-256", salt: enc.encode("memory/v1"), info: enc.encode(`aes-gcm:${address.toLowerCase()}`) },
     ikm,
     { name: "AES-GCM", length: 256 },

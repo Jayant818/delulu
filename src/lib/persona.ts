@@ -41,6 +41,8 @@ export type Outcome = "glad" | "mixed" | "regret";
 export type DecisionSummary = { question: string; choice: ViewId; at: string; outcome?: Outcome };
 const OUTCOME_TEXT: Record<Outcome, string> = { glad: "she is glad she did", mixed: "mixed feelings", regret: "she regrets it" };
 
+// Appended to EVERY prompt (chat, voices, check-ins, briefs): the users are young women talking about real life, so the
+// safety rule must hold no matter which voice is speaking. English only is Jayant's product call (TG 3420).
 const SAFETY = `Write in English only. No Hindi or Hinglish words, even if she uses them.
 If she mentions self-harm, abuse, violence, or being in danger, stop giving advice. Tell her clearly that she deserves help now, and suggest a trusted adult or a helpline (in India: 112 for emergencies, Tele-MANAS 14416 for mental health support).
 Never pretend to be human. Never shame her. Never decide for her: help her decide.`;
@@ -136,6 +138,8 @@ When "intent" is set, "reply" is ONE short friendly sentence; the app shows the 
 
 const INTENT_TYPES = ["help", "privacy", "forget", "checkin_off", "reminders_list", "checkin_set", "reminder_cancel", "decide"];
 
+// The model's JSON is untrusted input: only intents from the fixed list, with valid fields, get through. Anything else
+// is dropped, so a hallucinated "intent" can never trigger an action the app does not define.
 function readIntent(v: unknown): Intent | null {
   if (!v || typeof v !== "object") return null;
   const o = v as Record<string, unknown>;
