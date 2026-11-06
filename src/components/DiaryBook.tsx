@@ -19,7 +19,7 @@ const W = "/visuals-west";
 const SPREADS: Spread[] = [
   {
     key: "hair",
-    tab: "Hair",
+    tab: "Haircut",
     left: {
       date: "Friday, 9:10 am",
       title: "The brief for her stylist",
@@ -33,7 +33,7 @@ const SPREADS: Spread[] = [
       date: "Saturday, 10:14 am",
       delulu: "So... how did the date go? And the bangs?",
       sasha: "he said they suit me. I said I know.",
-      foot: "It remembers what you chose, and asks how it went.",
+      foot: "See bangs on your own photo before you cut.",
     },
   },
   {
@@ -57,7 +57,7 @@ const SPREADS: Spread[] = [
   },
   {
     key: "color",
-    tab: "Hair color",
+    tab: "Color",
     left: {
       date: "Sunday, 4:15 pm",
       title: "Which color looks good on her?",
@@ -72,7 +72,7 @@ const SPREADS: Spread[] = [
       date: "Tuesday, 7:40 pm",
       delulu: "Did you tell your colorist? How's the honey?",
       sasha: "she said it's my color. I'm keeping it.",
-      foot: "Try any color on your own photo, one at a time.",
+      foot: "See a color on your own photo before you dye.",
     },
   },
 ];
@@ -100,12 +100,12 @@ function LeftPage({ s, fill = true }: { s: Spread; fill?: boolean }) {
         {s.left.photos.map((ph, i) => (
           <figure
             key={ph.src}
-            className={`${three ? "w-[31%]" : "w-[46%] max-w-[190px]"} bg-white p-1.5 pb-1 shadow-[0_8px_20px_-8px_rgba(20,33,61,0.35)] ${
+            className={`${three ? "w-[31%]" : "w-[48%] max-w-[215px]"} bg-white p-1.5 pb-1 shadow-[0_8px_20px_-8px_rgba(20,33,61,0.35)] ${
               three ? ["-rotate-2", "rotate-1 mt-3", "-rotate-1"][i] : i === 0 ? "-rotate-3" : "-ml-6 mt-4 rotate-2"
             }`}
           >
             <div className="relative aspect-square overflow-hidden">
-              <Image src={ph.src} alt={ph.alt} fill sizes="(min-width: 768px) 190px, 42vw" className={`object-cover ${ph.focus ?? "scale-[1.45] object-[50%_18%]"}`} />
+              <Image src={ph.src} alt={ph.alt} fill draggable={false} sizes="(min-width: 768px) 215px, 44vw" className={`object-cover ${ph.focus ?? "scale-[1.45] object-[50%_18%]"}`} />
             </div>
             <figcaption className="py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-l-muted">{ph.label}</figcaption>
           </figure>
@@ -121,8 +121,8 @@ function RightPage({ s, fill = true }: { s: Spread; fill?: boolean }) {
     <div className={`flex flex-col gap-5 px-6 pb-8 pt-6 md:min-h-[440px] md:px-9 ${fill ? "h-full" : ""}`}>
       <Header date={s.right.date} title="Delulu checks in" />
       <p className="max-w-[360px] font-serif text-[22px] leading-[1.3] md:text-[24px]">{s.right.delulu}</p>
-      <p className="max-w-[320px] self-end rounded-[20px] rounded-br-[6px] bg-l-sasha px-4 py-3 text-[17px] leading-snug">{s.right.sasha}</p>
-      <p className="max-w-[360px] pt-1 text-[16px] font-medium leading-[1.55] text-l-ink">{s.right.foot}</p>
+      <p className="max-w-[80%] self-end rounded-[20px] md:max-w-[320px] rounded-br-[6px] bg-l-sasha px-4 py-3 text-[17px] leading-snug">{s.right.sasha}</p>
+      <p className="max-w-[360px] pt-1 text-[16px] leading-[1.55] text-l-body">{s.right.foot}</p>
     </div>
   );
 }
@@ -225,6 +225,14 @@ export function DiaryBook() {
       style={{ opacity: turn?.half ? 0 : 1, transition: `opacity ${TURN_MS / 2}ms ease-out` }}
     />
   );
+  // The lifted leaf throws a shadow on the page under it: it grows while the leaf rises and clears as it lands.
+  const cast = (from: "left" | "right") => (
+    <span
+      aria-hidden="true"
+      className={`pointer-events-none absolute inset-0 ${from === "left" ? "bg-[linear-gradient(to_right,rgba(20,33,61,0.24),transparent_45%)]" : "bg-[linear-gradient(to_left,rgba(20,33,61,0.24),transparent_45%)]"}`}
+      style={{ opacity: turn?.go && !turn.half ? 1 : 0, transition: `opacity ${TURN_MS / 2}ms ease-in-out` }}
+    />
+  );
   // the spine shadow stays on both sides of the fold during the turn
   const SPINE_L = "shadow-[inset_-28px_0_30px_-26px_rgba(20,33,61,0.28)]";
   const SPINE_R = "shadow-[inset_28px_0_30px_-26px_rgba(20,33,61,0.28)]";
@@ -248,9 +256,12 @@ export function DiaryBook() {
     const baseLeft = turn && fwd ? cur : tgt;
     const baseRight = turn && !fwd ? cur : tgt;
     pages = (
-      <div className="grid grid-cols-2 [perspective:2200px]">
-        <div className={`relative ${PAPER} rounded-l-[10px] shadow-[inset_-28px_0_30px_-26px_rgba(20,33,61,0.28)]`}>
+      // perspective on the grid reaches the leaf only because each page column keeps 3D (preserve-3d); without it the
+      // leaf is flattened and the turn reads as a squash
+      <div className="grid grid-cols-2 [perspective:2800px]">
+        <div className={`relative ${PAPER} rounded-l-[10px] shadow-[inset_-28px_0_30px_-26px_rgba(20,33,61,0.28)] [transform-style:preserve-3d]`}>
           <LeftPage s={turn ? baseLeft : cur} />
+          {turn && !fwd && cast("right")}
           {turn && !fwd && (
             <div className="absolute inset-0 z-10 [transform-style:preserve-3d]" style={leafStyle(angle(0, 180), "right center")}>
               <div className={`${face} ${PAPER} ${SPINE_L} rounded-l-[10px]`}>
@@ -264,8 +275,9 @@ export function DiaryBook() {
             </div>
           )}
         </div>
-        <div className={`relative ${PAPER} rounded-r-[10px] shadow-[inset_28px_0_30px_-26px_rgba(20,33,61,0.28)]`}>
+        <div className={`relative ${PAPER} rounded-r-[10px] shadow-[inset_28px_0_30px_-26px_rgba(20,33,61,0.28)] [transform-style:preserve-3d]`}>
           <RightPage s={turn ? baseRight : cur} />
+          {turn && fwd && cast("left")}
           {turn && fwd && (
             <div className="absolute inset-0 z-10 [transform-style:preserve-3d]" style={leafStyle(angle(0, -180), "left center")}>
               <div className={`${face} ${PAPER} ${SPINE_R} rounded-r-[10px]`}>

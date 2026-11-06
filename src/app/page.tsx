@@ -52,7 +52,7 @@ export default function Landing() {
               Your diary has <em>opinions now.</em>
             </h1>
             <p className="max-w-[480px] text-[18px] leading-[1.55] text-l-body md:text-[21px]">
-              Your AI companion, your split personality: the sane one, you at 30 and your bestie, all writing back.
+              Spill everything. We never keep a copy.
             </p>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <OpenDelulu where="hero" />
