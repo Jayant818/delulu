@@ -42,7 +42,8 @@ export function refund(u: Usage, keys: string[]): Usage {
   return { ...u, total: Math.max(0, u.total - 1), by };
 }
 
-const usageFile = () => path.resolve(process.env.TRYON_USAGE_FILE ?? "data/tryon-usage.json");
+// turbopackIgnore: a runtime data file, not a source to trace into the server bundle.
+const usageFile = () => process.env.TRYON_USAGE_FILE ?? path.join(/* turbopackIgnore: true */ process.cwd(), "data", "tryon-usage.json");
 let lock: Promise<unknown> = Promise.resolve();
 
 /** Serialised read-modify-write of the usage file (one Node process). */
