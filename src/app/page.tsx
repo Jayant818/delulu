@@ -68,6 +68,14 @@ function Bubble({ me, children }: { me?: boolean; children: ReactNode }) {
 
 const Sealed = () => <p className="mt-1.5 font-mono text-[11px] text-sealed">🔒 sealed on 0G</p>;
 
+const NAIL_SAMPLES = [
+  { src: "/samples/nails-before.jpg", label: "Before", alt: "Fictional model, bare natural nails", before: true },
+  { src: "/samples/nails-glazed-chrome.jpg", label: "Glazed chrome", alt: "Same hand with glazed chrome almond nails" },
+  { src: "/samples/nails-cherry-red.jpg", label: "Cherry red", alt: "Same hand with deep cherry red oval nails" },
+  { src: "/samples/nails-coral-gold-heart.jpg", label: "Coral + gold heart", alt: "Same hand with coral nails and a gold heart accent" },
+  { src: "/samples/nails-milky-daisies.jpg", label: "Milky daisies", alt: "Same hand with milky nails and tiny daisies" },
+];
+
 const STEPS = [
   { n: 1, t: "You talk", d: "Anything. Your day, your people, your plans, your drama. It remembers you, so you never start from zero." },
   { n: 2, t: "It catches the decision", d: "When you're stuck on a choice, it spots it in the chat: “Sounds like a decision. See perspectives?”" },
@@ -261,6 +269,18 @@ export default function Landing() {
               Upload a selfie or a photo of your hand, pick a style (or describe one), and see it on you. Then you get different perspectives on it,
               and a ready-to-show brief for your stylist or nail tech.
             </p>
+            {/* Real outputs from the app's own image model on 0G (seedream-5.0-flash). The model is fictional, generated
+                for this page: no real person's photo is ever shown or stored. */}
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+              {NAIL_SAMPLES.map((n) => (
+                <figure key={n.src} className={n.before ? "col-span-2 sm:col-span-1" : ""}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={n.src} alt={n.alt} width={720} height={720} loading="lazy" className="aspect-square w-full rounded-2xl object-cover" />
+                  <figcaption className="mt-1.5 text-center font-mono text-[11px] uppercase tracking-wide text-l-muted">{n.label}</figcaption>
+                </figure>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-l-muted">Sample looks made by Delulu&apos;s try-on on 0G, on a fictional model (not a real person).</p>
             <p className="mt-4 max-w-2xl rounded-2xl border-l-4 border-honest bg-l-paper px-4 py-3 text-[14px] leading-relaxed">
               <b className="text-honest">Honest note:</b> try-on photos are processed by an image model on 0G&apos;s network (standard tier,
               not sealed), then deleted. Your chats are sealed; try-on photos are not.
