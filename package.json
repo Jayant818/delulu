@@ -10,6 +10,7 @@
     "test": "tsx --test src/lib/core.test.ts src/lib/assistant.test.ts src/lib/tryon.test.ts src/bot/bot.test.ts src/lib/arkiv.test.ts",
     "bot": "tsx --env-file=.env.local src/bot/index.ts",
     "arkiv:query": "tsx scripts/arkiv-query.ts",
+    "arkiv:live": "tsx --env-file=.env.local scripts/arkiv-live.ts",
     "check:live": "tsx --env-file=.env.local scripts/live-check.ts"
   },
   "dependencies": {
