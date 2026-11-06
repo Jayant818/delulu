@@ -25,23 +25,25 @@ function Wordmark() {
   );
 }
 
-/** Primary action. Without a bot username it says so instead of linking to a placeholder. */
-function TelegramCta({ big = false }: { big?: boolean }) {
-  const cls = `inline-flex items-center justify-center gap-2 rounded-full bg-brand font-semibold text-l-paper ${big ? "px-7 py-4 text-lg" : "px-4 py-2.5 text-sm"}`;
-  const icon = (
-    <svg viewBox="0 0 24 24" width={big ? 20 : 16} height={big ? 20 : 16} aria-hidden="true" fill="currentColor">
-      <path d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.7.8l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.5 13.2 1.8 11.7c-1-.3-1-1 .2-1.5L20.6 3c.9-.3 1.6.2 1.3 1.3z" />
-    </svg>
+/** Primary action: the web app is the main demo (Jayant, TG 3420). */
+function OpenCta({ big = false }: { big?: boolean }) {
+  return (
+    <Link
+      href="/app"
+      className={`inline-flex items-center justify-center gap-2 rounded-full bg-brand font-semibold text-l-paper ${big ? "px-7 py-4 text-lg" : "px-4 py-2.5 text-sm"}`}
+    >
+      Open {APP_NAME}
+    </Link>
   );
+}
+
+/** Secondary: the same Delulu in Telegram. Hidden until the bot username is set (no fake link). */
+function TelegramLink() {
   return TELEGRAM_URL ? (
-    <a href={TELEGRAM_URL} className={cls} target="_blank" rel="noopener noreferrer">
-      {icon} Open in Telegram
+    <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-brand underline underline-offset-4">
+      or chat on Telegram
     </a>
-  ) : (
-    <span className={`${cls} opacity-80`} aria-disabled="true" title="Set NEXT_PUBLIC_TELEGRAM_BOT">
-      {icon} {big ? "Telegram link coming soon" : "Coming soon"}
-    </span>
-  );
+  ) : null;
 }
 
 function H2({ children }: { children: ReactNode }) {
@@ -69,31 +71,35 @@ const Sealed = () => <p className="mt-1.5 font-mono text-[11px] text-sealed">�
 const STEPS = [
   { n: 1, t: "You talk", d: "Anything. Your day, your people, your plans, your drama. She remembers you, so you never start from zero." },
   { n: 2, t: "She catches the decision", d: "When you're stuck on a choice, she spots it in the chat: “Sounds like a decision. See 3 views?”" },
-  { n: 3, t: "Three honest voices", d: "Delulu, the sane one. Future You at 30. Your Bestie. Side by side, in one message. You pick." },
+  { n: 3, t: "Three honest voices", d: "Delulu, the sane one. Future You at 30. Your Bestie. Side by side, on one screen. You pick." },
   { n: 4, t: "She checks back", d: "Thirty days later: “How did it go?” Plus reminders and a daily check-in, if you want them." },
 ];
 
 const VOICES = [
   { t: APP_NAME, s: "the sane one", d: "The real trade-off, the cost of each option, and one step you can take this week. Delusional name, sane answer." },
   { t: "Future You at 30", s: "looking back", d: "Your own voice from a few years ahead: what mattered in the end, and what you'll be glad you did." },
-  { t: "Your Bestie", s: "over chai", d: "Protective, a little funny, always honest. Checks how you actually feel before saying anything else." },
+  { t: "Your Bestie", s: "over coffee", d: "Protective, a little funny, always honest. Checks how you actually feel before saying anything else." },
 ];
 
 const FAQ = [
-  { q: "Is it free?", a: "Yes. No subscription, no card, nothing to install. It's a Telegram chat." },
+  { q: "Is it free?", a: "Yes. No subscription, no card. It opens in your browser, and there's a Telegram version too." },
   {
     q: `Can anyone read what I tell ${APP_NAME}?`,
-    a: "The AI runs sealed inside a hardware enclave on 0G Private Computer, so not even 0G or the GPU owner can read it. Our server stores your memory encrypted and keeps nothing readable. Telegram carries the messages, and Telegram can read bot chats, like any Telegram chat.",
+    a: "Your chats are sealed on 0G: the AI runs inside a hardware enclave on 0G Private Computer, so not even 0G or the GPU owner can read them. In the app, your memory is encrypted on your own phone. If you use the Telegram version, Telegram carries those messages, like any Telegram chat.",
+  },
+  {
+    q: "What happens to my try-on photo?",
+    a: "It goes to OpenAI's image model, only to make your look, and then we delete it. We never save it, and Delulu keeps only the text (the style you picked and the brief). This part is not sealed on 0G, so we say so.",
   },
   { q: "Will it tell me what to do?", a: "No. It helps you see your options clearly and remembers what you chose. The decision is always yours." },
   {
     q: "What if I'm not okay?",
     a: `If you mention self-harm, abuse or being in danger, ${APP_NAME} stops giving advice and points you to people who can help. In India: 112 for emergencies, Tele-MANAS 14416 for mental health support.`,
   },
-  { q: "How do I delete everything?", a: "Send /forget. Your profile, chats, decisions and reminders are deleted for good." },
+  { q: "How do I delete everything?", a: "Just tell her: “delete everything”. She asks you to confirm, then your profile, chats, decisions and reminders are gone for good." },
   {
     q: "What is 0G?",
-    a: `0G Private Computer runs AI models inside secure hardware (TEEs), so prompts stay private and every answer can be checked. ${APP_NAME} uses it for every single reply; send /proof to see the request IDs.`,
+    a: `0G Private Computer runs AI models inside secure hardware (TEEs), so prompts stay private and every answer can be checked. ${APP_NAME} uses it for every chat reply; ask “is this private?” to see the request IDs.`,
   },
 ];
 
@@ -111,7 +117,7 @@ export default function Landing() {
             <a href="#privacy">Privacy</a>
             <a href="#faq">FAQ</a>
           </div>
-          <TelegramCta />
+          <OpenCta />
         </nav>
       </header>
 
@@ -125,16 +131,14 @@ export default function Landing() {
               <Em>She helps you decide.</Em>
             </h1>
             <p className="mt-5 max-w-md text-[17px] leading-relaxed text-l-muted">
-              A private AI big sister that lives in your Telegram. Talk about your day, your people, your plans. When you&apos;re stuck on a
-              choice, she shows you three honest views and checks back on you later.
+              A private AI big sister on your phone. Talk about your day, your people, your plans. When you&apos;re stuck on a choice, she
+              shows you three honest views and checks back on you later. And before the salon, see the new hair or nails on you.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-4">
-              <TelegramCta big />
-              <Link href="/app" className="text-sm font-semibold text-brand underline underline-offset-4">
-                or try the web version
-              </Link>
+              <OpenCta big />
+              <TelegramLink />
             </div>
-            <p className="mt-3 text-xs text-l-muted">Free. Nothing to install. No wallet, no card.</p>
+            <p className="mt-3 text-xs text-l-muted">Free. Opens in your browser. No card, no seed phrase.</p>
           </div>
 
           {/* Product artifact: an example chat, as a physical card */}
@@ -246,6 +250,24 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Try-on */}
+        <section className="py-16">
+          <div className="rounded-[32px] border border-l-line bg-l-card px-6 py-10 md:px-12">
+            <p className="text-xs uppercase tracking-widest text-l-muted">New look, no regrets</p>
+            <H2>
+              Try the hair or nails <Em>before the salon.</Em>
+            </H2>
+            <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-l-muted">
+              Upload a selfie or a photo of your hand, pick a style (or describe one), and see it on you. Then the three voices weigh in,
+              and you get a ready-to-show brief for your stylist or nail tech.
+            </p>
+            <p className="mt-4 max-w-2xl rounded-2xl border-l-4 border-honest bg-l-paper px-4 py-3 text-[14px] leading-relaxed">
+              <b className="text-honest">Honest note:</b> try-on photos go to OpenAI&apos;s image model to make your look, then we delete
+              them. That part is not sealed on 0G; your chats are.
+            </p>
+          </div>
+        </section>
+
         {/* Privacy, honestly */}
         <section id="privacy" className="scroll-mt-24 py-16">
           <div className="text-center">
@@ -259,29 +281,30 @@ export default function Landing() {
               <h3 className="mt-2 font-serif text-2xl">AI sealed on 0G</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-l-muted">
                 Every answer comes from a model running inside a hardware enclave on 0G Private Computer. Not even 0G or the GPU owner can
-                read it. Each answer carries a request ID you can check with <span className="font-mono">/proof</span>.
+                read it. Each answer carries a request ID you can check: just ask &ldquo;is this private?&rdquo;.
               </p>
             </article>
             <article className="rounded-3xl border border-l-line bg-l-card p-6">
               <p className="font-mono text-xs text-l-muted">ENCRYPTED</p>
-              <h3 className="mt-2 font-serif text-2xl">We store nothing readable</h3>
+              <h3 className="mt-2 font-serif text-2xl">Your memory stays yours</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-l-muted">
-                Your memory is encrypted with a key of its own. <span className="font-mono">/forget</span> deletes it for good. No ads, no
-                trackers, no selling, no training on your words.
+                In the app, your memory is encrypted on your own phone with a key only you can make. Say &ldquo;delete everything&rdquo; and
+                it&apos;s gone. No ads, no trackers, no selling, no training on your words.
               </p>
             </article>
             <article className="rounded-3xl border border-l-line bg-l-card p-6">
-              <p className="font-mono text-xs text-l-muted">TELEGRAM</p>
-              <h3 className="mt-2 font-serif text-2xl">Telegram carries the messages</h3>
+              <p className="font-mono text-xs text-l-muted">TRY-ON</p>
+              <h3 className="mt-2 font-serif text-2xl">Photos, honestly</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-l-muted">
-                Like any Telegram chat, Telegram can read bot messages. That part is outside our control, and we&apos;d rather tell you than
-                hide it.
+                Try-on photos go to OpenAI&apos;s image model to make your look, then we delete them. That part is not sealed, and we&apos;d
+                rather tell you than hide it.
               </p>
             </article>
           </div>
           <p className="mx-auto mt-6 max-w-3xl rounded-2xl border-l-4 border-honest bg-l-card px-5 py-4 text-[15px] leading-relaxed">
-            <b className="text-honest">What we don&apos;t claim:</b> whoever runs the {APP_NAME} server holds the key that unlocks stored
-            memory. &ldquo;Nothing readable at rest&rdquo; is our promise, not &ldquo;unreadable to us&rdquo;.
+            <b className="text-honest">What we don&apos;t claim:</b> try-on photos are not sealed (OpenAI&apos;s image model sees them before we
+            delete them). In the Telegram version, Telegram carries the messages, and whoever runs the {APP_NAME} server holds the key to
+            stored memory: &ldquo;nothing readable at rest&rdquo; is our promise there, not &ldquo;unreadable to us&rdquo;.
           </p>
         </section>
 
@@ -329,8 +352,9 @@ export default function Landing() {
             <Em>deserves a sane answer.</Em>
           </H2>
           <p className="mt-4 text-l-muted">Say hi. She&apos;ll ask you five questions, then it&apos;s just talking.</p>
-          <div className="mt-8 flex justify-center">
-            <TelegramCta big />
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <OpenCta big />
+            <TelegramLink />
           </div>
         </section>
       </main>
@@ -342,7 +366,7 @@ export default function Landing() {
           <div className="flex gap-5">
             <a href="#how">How it works</a>
             <a href="#privacy">Privacy</a>
-            <Link href="/app">Web version</Link>
+            <Link href="/app">Open {APP_NAME}</Link>
           </div>
         </div>
       </footer>

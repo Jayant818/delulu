@@ -13,7 +13,7 @@ export function PrivacyLine({ compact = false }: { compact?: boolean }) {
   if (compact)
     return (
       <p className="mt-1 text-xs text-muted">
-        🔒 Sealed by 0G: not even 0G can read this. Without 0G, an AI company could.
+        🔒 Your chats are sealed on 0G: not even 0G can read them. Without 0G, an AI company could.
         {now && <span className="font-semibold text-amber-800"> Right now: {now}.</span>}
       </p>
     );

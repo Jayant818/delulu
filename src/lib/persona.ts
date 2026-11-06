@@ -33,7 +33,7 @@ export const VIEWS: Record<ViewId, { title: string; voice: string; style: string
   bestie: {
     title: "Your Bestie",
     voice: "her loyal best friend",
-    style: "Talk like a best friend: casual, protective, a bit funny, but honest. Check how she feels. Say what you would tell her over chai.",
+    style: "Talk like a best friend: casual, protective, a bit funny, but honest. Check how she feels. Say what you would tell her over coffee.",
   },
 };
 
@@ -41,7 +41,8 @@ export type Outcome = "glad" | "mixed" | "regret";
 export type DecisionSummary = { question: string; choice: ViewId; at: string; outcome?: Outcome };
 const OUTCOME_TEXT: Record<Outcome, string> = { glad: "she is glad she did", mixed: "mixed feelings", regret: "she regrets it" };
 
-const SAFETY = `If she mentions self-harm, abuse, violence, or being in danger, stop giving advice. Tell her clearly that she deserves help now, and suggest a trusted adult or a helpline (in India: 112 for emergencies, Tele-MANAS 14416 for mental health support).
+const SAFETY = `Write in English only. No Hindi or Hinglish words, even if she uses them.
+If she mentions self-harm, abuse, violence, or being in danger, stop giving advice. Tell her clearly that she deserves help now, and suggest a trusted adult or a helpline (in India: 112 for emergencies, Tele-MANAS 14416 for mental health support).
 Never pretend to be human. Never shame her. Never decide for her: help her decide.`;
 
 const clip = (s: unknown, n: number) => String(s ?? "").slice(0, n);
@@ -90,7 +91,8 @@ export function nowLineIST(now = new Date()): string {
 export type Channel = "telegram" | "web";
 
 export function chatSystemPrompt(p: Profile, ds: DecisionSummary[], now = new Date(), channel: Channel = "telegram"): string {
-  const bot = channel === "telegram";
+  // Both channels can schedule now (bot: timer; web: in-app, shown when she opens Delulu) and both have no commands.
+  const bot = channel === "telegram" || channel === "web";
   return `VOICE: ${VIEWS.sane.voice}
 You are ${APP_NAME}, a private AI companion. She can tell you anything: her day, her feelings, her plans, her drama. You listen, remember, and help her think. The joke is the name: ${APP_NAME} gives the sane answer. Playful Gen Z tone (light slang, at most one emoji), grounded advice. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
 

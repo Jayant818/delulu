@@ -3,12 +3,13 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { AiChip } from "@/components/AiChip";
 import { PrivacyLine } from "@/components/PrivacyLine";
+import { CHECKBACK_MS } from "@/config";
 import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
+import { checkbackJob } from "@/lib/assistant";
 import { useMemoryVault, type AiMeta, type Decision } from "@/lib/memory";
 import { VIEWS, type ViewId } from "@/lib/persona";
 
 const ORDER: ViewId[] = ["sane", "future", "bestie"];
-const DAY = 86_400_000;
 // "6 Nov 2026" style: unambiguous in every locale (11/6 vs 6/11).
 const day = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string };
@@ -63,12 +64,12 @@ function Decide({ fromChat }: { fromChat: string }) {
       const c = cards[v];
       if (c?.text && c.ai) views[v] = { text: c.text, ai: c.ai };
     }
+    const id = crypto.randomUUID();
+    const checkInAt = new Date(+now + CHECKBACK_MS).toISOString();
     await vault.update((m) => ({
       ...m,
-      decisions: [
-        ...m.decisions,
-        { id: crypto.randomUUID(), question: asked, views, choice, at: now.toISOString(), checkInAt: new Date(+now + 30 * DAY).toISOString() },
-      ],
+      decisions: [...m.decisions, { id, question: asked, views, choice, at: now.toISOString(), checkInAt }],
+      jobs: [...m.jobs, checkbackJob(id, checkInAt)], // shows up in Talk when due (in-app)
     }));
     setPicked(choice);
     setQuestion("");

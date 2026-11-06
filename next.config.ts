@@ -16,6 +16,8 @@ const OPTIONAL_PRIVY_PEERS = [
 // cacheComponents/partialPrefetching are off: every screen is client-rendered behind the wallet gate, so
 // instant-navigation validation only produced dev-overlay errors (segments are intentionally not rendered until unlock).
 const nextConfig: NextConfig = {
+  // The dev "N" badge sits on top of the bottom nav (and would show in a demo recording made with `npm run dev`).
+  devIndicators: false,
   turbopack: {
     resolveAlias: Object.fromEntries(OPTIONAL_PRIVY_PEERS.map((p) => [p, STUB])),
     rules: {

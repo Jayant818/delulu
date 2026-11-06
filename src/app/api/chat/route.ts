@@ -11,12 +11,12 @@ export async function POST(req: Request) {
   if (!message) return fail(400, "message is empty");
 
   try {
-    const { decision, ai } = await chatTurn(
+    const { decision, reminder, intent, ai } = await chatTurn(
       { profile, decisions: readDecisions(body?.decisions), history: readHistory(body?.history, 20) },
       message,
-      { channel: "web" }, // no scheduler and no intents here; the web app has buttons
+      { channel: "web" },
     );
-    return NextResponse.json({ ...ai, decision });
+    return NextResponse.json({ ...ai, decision, reminder, intent });
   } catch (e) {
     return fail(502, (e as Error).message);
   }

@@ -3,12 +3,15 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { clear, del, get, set } from "idb-keyval";
 import type { AiResult } from "@/lib/ai/provider";
-import type { Profile, ViewId } from "@/lib/persona";
+import type { Outcome, Profile, ViewId } from "@/lib/persona";
+import type { Job } from "@/lib/schedule";
 import { useSession } from "@/lib/session";
 import { deriveKey, KEY_MESSAGE, seal, unseal, type Sealed } from "@/lib/vault";
 
 export type AiMeta = Omit<AiResult, "text">;
-export type ChatEntry = { role: "user" | "assistant"; content: string; at: string; ai?: AiMeta; decision?: string };
+// kind marks app-made messages that render with buttons (check-back, delete confirm, reminders list).
+export type ChatKind = "reminder" | "checkback" | "checkin" | "help" | "privacy" | "confirm-forget" | "reminders";
+export type ChatEntry = { role: "user" | "assistant"; content: string; at: string; ai?: AiMeta; decision?: string; kind?: ChatKind; ref?: string };
 export type Decision = {
   id: string;
   question: string;
@@ -16,10 +19,11 @@ export type Decision = {
   choice: ViewId;
   at: string;
   checkInAt: string;
+  outcome?: Outcome;
 };
-export type Memory = { profile: Profile | null; chat: ChatEntry[]; decisions: Decision[] };
+export type Memory = { profile: Profile | null; chat: ChatEntry[]; decisions: Decision[]; jobs: Job[]; dailyAt: string | null };
 
-const EMPTY: Memory = { profile: null, chat: [], decisions: [] };
+const EMPTY: Memory = { profile: null, chat: [], decisions: [], jobs: [], dailyAt: null };
 const storeKey = (address: string) => `memory:v1:${address.toLowerCase()}`;
 
 type Vault = {
@@ -62,7 +66,7 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
       try {
         const key = await deriveKey(await signRef.current(KEY_MESSAGE), address);
         const blob = await get<Sealed>(storeKey(address));
-        const m = blob ? await unseal<Memory>(key, blob) : EMPTY;
+        const m: Memory = blob ? { ...EMPTY, ...(await unseal<Partial<Memory>>(key, blob)) } : EMPTY; // older records lack jobs
         if (cancelled) return;
         keyRef.current = key;
         memRef.current = m;

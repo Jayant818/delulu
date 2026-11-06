@@ -75,9 +75,31 @@ const idb = (page, op) =>
   await page.getByRole("link", { name: "Talk" }).click();
   await page.getByText(/Decided: went with Future You at 30/).waitFor();
   ok(true, "chat card shows the decision she made");
+
+  // In-app check-back (dev server runs with NEXT_PUBLIC_CHECKBACK_MS=8000; the scheduler ticks every 15 s).
+  await page.getByText(/Check-back\. You decided/).waitFor({ timeout: 40_000 });
+  await page.getByRole("button", { name: "😊 Glad I did" }).click();
+  await page.getByText(/Love that for you/).waitFor();
+  ok(true, "in-app check-back appears when due; the answer gets a reply");
+
+  // No commands: plain-text intents.
+  const say = async (t) => {
+    await page.getByPlaceholder("Tell me anything…").fill(t);
+    await page.getByRole("button", { name: "Send" }).click();
+  };
+  await say("remind me to call Riya");
+  await page.getByText(/Reminder set: call Riya/).waitFor();
+  await say("what are my reminders");
+  await page.getByRole("button", { name: "Cancel" }).first().waitFor();
+  ok(await page.getByText(/⏰ call Riya ·/).isVisible(), "reminders list from plain text");
+  await say("delete everything");
+  await page.getByRole("button", { name: "No, keep it" }).click();
+  await page.getByText("Okay, keeping everything 💛").waitFor();
+  ok(true, "'delete everything' asks first; No keeps it");
   await page.getByPlaceholder("Tell me anything…").fill("hiii");
   await page.getByRole("button", { name: "Send" }).click();
-  await page.locator("button", { hasText: "MOCK" }).nth(1).waitFor();
+  await page.getByText("hiii", { exact: true }).waitFor();
+  await page.waitForTimeout(1500);
   ok((await page.getByText("Sounds like a decision:").count()) === 0, "small talk does not create a decision card");
   await page.screenshot({ path: `${out}/4-talk.png`, fullPage: true });
 

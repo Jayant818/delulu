@@ -28,7 +28,12 @@ export function readDecisions(v: unknown): DecisionSummary[] {
   return v
     .slice(-15)
     .filter((d) => d && isView(d.choice))
-    .map((d) => ({ question: str(d.question, 200), choice: d.choice, at: str(d.at, 30) }));
+    .map((d) => ({
+      question: str(d.question, 200),
+      choice: d.choice,
+      at: str(d.at, 30),
+      outcome: ["glad", "mixed", "regret"].includes(d.outcome) ? d.outcome : undefined,
+    }));
 }
 
 export function readHistory(v: unknown, max: number): { role: "user" | "assistant"; content: string }[] {

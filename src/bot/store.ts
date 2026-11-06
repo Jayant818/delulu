@@ -19,8 +19,9 @@ export type BotDecision = {
   views: Partial<Record<ViewId, string>>;
   outcome?: Outcome;
 };
-// Scheduled bot messages. Kept inside the encrypted record, so the schedule is as private as the memory.
-export type Job = { id: string; kind: "checkback" | "daily" | "reminder"; at: string; ref?: string; text?: string };
+// Scheduled bot messages live inside the encrypted record, so the schedule is as private as the memory.
+import type { Job } from "@/lib/schedule";
+export type { Job };
 export type BotUser = {
   uid: number; // telegram user id = private chat id; needed to message her first (check-ins, reminders)
   profile: Profile | null;

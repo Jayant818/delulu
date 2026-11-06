@@ -1,14 +1,17 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { APP_NAME } from "@/config";
-import { useMemoryVault } from "@/lib/memory";
+import { chatLines, decisionSummaries, postAi, aiMeta } from "@/lib/api";
+import { runDue } from "@/lib/assistant";
+import { useMemoryVault, type Memory } from "@/lib/memory";
 import { useSession } from "@/lib/session";
 
 const NAV = [
   { href: "/app", label: "Talk" },
   { href: "/decide", label: "Decide" },
+  { href: "/tryon", label: "Try-on" },
   { href: "/settings", label: "Settings" },
 ];
 
@@ -27,6 +30,47 @@ export function Shell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (needsOnboarding && path !== "/onboarding") router.replace("/onboarding");
   }, [needsOnboarding, path, router]);
+
+  // In-app scheduler: when she opens Delulu, and every 15 s while it is open, due check-backs, reminders and
+  // check-ins land in Talk. ponytail: no web push; she sees them when the app is open.
+  const memRef = useRef<Memory>(vault.memory);
+  const updateRef = useRef(vault.update);
+  useEffect(() => {
+    memRef.current = vault.memory;
+    updateRef.current = vault.update;
+  });
+  const ready = vault.status === "unlocked" && !!vault.memory.profile;
+  useEffect(() => {
+    if (!ready) return;
+    let running = false;
+    const tick = async () => {
+      const now = Date.now();
+      if (running || !memRef.current.jobs.some((j) => Date.parse(j.at) <= now)) return; // nothing due: no write
+      running = true;
+      try {
+        let checkinDue = false;
+        await updateRef.current((m) => {
+          const out = runDue(m, now);
+          checkinDue = out.checkinDue;
+          return out.memory;
+        });
+        if (checkinDue) {
+          const m = memRef.current;
+          const r = await postAi("/api/checkin", { profile: m.profile, decisions: decisionSummaries(m), history: chatLines(m, 10) }).catch(() => null);
+          const content = r?.text?.trim() || "Hey you 💛 How was today, honestly?";
+          await updateRef.current((mm) => ({
+            ...mm,
+            chat: [...mm.chat, { role: "assistant", content, at: new Date().toISOString(), kind: "checkin", ...(r ? { ai: aiMeta(r) } : {}) }],
+          }));
+        }
+      } finally {
+        running = false;
+      }
+    };
+    tick();
+    const t = setInterval(tick, 15_000);
+    return () => clearInterval(t);
+  }, [ready]);
 
   if (!session.ready) return <Center><p className="text-muted">Loading…</p></Center>;
 

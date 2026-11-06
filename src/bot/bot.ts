@@ -10,30 +10,14 @@ import { APP_NAME } from "@/config";
 import type { AiResult } from "@/lib/ai/provider";
 import { allViews, chatTurn, checkInText, VIEW_ORDER, type Context as BrainContext } from "@/lib/brain";
 import { ONBOARDING, VIEWS, type Intent, type Outcome, type Profile, type ViewId } from "@/lib/persona";
-import { newUser, type BotStore, type BotUser, type Job, type Proof } from "./store";
+export { nextDaily } from "@/lib/schedule";
+import { DAY, nextDaily, OUTCOMES, whenIST, type Job } from "@/lib/schedule";
+import { newUser, type BotStore, type BotUser, type Proof } from "./store";
 
-const DAY = 86_400_000;
-const IST_MS = 330 * 60_000;
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
-const when = (iso: string) =>
-  new Date(iso).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
+const when = whenIST;
 const id = () => randomBytes(4).toString("hex");
-
-/** Next HH:MM in IST strictly after `now`. ponytail: IST only; add a per-user timezone when users are outside India. */
-export function nextDaily(hhmm: string, now: number): number {
-  const [h, m] = hhmm.split(":").map(Number);
-  const ist = new Date(now + IST_MS);
-  let t = Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate(), h, m) - IST_MS;
-  if (t <= now) t += DAY;
-  return t;
-}
-
-const OUTCOMES: { key: Outcome; label: string; reply: string }[] = [
-  { key: "glad", label: "😊 Glad I did", reply: "Love that for you 💛 Noted. Remember this feeling next time you doubt yourself." },
-  { key: "mixed", label: "😐 Mixed", reply: "Mixed is honest, and it's allowed. Want to talk through what's good and what isn't?" },
-  { key: "regret", label: "😣 Regret it", reply: "Oof, thank you for telling me. That's not failure, it's information. Want to look at what you can still change?" },
-];
 
 export const TEXT = {
   intro: `Hi, I'm <b>${APP_NAME}</b> 💅 the app with the delulu name that gives you the sane answer.
