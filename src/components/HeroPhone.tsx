@@ -27,7 +27,7 @@ const SCRIPT: Beat[] = [
 ];
 const N = SCRIPT.length;
 /** ms before each beat appears; Delulu beats show typing dots for the first 900 ms of their wait. */
-const WAIT = [0, 0, 700, 800, 4400, 1500, 1800]; // index = beat: views at ~2 s, then they hold until the selfie at ~6.5 s
+const WAIT = [0, 0, 700, 800, 1300, 3600, 1800]; // index = beat: views ~2 s, selfie ~3.4 s (question still in view), try-on ~7 s
 const HOLD = 5000;
 
 const VIEWS = [
@@ -62,7 +62,7 @@ function Bubble({ beat }: { beat: Beat }): ReactNode {
       );
     case "s-photo":
       return (
-        <div className="relative aspect-square w-[44%] self-end overflow-hidden rounded-[18px] rounded-br-[6px] border-[3px] border-l-sasha">
+        <div className="relative aspect-square w-[30%] self-end overflow-hidden rounded-[18px] rounded-br-[6px] border-[3px] border-l-sasha">
           <Image src="/visuals-west/hair-base-west.jpg" alt="Sasha's selfie" fill sizes="140px" className="object-cover" />
         </div>
       );
@@ -153,7 +153,7 @@ export function HeroPhone() {
 
   return (
     <div className="relative mx-auto w-full max-w-[340px]">
-      <div className="flex h-[min(580px,62svh)] flex-col overflow-hidden rounded-[46px] border-[9px] border-l-ink bg-l-paper shadow-[0_40px_80px_-30px_rgba(20,33,61,0.55)]">
+      <div className="flex h-[min(580px,70svh)] flex-col overflow-hidden rounded-[46px] border-[9px] border-l-ink bg-l-paper shadow-[0_40px_80px_-30px_rgba(20,33,61,0.55)]">
         {/* status bar + app header */}
         <div className="flex items-center justify-between px-6 pb-1 pt-2.5 text-[11px] font-semibold text-l-ink" aria-hidden="true">
           <span>9:41</span>

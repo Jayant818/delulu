@@ -60,17 +60,16 @@ export default function Landing() {
       {/* HERO: a diary entry. Date line, the headline across the page, then the words and the phone side by side. */}
       <header className={`${WRAP} pb-16 pt-1 md:pb-20 md:pt-2`}>
         <div className="flex items-center gap-4 border-b border-l-ink/25 pb-2">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-l-muted">Thursday, 11:48 pm</span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-l-muted">The diary that writes back</span>
         </div>
         {/* the headline keeps clear of the phone column; the phone rises into the space beside it */}
         <h1 className="pt-4 font-serif text-[clamp(44px,5.9vw,86px)] font-normal leading-[0.98] tracking-[-0.02em] [text-wrap:balance] md:max-w-[calc(100%-400px)] md:pt-5">
           Your diary has <em>opinions now.</em>
         </h1>
         <div className="mt-7 grid items-start gap-9 md:mt-8 md:grid-cols-[1fr_auto] md:gap-12">
-          <div className="flex max-w-[480px] flex-col gap-6 md:self-center">
+          <div className="flex max-w-[480px] flex-col gap-6 md:pt-2">
             <p className="text-[18px] leading-[1.55] text-l-body md:text-[21px]">
-              {APP_NAME} is the diary that writes back. Your AI companion, your split personality: the sane one, you at 30 and your
-              bestie.
+              Your AI companion, your split personality: the sane one, you at 30 and your bestie, all writing back.
             </p>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <OpenDelulu where="hero" />
@@ -97,8 +96,9 @@ export default function Landing() {
                   { src: "/visuals-west/hair-west-curtain-bangs.jpg", label: "after · try-on", alt: "Sasha with curtain bangs, made by Delulu's try-on", tilt: "rotate-2 -ml-6 mt-4" },
                 ].map((ph) => (
                   <figure key={ph.src} className={`w-[46%] max-w-[190px] ${ph.tilt} bg-white p-1.5 pb-1 shadow-[0_8px_20px_-8px_rgba(20,33,61,0.35)]`}>
-                    <div className="relative aspect-square">
-                      <Image src={ph.src} alt={ph.alt} fill sizes="(min-width: 768px) 190px, 42vw" className="object-cover" />
+                    <div className="relative aspect-square overflow-hidden">
+                      {/* zoomed on the face, so the fringe change reads at polaroid size */}
+                      <Image src={ph.src} alt={ph.alt} fill sizes="(min-width: 768px) 190px, 42vw" className="scale-[1.45] object-cover object-[50%_18%]" />
                     </div>
                     <figcaption className="py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-l-muted">{ph.label}</figcaption>
                   </figure>
@@ -114,7 +114,7 @@ export default function Landing() {
                 he said they suit me. I said I know.
               </p>
               <p className="max-w-[360px] pt-2 text-[16px] leading-[1.55] text-l-body">
-                It remembers what you chose, and asks how it went. Try-on works for nails too.
+                It remembers what you chose, and asks how it went.
               </p>
             </Page>
           </div>
@@ -139,7 +139,7 @@ export default function Landing() {
         <OpenDelulu where="final" />
       </section>
 
-      <footer className={`${WRAP} flex flex-col gap-2 border-t border-l-line py-6 text-[12.5px] text-l-muted md:flex-row md:items-center md:justify-between`}>
+      <footer className={`${WRAP} flex flex-col gap-2 border-t border-l-line py-6 text-[13px] text-l-muted md:flex-row md:items-center md:justify-between`}>
         <span className="flex items-center gap-2">
           <Mark size={18} />
           <span className="font-serif text-[16px] italic text-l-ink">delulu</span>
