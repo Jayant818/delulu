@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/core.test.ts src/lib/assistant.test.ts src/bot/bot.test.ts",
+    "test": "tsx --test src/lib/core.test.ts src/lib/assistant.test.ts src/lib/tryon.test.ts src/bot/bot.test.ts",
     "bot": "tsx --env-file=.env.local src/bot/index.ts",
     "check:live": "tsx --env-file=.env.local scripts/live-check.ts"
   },

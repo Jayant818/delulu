@@ -214,3 +214,17 @@ ${nowLineIST(now)}
 
 ${SAFETY}`;
 }
+
+// Stylist brief (hair) or nail tech brief (nails): what she shows at the salon. Text only; the photo never reaches 0G.
+export function briefPrompt(kind: "hair" | "nails", style: string, p: Profile): string {
+  const who = kind === "hair" ? "hair stylist" : "nail technician";
+  return `You are ${APP_NAME}. Write a short brief she can show her ${who} for this look: "${clip(style, 120)}".
+Format, plain text, max 90 words:
+- 4 to 6 bullet lines, each starting with "• " (${kind === "hair" ? "cut/length, shape and layers, colour, fringe/parting, styling, upkeep" : "shape and length, base colour, design details, finish, how long it lasts, upkeep"})
+- one last line starting with "Ask: " with one smart question to ask the ${who}
+Practical and specific, no fluff. ${kind === "hair" ? "Mention upkeep honestly." : "Mention if it suits short or long nails."}
+
+${profileBlock(p)}
+
+${SAFETY}`;
+}

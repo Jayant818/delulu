@@ -10,7 +10,7 @@ import { deriveKey, KEY_MESSAGE, seal, unseal, type Sealed } from "@/lib/vault";
 
 export type AiMeta = Omit<AiResult, "text">;
 // kind marks app-made messages that render with buttons (check-back, delete confirm, reminders list).
-export type ChatKind = "reminder" | "checkback" | "checkin" | "help" | "privacy" | "confirm-forget" | "reminders";
+export type ChatKind = "reminder" | "checkback" | "checkin" | "help" | "privacy" | "confirm-forget" | "reminders" | "brief";
 export type ChatEntry = { role: "user" | "assistant"; content: string; at: string; ai?: AiMeta; decision?: string; kind?: ChatKind; ref?: string };
 export type Decision = {
   id: string;

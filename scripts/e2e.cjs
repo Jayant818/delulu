@@ -56,7 +56,7 @@ const idb = (page, op) =>
   ok((await page.getByPlaceholder(/Should I take/).inputValue()).includes("Bangalore design job"), "Decide pre-filled from the chat");
   ok(await page.getByText("Pulled from your chat.").isVisible(), "Decide says it came from chat");
   await page.getByRole("button", { name: "Hear all three" }).click();
-  await page.getByRole("button", { name: /go with this/ }).first().waitFor();
+  await page.getByRole("button", { name: /go with this/ }).nth(2).waitFor(); // all three voices answered
   ok((await page.locator("button", { hasText: "MOCK" }).count()) === 3, "three views, three request-ID chips");
   for (const t of ["Delulu", "Future You at 30", "Your Bestie"]) ok(await page.getByRole("heading", { name: t }).isVisible(), `view ${t}`);
   await page.getByRole("button", { name: /go with this/ }).nth(1).click();
@@ -103,9 +103,29 @@ const idb = (page, op) =>
   ok((await page.getByText("Sounds like a decision:").count()) === 0, "small talk does not create a decision card");
   await page.screenshot({ path: `${out}/4-talk.png`, fullPage: true });
 
+  // Try-on (MOCK without OPENAI_API_KEY): photo -> style -> look -> brief (0G) -> three voices -> pick.
+  await page.getByRole("link", { name: "Try-on", exact: true }).click();
+  await page.getByRole("heading", { name: "Try the look" }).waitFor();
+  ok(await page.getByText(/Try-on photos go to OpenAI's image model to make your look, then we delete them/).isVisible(), "honest try-on privacy line");
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAKklEQVR4nO3NQQkAAAgEsIttEjMZyxQ+hMH+y1SfikAgEAgEAoFAIPgSLPAYWGrIjiB9AAAAAElFTkSuQmCC", "base64");
+  await page.locator('input[type="file"]').setInputFiles({ name: "selfie.png", mimeType: "image/png", buffer: png });
+  await page.getByRole("img", { name: "Your photo" }).waitFor();
+  await page.getByRole("button", { name: "Sleek chin-length bob" }).click();
+  await page.getByRole("button", { name: /See it on me/ }).click();
+  await page.getByText("MOCK: no image model configured").waitFor({ timeout: 30_000 });
+  await page.getByText(/MOCK, no model configured/).first().waitFor();
+  ok(await page.getByRole("heading", { name: /Your stylist brief/ }).isVisible(), "try-on result + stylist brief");
+  await page.getByRole("button", { name: /Ask the three voices/ }).click();
+  await page.getByRole("button", { name: /go with this/ }).nth(2).waitFor(); // all three voices answered
+  ok((await page.getByRole("button", { name: /go with this/ }).count()) === 3, "three voices on the look");
+  await page.getByRole("button", { name: /go with this/ }).first().click();
+  await page.getByText(/Saved\. I'll ask you how the new look feels/).waitFor();
+  const stored = await idb(page, "all");
+  ok(!stored.includes("data:image") && !stored.includes("Sleek"), "no photo (and no plaintext) in stored memory");
+
   // Delete everything.
   await page.getByRole("link", { name: "Settings" }).click();
-  await page.getByText(/1 decisions/).waitFor();
+  await page.getByText(/\d+ decisions/).waitFor();
   await page.getByRole("button", { name: "Delete everything" }).click();
   await page.getByRole("button", { name: /DEV wallet/ }).waitFor();
   ok((await idb(page, "count")) === 0, "delete everything wipes IndexedDB and logs out");

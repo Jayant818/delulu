@@ -2,6 +2,7 @@
 // Every model call goes through complete() -> 0G Private Computer (private trust mode) first.
 import { complete, type AiResult } from "@/lib/ai/provider";
 import {
+  briefPrompt,
   checkInPrompt,
   chatSystemPrompt,
   parseChatReply,
@@ -60,4 +61,15 @@ export async function allViews(ctx: Context, question: string): Promise<Record<V
     VIEW_ORDER.map((v) => viewOn(v, ctx, question).catch((e: Error) => ({ error: e.message }))),
   );
   return Object.fromEntries(VIEW_ORDER.map((v, i) => [v, results[i]])) as Record<ViewId, AiResult | { error: string }>;
+}
+
+/** Stylist / nail tech brief for a try-on look (one 0G call, text only). */
+export function briefFor(kind: "hair" | "nails", style: string, profile: Profile): Promise<AiResult> {
+  return complete(
+    [
+      { role: "system", content: briefPrompt(kind, style, profile) },
+      { role: "user", content: `Brief for: ${style}` },
+    ],
+    { maxTokens: 220 },
+  );
 }
