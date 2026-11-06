@@ -36,7 +36,7 @@ Expect every line to start with `PASS`, `0g` as the backend, `sealed=true`, `PAS
 | `503 no_provider_for_trust_mode` | no TeeML provider free right now | wait a minute and rerun. Do NOT switch trust mode for the demo: anything but `private` is not sealed |
 | `sealed=false` or `sealed=null` | the router did not report the answer as sealed (`x-0g-e2ee` header) | rerun; if it persists, ask at the 0G booth. `tee=not reported` is normal today: the router does not return `tee_verified` for this model |
 | `decision: NONE` | the model did not flag the demo message as a decision | reword the demo message to state both options plainly ("should I take X or Y?") and rerun |
-| `reminder: NONE` | the model did not return a reminder time | try "remind me on Sunday at 6 pm to call Riya"; if still none, leave reminders out of the video |
+| `reminder: NONE` | the model did not return a reminder time | try "remind me on Sunday at 6 pm to call Mom"; if still none, leave reminders out of the video |
 | `"…" -> NONE <- expected …` (intent lines) | the model did not route a plain-text request | rerun once; if it still fails, use the exact phrasing from the live check in the demo |
 | `FAIL image model … not in /v1/models` | the 0G image model is gone or renamed | set `ZG_IMAGE_MODEL=tencent/hy-image-3.5-preview` (also verified, ~24 s) and restart |
 
@@ -56,11 +56,11 @@ To try it on a real phone on the same Wi-Fi: `NEXT_PUBLIC_DEMO_FAST=1 npm run de
 |---|---|---|
 | 1 | Landing → **Open Delulu** (log in if Privy is set) | Talk opens directly, input focused, no setup questions |
 | 2 | look at Talk | Talk: "Tell Delulu anything", the 🔒 line, no "MOCK" warning |
-| 3 | "ugh my parents want me home but the bangalore offer pays 2x. should i take it or stay in jaipur?" | a reply with a chip `0G · req xxxxxxxx… · sealed` and "Sounds like a decision … See perspectives" |
+| 3 | "ugh my parents want me home but the chicago offer pays 2x. should i take it or stay in ohio?" | a reply with a chip `0G · req xxxxxxxx… · sealed` and "Sounds like a decision … See perspectives" |
 | 4 | **See perspectives** → **Hear all three** | three cards, each with its own `0G` chip |
 | 5 | **I'll go with this** on one | "Saved." Back in Talk the card says "Decided: …" |
 | 6 | wait about 1 minute in Talk | "💛 Check-back … How did it go?" → tap one → a reply |
-| 7 | "remind me in 2 minutes to call Riya", then "what are my reminders" | "⏰ Reminder set …", then the list with Cancel; about 2 minutes later "⏰ Reminder: call Riya" appears (keep the app open) |
+| 7 | "remind me in 2 minutes to call Mom", then "what are my reminders" | "⏰ Reminder set …", then the list with Cancel; about 2 minutes later "⏰ Reminder: call Mom" appears (keep the app open) |
 | 8 | "is this private?" | the privacy text with the try-on sentence, plus the request IDs |
 | 9 | Try-on → Hair → selfie → "Copper red, same cut" → **See it on me** | after ~20-40 s: before/after (no "MOCK") with `0G · req … · standard tier, not sealed`, then the stylist brief with a `0G … sealed` chip. Expect ~17 s. This is 1 of today's 40 images. |
 | 10 | **Ask the three voices** → pick | three cards, "Saved." |

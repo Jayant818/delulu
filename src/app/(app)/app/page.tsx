@@ -3,8 +3,8 @@
 // (help, privacy, delete, check-ins, reminders, "help me decide") and the app performs them (src/lib/assistant.ts).
 // Check-backs, reminders and check-ins appear here when they are due (in-app; no web push).
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { AiChip } from "@/components/AiChip";
 import { PrivacyLine } from "@/components/PrivacyLine";
 import { APP_NAME, DEMO_FAST } from "@/config";
@@ -89,7 +89,7 @@ function Extras({ e, i, m }: { e: ChatEntry; i: number; m: Memory }) {
     );
   if (e.kind === "reminders") {
     const rs = m.jobs.filter((j) => j.kind === "reminder").sort((a, b) => a.at.localeCompare(b.at));
-    if (!rs.length) return <p className="mt-2 text-sm text-muted">No reminders right now. Just tell me, like “remind me Sunday 6pm to call Riya”.</p>;
+    if (!rs.length) return <p className="mt-2 text-sm text-muted">No reminders right now. Just tell me, like “remind me Sunday 6pm to call Mom”.</p>;
     return (
       <ul className="mt-2 space-y-1.5">
         {rs.map((r) => (
@@ -122,12 +122,26 @@ function Extras({ e, i, m }: { e: ChatEntry; i: number; m: Memory }) {
   return null;
 }
 
-export default function Talk() {
+// useSearchParams needs a Suspense boundary.
+export default function TalkPage() {
+  return (
+    <Suspense>
+      <Talk />
+    </Suspense>
+  );
+}
+
+function Talk() {
   const vault = useMemoryVault();
   const router = useRouter();
   const m = vault.memory;
   const { chat, decisions } = m;
-  const [text, setText] = useState("");
+  // The landing's "Write your first line" opens /app?draft=…: it lands in the box, she still decides to send it.
+  const draft = useSearchParams().get("draft")?.slice(0, 2000) ?? "";
+  const [text, setText] = useState(draft);
+  useEffect(() => {
+    if (draft) router.replace("/app", { scroll: false }); // a reload must not bring the draft back after she sent it
+  }, [draft, router]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const end = useRef<HTMLDivElement>(null);

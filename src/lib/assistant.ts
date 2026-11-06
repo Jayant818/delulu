@@ -7,9 +7,9 @@ import { mergeFacts, type Outcome } from "@/lib/persona";
 import { nextDaily, OUTCOMES, whenIST, type Job } from "@/lib/schedule";
 
 export const WEB_HELP = `Just talk to me, like you'd text a friend. No commands. You can also say:
-• "help me decide between the Bangalore job and staying in Jaipur"
-• "remind me Sunday 6pm to call Riya"
-• "what are my reminders" / "cancel the Riya reminder"
+• "help me decide between the Chicago job and staying in Ohio"
+• "remind me Sunday 6pm to call Mom"
+• "what are my reminders" / "cancel the Mom reminder"
 • "check in on me every evening at 9" / "stop checking in"
 • "is this private?"
 • "delete everything"

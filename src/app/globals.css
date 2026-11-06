@@ -10,18 +10,21 @@
   --line: #d9d5cc; /* navy 12% on cream */
   --accent: #ff6b5b; /* coral: pressable primary actions only */
   --accent-soft: #ece5d7; /* neutral highlight (decision card, notices), not coral */
-  /* Landing */
+  /* Landing v1 "the diary that writes back" (design/landing-v1). Contrast on the ground each one sits on, all >= 4.5:1. */
   --l-paper: #f4ede0;
-  --l-card: #fbf7f0;
+  --l-card: #fbf8f2;
   --l-ink: #14213d;
-  --l-muted: #575e6e;
-  --l-muted-dark: #b5b4b2; /* muted text on the navy band: 7.7:1 */
-  --l-line: #d9d5cc;
+  --l-body: #2e3a52; /* body text on cream: 9.8:1 */
+  --l-muted: #4a5468; /* labels on cream: 6.5:1 */
+  --l-line: #ddd3c2;
+  --l-field: #cfc4b1; /* input border */
+  --l-spread: #d9cdb8; /* the fold between the two diary pages */
+  --l-page: #ffe4df; /* the right page (what writes back), a tint of the logo's coral page */
+  --l-page-ink: #6b3a33; /* label on that page: 7.6:1 */
+  --l-on-ink: #d9d2c4; /* body text on navy: 10.6:1 */
+  --l-on-ink-muted: #c9c2b4; /* labels on navy: 9.0:1 */
+  --l-hover: #b23a2b; /* text-link hover only: 5.1:1 on cream */
   --brand: #ff6b5b; /* the landing's pressable: coral */
-  --pop: #f4ede0; /* italic emphasis on navy */
-  --pop-ink: #2f4a7a; /* italic emphasis on cream: a lighter navy */
-  --sealed: #14213d; /* "sealed" stays neutral navy */
-  --honest: #14213d; /* honest-limits line: navy, bold label, thick rule (coral is for pressables) */
 }
 
 @theme inline {
@@ -35,16 +38,20 @@
   --color-l-paper: var(--l-paper);
   --color-l-card: var(--l-card);
   --color-l-ink: var(--l-ink);
+  --color-l-body: var(--l-body);
   --color-l-muted: var(--l-muted);
   --color-l-line: var(--l-line);
-  --color-l-muted-dark: var(--l-muted-dark);
+  --color-l-field: var(--l-field);
+  --color-l-spread: var(--l-spread);
+  --color-l-page: var(--l-page);
+  --color-l-page-ink: var(--l-page-ink);
+  --color-l-on-ink: var(--l-on-ink);
+  --color-l-on-ink-muted: var(--l-on-ink-muted);
+  --color-l-hover: var(--l-hover);
   --color-brand: var(--brand);
-  --color-pop: var(--pop);
-  --color-pop-ink: var(--pop-ink);
-  --color-sealed: var(--sealed);
-  --color-honest: var(--honest);
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
 }
 

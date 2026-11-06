@@ -35,9 +35,9 @@ So, what's on your mind? 💛`,
 • <b>Telegram</b> carries our messages, like any Telegram chat. Telegram can read bot chats; that part is outside my control.
 • No ads, no trackers, no wallet, no payments. Ever.`,
   help: `Just talk to me, like you'd text a friend. No commands. You can also say things like:
-• "help me decide between the Bangalore job and staying in Jaipur"
-• "remind me Sunday 6pm to call Riya"
-• "what are my reminders" / "cancel the Riya reminder"
+• "help me decide between the Chicago job and staying in Ohio"
+• "remind me Sunday 6pm to call Mom"
+• "what are my reminders" / "cancel the Mom reminder"
 • "check in on me every evening at 9" / "stop checking in"
 • "is this private?" (I'll show you the proof)
 • "delete everything"`,
@@ -184,7 +184,7 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
 
   async function listReminders(ctx: Context, u: BotUser) {
     const rs = u.jobs.filter((j) => j.kind === "reminder").sort((a, b) => a.at.localeCompare(b.at));
-    if (!rs.length) return void (await ctx.reply(`No reminders right now. Just tell me, like "remind me Sunday 6pm to call Riya".`));
+    if (!rs.length) return void (await ctx.reply(`No reminders right now. Just tell me, like "remind me Sunday 6pm to call Mom".`));
     const kb = new InlineKeyboard();
     for (const r of rs) kb.text(`Cancel: ${(r.text ?? "").slice(0, 24)}`, `rc:${r.id}`).row();
     await ctx.reply(rs.map((r) => `⏰ ${esc(r.text ?? "")} · ${when(r.at)}`).join("\n"), { parse_mode: "HTML", reply_markup: kb });

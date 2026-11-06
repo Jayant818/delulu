@@ -54,6 +54,15 @@ Conflicts, recorded so they do not read as oversights:
 - Labels and request IDs: **IBM Plex Mono** 400/500 (`--font-mono`)
 
 
+## Landing v1: "the diary that writes back" (2026-11-06)
+
+Design: the Secretary's artifact, saved as `design/landing-v1/landing.dc.html` (inline styles = the spec; `ASSETS.md` maps its images). Built mobile-first in `src/app/page.tsx`.
+- Type: Fraunces (headlines, one italic phrase each; diary text in italic), Inter (body), IBM Plex Mono (eyebrow labels).
+- Landing tokens (`--l-*` in `globals.css`): cream `#F4EDE0`, card `#FBF8F2`, navy `#14213D`, body `#2E3A52` (9.8:1), muted `#4A5468` (6.5:1), lines `#DDD3C2`, the right diary page `#FFE4DF` with its label `#6B3A33` (7.6:1), on-navy body `#D9D2C4` (10.6:1) and labels `#C9C2B4` (9.0:1), link hover `#B23A2B` (5.1:1). Coral `#FF6B5B` only on pressables, navy text.
+- The right page's pink is a tint of the logo's coral page ("what writes back"), not a pressable colour.
+- Images: `public/visuals-west/` (fictional, made on 0G). The earlier set stays in `public/visuals/` (not used on the landing).
+- Phones: nav shows only the logo and "Open your diary"; the first-line form stacks its button; the "wrote back" card sits under the hero photo instead of over it; portraits crop to 4:3.
+
 ## Logo: "Two pages" (final, Jayant TG 3524, 2026-11-06)
 
 Files: `brand/final/` (source of truth). Tagline: **"the diary that writes back"**. Wordmark: "delulu" in Fraunces italic (live text).

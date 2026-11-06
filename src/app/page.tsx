@@ -1,508 +1,383 @@
-// Landing page. Structure and rhythm inspired by talkamore.com (Jayant's pick); all text, art and colours are
-// Delulu's own. Palette rules: brand/delulu-DESIGN.md (navy / cream; coral only on things you press).
+// Landing v1 "the diary that writes back" (Secretary's design, design/landing-v1/landing.dc.html; Jayant TG 3524+).
+// Mobile-first build of that spec. Palette rule (brand/delulu-DESIGN.md): coral only on things you press, navy text on it.
+// Every person in the images is fictional, generated on 0G (public/visuals-west/).
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { APP_NAME, TELEGRAM_URL } from "@/config";
+import { APP_NAME } from "@/config";
 
-// Logo (Jayant, TG 3524): "two pages", an open diary. Navy left page = what she writes, coral right page = what
-// writes back, navy spark above. Source of truth: brand/final/. Under ~48 px the text lines blur, so small marks
-// use the favicon cut (pages + spark only).
+// Logo "Two pages" (brand/final/). Below ~48 px the text lines blur, so small marks use the favicon cut.
 const PAGE_L = "M256 172 C206 138 146 128 80 138 V388 C146 378 206 386 256 416 Z";
 const PAGE_R = "M256 172 C306 138 366 128 432 138 V388 C366 378 306 386 256 416 Z";
 const SPARK = "M256 52 Q262 86 296 92 Q262 98 256 132 Q250 98 216 92 Q250 86 256 52 Z";
+const LINES: [number, number, number][] = [
+  [118, 214, 96],
+  [118, 252, 104],
+  [118, 290, 76],
+  [298, 214, 96],
+  [290, 252, 104],
+  [318, 290, 76],
+];
 
-function Mark({ size = 28 }: { size?: number }) {
+/** reversed = for navy grounds (cream left page, navy lines, cream spark). lines = the full mark, for 48 px and up. */
+function Mark({ size, reversed = false, lines = false }: { size: number; reversed?: boolean; lines?: boolean }) {
+  const page = reversed ? "#F4EDE0" : "#14213D";
   return (
-    // viewBox cropped to the drawing (the 512 canvas has wide margins), so the mark matches the wordmark height
+    // viewBox cropped to the drawing (the 512 canvas has wide margins)
     <svg viewBox="72 44 368 380" width={size} height={size} aria-hidden="true">
-      <path d={PAGE_L} fill="var(--l-ink)" />
-      <path d={PAGE_R} fill="var(--brand)" />
-      <path d={SPARK} fill="var(--l-ink)" />
+      <path d={PAGE_L} fill={page} />
+      <path d={PAGE_R} fill="#FF6B5B" />
+      {lines && LINES.map(([x, y, w]) => <rect key={`${x}-${y}`} x={x} y={y} width={w} height={14} rx={7} fill={reversed ? "#14213D" : "#F4EDE0"} />)}
+      <path d={SPARK} fill={page} />
     </svg>
   );
 }
 
-function Wordmark() {
-  return (
-    <span className="inline-flex items-center gap-2">
-      <Mark />
-      <span className="font-serif text-2xl italic leading-none text-l-ink">{APP_NAME.toLowerCase()}</span>
-    </span>
-  );
-}
-
-/** Primary action: the web app is the main demo (Jayant, TG 3420). */
-function OpenCta({ big = false }: { big?: boolean }) {
+/** The one pressable style on this page: coral fill, navy text (white on coral fails at 2.8:1). */
+function Pill({ href, children, big = false }: { href: string; children: ReactNode; big?: boolean }) {
   return (
     <Link
-      href="/app"
-      className={`inline-flex items-center justify-center gap-2 rounded-full bg-brand font-semibold text-l-ink shadow-[0_8px_24px_-12px_rgba(255,107,91,0.8)] ${big ? "px-7 py-4 text-lg" : "px-4 py-2.5 text-sm"}`}
+      href={href}
+      className={`inline-block whitespace-nowrap rounded-full bg-brand font-semibold text-l-ink no-underline transition-transform active:scale-[0.98] ${big ? "px-[30px] py-4 text-[17px]" : "px-5 py-3 text-[15px]"}`}
     >
-      Open {APP_NAME}
+      {children}
     </Link>
   );
 }
 
-/** Secondary: the same Delulu in Telegram. Hidden until the bot username is set (no fake link). */
-function TelegramLink({ dark = false }: { dark?: boolean }) {
-  return TELEGRAM_URL ? (
-    <a
-      href={TELEGRAM_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`text-sm font-semibold underline underline-offset-4 ${dark ? "text-l-paper" : "text-l-ink"}`}
-    >
-      or chat on Telegram
-    </a>
-  ) : null;
+function Eyebrow({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
+  return <p className={`font-mono text-[13px] uppercase tracking-[0.16em] ${dark ? "text-l-on-ink-muted" : "text-l-muted"}`}>{children}</p>;
 }
 
 function H2({ children }: { children: ReactNode }) {
-  return <h2 className="font-serif text-[clamp(2rem,6vw,3rem)] leading-[1.08] tracking-tight text-l-ink">{children}</h2>;
+  return <h2 className="font-serif text-[clamp(36px,4.4vw,56px)] font-normal leading-[1.05] text-l-ink">{children}</h2>;
 }
 
-function Em({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
-  return <em className={dark ? "text-pop" : "text-pop-ink"}>{children}</em>;
-}
-
-function Bubble({ me, children }: { me?: boolean; children: ReactNode }) {
-  return (
-    <div className={me ? "flex justify-end" : ""}>
-      <div
-        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-snug ${me ? "rounded-br-md bg-l-ink text-l-paper" : "rounded-bl-md border border-l-line bg-l-card text-l-ink"}`}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-const Sealed = () => <p className="mt-1.5 font-mono text-[11px] text-sealed">🔒 sealed on 0G</p>;
-
-// Every person in these images is fictional, generated on 0G (seedream-5.0-flash). Said once, plainly, on the page.
-const AI_PEOPLE = "All people shown are AI-generated on 0G.";
-
-const HAIR_SAMPLES = [
-  { src: "/visuals/hair-base-a-768.webp", label: "Before", alt: "Fictional model with long straight dark hair", before: true },
-  { src: "/visuals/hair-a-curtain-bangs-768.webp", label: "Curtain bangs", alt: "Same model with curtain bangs and long layers" },
-  { src: "/visuals/hair-a-bob-768.webp", label: "Sleek bob", alt: "Same model with a sleek chin-length bob" },
-  { src: "/visuals/hair-a-copper-waves-768.webp", label: "Copper waves", alt: "Same model with copper red waves" },
-];
-
-const NAIL_SAMPLES = [
-  { src: "/samples/nails-before.jpg", label: "Before", alt: "Fictional model, bare natural nails", before: true },
-  { src: "/samples/nails-glazed-chrome.jpg", label: "Glazed chrome", alt: "Same hand with glazed chrome almond nails" },
-  { src: "/samples/nails-cherry-red.jpg", label: "Cherry red", alt: "Same hand with deep cherry red oval nails" },
-  { src: "/samples/nails-coral-gold-heart.jpg", label: "Coral + gold heart", alt: "Same hand with coral nails and a gold heart accent" },
-  { src: "/samples/nails-milky-daisies.jpg", label: "Milky daisies", alt: "Same hand with milky nails and tiny daisies" },
-];
-
-const STEPS = [
-  { n: 1, t: "You talk", d: "Anything. Your day, your people, your plans, your drama. It remembers you, so you never start from zero." },
-  { n: 2, t: "It catches the decision", d: "When you're stuck on a choice, it spots it in the chat: “Sounds like a decision. See perspectives?”" },
-  { n: 3, t: "Different perspectives", d: "Three voices answer side by side: Delulu, the sane one. Future You at 30. Your Bestie. You pick." },
-  { n: 4, t: "It follows up", d: "Reminders, a daily check-in if you want one, and later a “how did it go?” on the choices you made." },
-];
-
-const VOICES = [
-  { t: APP_NAME, s: "the sane one", img: "/visuals/perspective-sane-768.webp", alt: "A calm young woman in a navy blazer holding a notebook", d: "The real trade-off, the cost of each option, and one step you can take this week. Delusional name, sane answer." },
-  { t: "Future You at 30", s: "looking back", img: "/visuals/perspective-future-30-768.webp", alt: "A woman around thirty smiling by a window", d: "Your own voice from a few years ahead: what mattered in the end, and what you'll be glad you did." },
-  { t: "Your Bestie", s: "over coffee", img: "/visuals/perspective-bestie-768.webp", alt: "A laughing young woman in a coral hoodie waving", d: "Protective, a little funny, always honest. Checks how you actually feel before saying anything else." },
-];
-
-const FAQ = [
-  { q: "Is it free?", a: "Yes. No subscription, no card. It opens in your browser, and there's a Telegram version too." },
+const PERSPECTIVES = [
   {
-    q: `Can anyone read what I tell ${APP_NAME}?`,
-    a: "Your chats run sealed on 0G Private Computer (private TEE mode), and every answer carries its 0G request ID. Our server passes each message to 0G in memory and never stores or logs it. Without 0G, an AI company could read them. In the app, your memory is encrypted on your own phone. If you use the Telegram version, Telegram carries those messages, like any Telegram chat.",
+    title: "The sane one",
+    img: "/visuals-west/persp-sane.jpg",
+    alt: "Portrait of a calm young woman holding a pen over a notebook",
+    text: "The real trade-off, what each option costs, and one step you can take this week.",
   },
   {
-    q: "What happens to my try-on photo?",
-    a: "An image model on 0G's network makes your look from it (standard tier, not the sealed mode your chats use), then it's deleted. We never save it.",
+    title: "Future you at 30",
+    img: "/visuals-west/persp-future30.jpg",
+    alt: "Portrait of a confident woman around thirty in warm window light",
+    text: "Your own voice, looking back. What she is glad you did, and what she wishes you hadn't.",
   },
-  { q: "Will it tell me what to do?", a: "No. It helps you see your options clearly and remembers what you chose. The decision is always yours." },
   {
-    q: "What if I'm not okay?",
-    a: `If you mention self-harm, abuse or being in danger, ${APP_NAME} stops giving advice and points you to people who can help. In India: 112 for emergencies, Tele-MANAS 14416 for mental health support.`,
-  },
-  { q: "How do I delete everything?", a: "Just tell it: “delete everything”. It asks you to confirm, then your profile, chats, decisions and reminders are gone for good." },
-  {
-    q: "What is 0G?",
-    a: `0G Private Computer runs AI models inside secure hardware (TEEs), so prompts stay private and every answer can be checked. ${APP_NAME} uses it for every chat reply; ask “is this private?” to see the request IDs.`,
+    title: "Your bestie",
+    img: "/visuals-west/persp-bestie.jpg",
+    alt: "Portrait of a young woman laughing in a coral hoodie",
+    text: "Casual, protective, honest. The friend who tells you the truth and still takes your side.",
   },
 ];
+
+const SPREAD = [
+  { who: "The sane one", say: "Double pay buys flights home every month. Ask for a remote start of two weeks. My call: take it, with a plan." },
+  { who: "Future you at 30", say: "I don't regret going. I regret not calling her every Sunday the first year. My call: go, and keep Sundays." },
+  { who: "Your bestie", say: "Babe. Your mom told you to go. Twice. My call: Chicago, and I'm visiting." },
+];
+
+const HAIR = [
+  { src: "/visuals-west/hair-base-west.jpg", label: "Before", alt: "Before: long straight dark-blonde hair" },
+  { src: "/visuals-west/hair-west-curtain-bangs.jpg", label: "Curtain bangs, honey layers", alt: "After: honey blonde layers with curtain bangs" },
+  { src: "/visuals-west/hair-west-bob.jpg", label: "Sleek platinum bob", alt: "After: sleek platinum chin-length bob" },
+];
+
+const NAILS = [
+  { src: "/visuals-west/nails-base-west.jpg", label: "Bare", alt: "Before: bare natural nails" },
+  { src: "/visuals-west/nails-west-chrome.jpg", label: "Glazed chrome", alt: "Glazed pearl chrome almond nails" },
+  { src: "/visuals-west/nails-west-coral.jpg", label: "Coral gloss", alt: "Glossy coral almond nails" },
+  { src: "/visuals-west/nails-west-french.jpg", label: "French tips", alt: "Classic French manicure, square" },
+];
+
+const FOLLOW_UPS = [
+  { when: "Tonight · 9:00 pm", text: "So... how did the date go?" },
+  { when: "Sunday · 6:00 pm", text: "You asked me to remind you: call Mom." },
+  { when: "One month later", text: "You chose Chicago. Glad you did, mixed, or regret it?" },
+];
+
+const PRIVACY = [
+  { t: "Chats sealed on 0G", d: "Your words go to an AI model running in 0G's private (TEE) mode, not to an AI company's logs." },
+  { t: "Your memory stays yours", d: "What Delulu remembers is encrypted on your phone. We store nothing readable." },
+  { t: "Gone in one line", d: "Type “delete everything” and it is gone. No settings maze." },
+];
+
+const WRAP = "mx-auto w-full max-w-[1200px] px-6";
+const LINK = "no-underline hover:text-l-hover";
 
 export default function Landing() {
   return (
-    <div className="bg-l-paper text-l-ink">
-      {/* Floating pill nav */}
-      <header className="sticky top-3 z-20 px-4">
-        <nav className="mx-auto flex max-w-5xl items-center justify-between rounded-full border border-l-line bg-l-card/90 py-2 pl-4 pr-2 backdrop-blur">
-          <Link href="/" aria-label={`${APP_NAME} home`}>
-            <Wordmark />
-          </Link>
-          <div className="hidden gap-6 font-mono text-xs uppercase tracking-wider text-l-muted md:flex">
-            <a href="#how">How it works</a>
-            <a href="#privacy">Privacy</a>
-            <a href="#faq">FAQ</a>
-          </div>
-          <OpenCta />
-        </nav>
-      </header>
-
-      {/* Hero: the navy band with its light beam, then her night-time chat: a photo with the product card on top of it. */}
-      {/* The beam texture only on wide screens: on a tall phone hero, object-cover puts the brightest part right behind the
-          headline (contrast fails), so phones get a soft CSS glow instead. */}
-      <section className="relative -mt-16 overflow-hidden bg-l-ink bg-[radial-gradient(ellipse_90%_35%_at_50%_0%,rgba(244,237,224,0.14),transparent_70%)] px-4 pt-16 text-l-paper">
-        <Image src="/visuals/texture-navy-1536.webp" alt="" fill sizes="100vw" className="hidden object-cover opacity-90 md:block" />
-        {/* keep the beam on the photo side; the headline side stays deep navy (measured: cream text >= 7:1) */}
-        <div className="absolute inset-0 hidden bg-gradient-to-r from-l-ink via-l-ink/75 to-transparent md:block" />
-        <div className="relative mx-auto grid max-w-5xl items-center gap-10 pb-24 pt-14 md:grid-cols-2 md:pb-28 md:pt-20">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-l-muted-dark">AI companion · chats sealed on 0G</p>
-            <h1 className="mt-3 font-serif text-[clamp(2.6rem,9vw,4.4rem)] leading-[1.02] tracking-tight">
-              Tell {APP_NAME} anything.
-              <br />
-              <Em dark>It helps you decide.</Em>
-            </h1>
-            <p className="mt-5 max-w-md text-[17px] leading-relaxed text-l-muted-dark">
-              Your AI companion, your split personality. Tell it anything: your day, your people, your plans. When you&apos;re stuck on a
-              choice, it helps you decide by showing you different perspectives. And before the salon, see the new hair or nails on you.
-            </p>
-            <div className="mt-7 flex flex-wrap items-center gap-4">
-              <OpenCta big />
-              <TelegramLink dark />
-            </div>
-            <p className="mt-3 font-mono text-[11px] text-l-muted-dark">Free · opens in your browser · no card, no seed phrase</p>
-          </div>
-
-          {/* Product artifact: an example chat, as a physical card over the photo of the moment it is for. */}
-          <figure className="mx-auto w-full max-w-md">
-            {/* photo + card share one box, so the card's offset never depends on the caption below */}
-            <div className="relative">
-              <div className="relative aspect-square overflow-hidden rounded-[28px] md:aspect-[4/5]">
-                <Image
-                  src="/visuals/hero-night-chat-1536.webp"
-                  alt="A young woman on her bed at night, smiling at her phone"
-                  fill
-                  preload
-                  sizes="(min-width: 768px) 448px, 100vw"
-                  className="object-cover object-[42%_50%]"
-                />
-              </div>
-              <div className="relative -mt-28 ml-auto w-[88%] rotate-[0.6deg] rounded-[28px] border border-l-line bg-l-card p-4 text-l-ink shadow-[0_24px_60px_-20px_rgba(0,0,0,0.6)] md:absolute md:-bottom-14 md:-left-14 md:mt-0 md:w-[82%]">
-                <div className="mb-3 flex items-center gap-2 border-b border-l-line pb-3">
-                  <Mark size={26} />
-                  <div className="leading-tight">
-                    <p className="text-sm font-semibold">{APP_NAME}</p>
-                    <p className="text-[11px] text-l-muted">private chat · sealed on 0G</p>
-                  </div>
-                </div>
-                <div className="space-y-2.5">
-                  <Bubble me>parents want me home but the bangalore offer pays 2x. should i take it?? 😭</Bubble>
-                  <Bubble>
-                    Okay, breathe first. Both options are real, that&apos;s why it&apos;s hard. In a year, what would sting more: the job you
-                    didn&apos;t take, or the distance?
-                    <Sealed />
-                    <div className="mt-2 rounded-xl bg-l-paper px-2.5 py-2 text-[13px]">
-                      <b>Sounds like a decision:</b> take the Bangalore job or stay in Jaipur
-                    </div>
-                  </Bubble>
-                  <div className="flex justify-center">
-                    <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-semibold text-l-ink">See perspectives 👀</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <figcaption className="mt-3 text-center text-xs text-l-muted-dark md:mt-20">Example conversation. Every real answer carries its own 0G request ID.</figcaption>
-          </figure>
+    <div id="top" className="flex flex-col bg-l-paper font-body text-l-ink">
+      {/* NAV */}
+      <nav className={`${WRAP} flex flex-wrap items-center justify-between gap-4 py-[22px]`}>
+        <Link href="/" aria-label={`${APP_NAME} home`} className="flex items-center gap-2.5 text-l-ink no-underline">
+          <Mark size={36} />
+          <span className="font-serif text-[30px] font-medium italic leading-none">delulu</span>
+        </Link>
+        <div className="flex flex-wrap items-center gap-x-7 gap-y-3 text-[15px]">
+          {/* phones: the three section links would wrap under the logo; the pill is the only nav there */}
+          <a href="#how" className={`hidden sm:inline ${LINK}`}>
+            How it works
+          </a>
+          <a href="#tryon" className={`hidden sm:inline ${LINK}`}>
+            Try-on
+          </a>
+          <a href="#privacy" className={`hidden sm:inline ${LINK}`}>
+            Privacy
+          </a>
+          <Pill href="/app">Open your diary</Pill>
         </div>
-      </section>
+      </nav>
 
-      <main className="mx-auto max-w-5xl px-4">
+      {/* HERO */}
+      <section className={`${WRAP} flex flex-wrap items-center gap-14 pb-24 pt-6 md:pt-10`}>
+        <div className="flex min-w-0 flex-[1_1_440px] flex-col gap-[26px]">
+          <Eyebrow>The diary that writes back</Eyebrow>
+          <h1 className="font-serif text-[clamp(48px,6.2vw,84px)] font-normal leading-none tracking-[-0.01em]">
+            Dear diary,
+            <br />
+            <em>what should I do?</em>
+          </h1>
+          <p className="max-w-[520px] text-[19px] leading-[1.6] text-l-body">
+            {APP_NAME} is your AI companion, your split personality. Write anything. It writes back with different perspectives, and shows
+            you new hair and nails on your own photo before the salon.
+          </p>
+          {/* Plain GET form: works without JS; /app reads ?draft= and puts it in the chat box (she still taps Send). */}
+          <form action="/app" method="get" className="flex max-w-[520px] flex-col gap-2.5">
+            <label htmlFor="first-line" className="font-mono text-xs uppercase tracking-[0.12em] text-l-muted">
+              Write your first line
+            </label>
+            {/* phones: the button goes under the line, or the placeholder is cut to "Dear diary, he" */}
+            <div className="flex flex-col gap-2 rounded-[22px] border border-l-field bg-l-card p-2 focus-within:border-l-ink sm:flex-row sm:items-center sm:gap-2.5 sm:rounded-full sm:py-2 sm:pl-[22px]">
+              <input
+                id="first-line"
+                name="draft"
+                type="text"
+                maxLength={2000}
+                autoComplete="off"
+                placeholder="Dear diary, he texted me at 2am again..."
+                className="min-w-0 flex-auto bg-transparent px-3 py-2 font-serif text-lg italic text-l-ink outline-none placeholder:text-l-muted sm:p-0"
+              />
+              <button type="submit" className="whitespace-nowrap rounded-full bg-brand px-5 py-3 text-[15px] font-semibold text-l-ink active:scale-[0.98]">
+                Write back to me
+              </button>
+            </div>
+            <p className="text-[13px] text-l-muted">Free · in your browser · no sign-up · chats sealed on 0G</p>
+          </form>
+        </div>
 
-        {/* The problem */}
-        <section className="grid items-center gap-8 py-16 md:grid-cols-2 md:gap-12">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[28px]">
+        <figure className="relative min-w-0 flex-[1_1_460px] p-[18px]">
+          {/* corner brackets */}
+          <span className="absolute left-0 top-0 h-[34px] w-[34px] border-l-2 border-t-2 border-l-ink" aria-hidden="true" />
+          <span className="absolute right-0 top-0 h-[34px] w-[34px] border-r-2 border-t-2 border-l-ink" aria-hidden="true" />
+          <span className="absolute bottom-0 left-0 h-[34px] w-[34px] border-b-2 border-l-2 border-l-ink" aria-hidden="true" />
+          <span className="absolute bottom-0 right-0 h-[34px] w-[34px] border-b-2 border-r-2 border-l-ink" aria-hidden="true" />
+          <div className="relative aspect-[3/2] overflow-hidden rounded-md">
             <Image
-              src="/visuals/decision-cafe-1536.webp"
-              alt="A young woman in a café typing on her phone, a laptop and coffee in front of her"
+              src="/visuals-west/hero-diary-night.jpg"
+              alt="A young woman writing in a navy diary on her bed at night, her phone glowing beside her"
               fill
-              sizes="(min-width: 768px) 480px, 100vw"
+              preload
+              sizes="(min-width: 1024px) 560px, 100vw"
               className="object-cover"
             />
           </div>
-          <div>
-            <H2>
-              Every AI you vent to <Em>can read it.</Em>
-            </H2>
-            <p className="mt-5 text-[17px] leading-relaxed text-l-muted">
-              You&apos;ve told a chatbot about the job offer, the situationship, the fight with your mom. On most apps all of it sits in
-              plain text on a company&apos;s servers. {APP_NAME} is built so that it doesn&apos;t.
+          {/* "Delulu wrote back": under the photo on phones (it would cover her), floating over its corner from md up */}
+          <div className="relative z-10 -mt-8 ml-3 mr-6 flex max-w-[300px] flex-col gap-2 rounded-[18px] border border-l-line bg-l-card px-[18px] py-4 shadow-[0_18px_40px_rgba(20,33,61,0.18)] md:absolute md:-left-3 md:bottom-11 md:m-0">
+            <div className="flex items-center gap-2">
+              <Mark size={22} />
+              <span className="text-sm font-semibold">{APP_NAME} wrote back</span>
+            </div>
+            <p className="font-serif text-base leading-[1.45]">
+              &ldquo;You don&apos;t owe a 2am text a 2am answer. Want three ways to reply, or none?&rdquo;
+            </p>
+            <p className="font-mono text-[11px] text-l-muted">● sealed on 0G</p>
+          </div>
+        </figure>
+      </section>
+
+      {/* TWO PAGES */}
+      <section id="how" className="scroll-mt-4 bg-l-ink text-l-paper">
+        <div className={`${WRAP} flex flex-col gap-12 py-20 md:py-28`}>
+          <div className="flex max-w-[760px] flex-col gap-3.5">
+            <Eyebrow dark>How it works</Eyebrow>
+            <h2 className="font-serif text-[clamp(38px,4.6vw,60px)] font-normal leading-[1.05]">
+              Two pages. <em>One you.</em>
+            </h2>
+            <p className="text-lg leading-[1.6] text-l-on-ink">
+              You write on the left page. Your other side writes back on the right. When you are stuck, it shows you the choice from more
+              than one side.
             </p>
           </div>
-        </section>
-
-        {/* Split personality: the product idea, as one picture */}
-        <section className="py-16">
-          <figure className="relative aspect-[4/3] overflow-hidden rounded-[32px] md:aspect-[2/1]">
-            <Image
-              src="/visuals/split-personality-1536.webp"
-              alt="The same young woman twice: calm and thoughtful in navy, laughing in coral"
-              fill
-              sizes="(min-width: 1024px) 992px, 100vw"
-              className="object-cover object-[50%_30%]"
-            />
-            <figcaption className="absolute inset-x-3 bottom-3 flex justify-between gap-2 font-mono text-[11px] uppercase tracking-wider">
-              <span className="rounded-full bg-l-ink/85 px-3 py-1 text-l-paper backdrop-blur">the calm one</span>
-              <span className="rounded-full bg-l-card/90 px-3 py-1 text-l-ink backdrop-blur">the chaotic one</span>
-            </figcaption>
-          </figure>
-          <div className="mx-auto mt-8 max-w-2xl text-center">
-            <H2>
-              Your split personality, <Em>finally on your side.</Em>
-            </H2>
-            <p className="mt-4 text-[17px] leading-relaxed text-l-muted">
-              The calm one who thinks it through and the chaotic one who wants it all are both you. {APP_NAME} listens to both, and when
-              you&apos;re stuck it shows you the choice from different perspectives.
-            </p>
-          </div>
-        </section>
-
-        {/* How it works */}
-        <section id="how" className="scroll-mt-24 py-16">
-          <div className="text-center">
-            <H2>
-              You talk. It listens. <Em>You see every side.</Em>
-            </H2>
-            <p className="mt-3 text-l-muted">Four steps, and you only ever do the first one.</p>
-          </div>
-          <div className="mt-10 grid items-stretch gap-4 lg:grid-cols-[1fr_1.5fr]">
-            <figure className="relative aspect-[3/2] overflow-hidden rounded-3xl lg:aspect-auto">
-              <Image
-                src="/visuals/decision-crossroads-1536.webp"
-                alt="A young woman at a train station, looking at two boards: a city skyline and a house"
-                fill
-                sizes="(min-width: 1024px) 400px, 100vw"
-                className="object-cover"
-              />
-              <figcaption className="absolute bottom-3 left-3 rounded-full bg-l-card/90 px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-l-ink backdrop-blur">
-                the city or home?
-              </figcaption>
-            </figure>
-            <ol className="grid gap-4 sm:grid-cols-2">
-              {STEPS.map((s) => (
-                <li key={s.n} className="rounded-3xl border border-l-line bg-l-card p-6">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-l-ink font-mono text-sm font-semibold text-l-paper">{s.n}</span>
-                  <h3 className="mt-4 font-serif text-2xl">{s.t}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-l-muted">{s.d}</p>
-                </li>
+          <div className="flex flex-wrap overflow-hidden rounded-[22px] shadow-[0_30px_60px_rgba(0,0,0,0.35)]">
+            <div className="flex min-w-0 flex-[1_1_380px] flex-col gap-[18px] border-b border-l-spread bg-l-paper p-7 text-l-ink md:border-b-0 md:border-r md:p-11">
+              <p className="font-mono text-xs uppercase tracking-[0.14em] text-l-muted">You wrote · Tuesday, 11:48 pm</p>
+              <p className="font-serif text-[22px] italic leading-[1.45] md:text-[26px]">
+                I got the offer in Chicago. It pays almost double. But Mom is alone in Ohio since Dad left, and I keep thinking I&apos;m
+                abandoning her. Should I take it?
+              </p>
+            </div>
+            <div className="flex min-w-0 flex-[1_1_380px] flex-col gap-5 bg-l-page p-7 text-l-ink md:p-11">
+              <p className="font-mono text-xs uppercase tracking-[0.14em] text-l-page-ink">{APP_NAME} wrote back</p>
+              {SPREAD.map((s) => (
+                <div key={s.who} className="flex flex-col gap-1">
+                  <p className="text-[15px] font-semibold">{s.who}</p>
+                  <p className="font-serif text-[19px] leading-[1.45]">{s.say}</p>
+                </div>
               ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* Three voices */}
-        <section className="py-16">
-          <div className="text-center">
-            <H2>
-              Different perspectives. <Em>Your call.</Em>
-            </H2>
-            <p className="mx-auto mt-3 max-w-xl text-l-muted">Each voice is a separate, sealed answer. Read all three, then tap the one you&apos;ll follow.</p>
-          </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {VOICES.map((v) => (
-              <article key={v.t} className="overflow-hidden rounded-3xl border border-l-line bg-l-card">
-                <div className="relative aspect-[4/3]">
-                  <Image src={v.img} alt={v.alt} fill sizes="(min-width: 768px) 320px, 100vw" className="object-cover object-[50%_25%]" />
-                </div>
-                <div className="p-6">
-                  <p className="font-mono text-xs uppercase tracking-widest text-l-muted">{v.s}</p>
-                  <h3 className="mt-1 font-serif text-3xl italic">{v.t}</h3>
-                  <p className="mt-3 text-[15px] leading-relaxed text-l-muted">{v.d}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* Secretary layer */}
-        <section className="grid items-center gap-10 py-16 md:grid-cols-2">
-          <div>
-            <H2>
-              It remembers, <Em>so you don&apos;t have to.</Em>
-            </H2>
-            <p className="mt-5 max-w-md text-[17px] leading-relaxed text-l-muted">
-              Ask it to remind you, and it will. Pick a time, and it checks in every evening with something that is actually about your
-              life. Made a decision? Later it asks how it went, and remembers the answer.
-            </p>
-          </div>
-          <div className="mx-auto w-full max-w-sm space-y-2.5 rounded-[28px] border border-l-line bg-l-card p-4">
-            <Bubble me>remind me sunday 6pm to call riya</Bubble>
-            <Bubble>
-              On it 💅
-              <br />⏰ <b>Reminder set:</b> call Riya · Sunday, 6:00 pm
-            </Bubble>
-            <Bubble>
-              💛 <b>Check-back.</b> A month ago you went with <b>Future You at 30</b>. How did it go?
-              <div className="mt-2 flex flex-wrap gap-1.5 text-[12px]">
-                {["😊 Glad I did", "😐 Mixed", "😣 Regret it"].map((b) => (
-                  <span key={b} className="rounded-full border border-l-line bg-l-paper px-2 py-0.5">
-                    {b}
-                  </span>
-                ))}
+              <div className="flex flex-wrap gap-2.5 pt-1.5">
+                <Link href="/app" className="rounded-full bg-brand px-[18px] py-[11px] text-sm font-semibold text-l-ink no-underline">
+                  I&apos;ll go with this
+                </Link>
+                <Link href="/app" className="rounded-full border border-l-ink px-[18px] py-2.5 text-sm font-semibold text-l-ink no-underline">
+                  Talk it through
+                </Link>
               </div>
-            </Bubble>
-            <p className="pt-1 text-center text-xs text-l-muted">Example messages.</p>
-          </div>
-        </section>
-
-        {/* Try-on */}
-        <section className="py-16">
-          <div className="rounded-[32px] border border-l-line bg-l-card px-6 py-10 md:px-12">
-            <p className="font-mono text-xs uppercase tracking-widest text-l-muted">New look, no regrets</p>
-            <H2>
-              Try the hair or nails <Em>before the salon.</Em>
-            </H2>
-            <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-l-muted">
-              Upload a selfie or a photo of your hand, pick a style (or describe one), and see it on you. Then you get different perspectives on it,
-              and a ready-to-show brief for your stylist or nail tech.
-            </p>
-            {/* Real outputs from the app's own image model on 0G (seedream-5.0-flash). The model is fictional, generated
-                for this page: no real person's photo is ever shown or stored. */}
-            <p className="mt-8 font-mono text-xs uppercase tracking-widest text-l-muted">💇 Hair</p>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {HAIR_SAMPLES.map((n) => (
-                <figure key={n.src}>
-                  <div className="relative aspect-square overflow-hidden rounded-2xl">
-                    <Image src={n.src} alt={n.alt} fill sizes="(min-width: 640px) 240px, 50vw" className="object-cover" />
-                  </div>
-                  <figcaption className="mt-1.5 text-center font-mono text-[11px] uppercase tracking-wide text-l-muted">{n.label}</figcaption>
-                </figure>
-              ))}
             </div>
-            <p className="mt-8 font-mono text-xs uppercase tracking-widest text-l-muted">💅 Nails</p>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
-              {NAIL_SAMPLES.map((n) => (
-                <figure key={n.src} className={n.before ? "col-span-2 sm:col-span-1" : ""}>
-                  <div className="relative aspect-square overflow-hidden rounded-2xl">
-                    <Image src={n.src} alt={n.alt} fill sizes="(min-width: 640px) 190px, 50vw" className="object-cover" />
-                  </div>
-                  <figcaption className="mt-1.5 text-center font-mono text-[11px] uppercase tracking-wide text-l-muted">{n.label}</figcaption>
-                </figure>
-              ))}
-            </div>
-            <p className="mt-3 text-xs text-l-muted">Looks made by {APP_NAME}&apos;s own try-on on 0G. {AI_PEOPLE}</p>
-          </div>
-        </section>
-
-        {/* Privacy, honestly */}
-        <section id="privacy" className="scroll-mt-24 py-16">
-          <div className="text-center">
-            <H2>
-              Private, <Em>honestly.</Em>
-            </H2>
-          </div>
-          <div className="mx-auto mt-10 grid max-w-3xl gap-4 md:grid-cols-2">
-            <article className="rounded-3xl border-2 border-sealed bg-l-card p-6">
-              <p className="font-mono text-xs text-sealed">🔒 SEALED</p>
-              <h3 className="mt-2 font-serif text-2xl">Chats sealed on 0G</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-l-muted">
-                Every chat answer comes from a model in private TEE mode on 0G Private Computer, and 0G reports it as sealed. Each answer
-                carries a request ID you can check: just ask &ldquo;is this private?&rdquo;.
-              </p>
-            </article>
-            <article className="rounded-3xl border border-l-line bg-l-card p-6">
-              <p className="font-mono text-xs text-l-muted">ENCRYPTED</p>
-              <h3 className="mt-2 font-serif text-2xl">Your memory stays yours</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-l-muted">
-                In the app, your memory is encrypted on your own phone with a key only you can make. Say &ldquo;delete everything&rdquo; and
-                it&apos;s gone. No ads, no trackers, no selling, no training on your words.
-              </p>
-            </article>
-          </div>
-          <p className="mx-auto mt-6 max-w-3xl rounded-2xl border-l-4 border-honest bg-l-card px-5 py-4 text-[15px] leading-relaxed">
-            <b className="text-honest">What we don&apos;t claim:</b> In the Telegram version, Telegram carries the messages, and whoever runs the {APP_NAME} server holds the key to
-            stored memory: &ldquo;nothing readable at rest&rdquo; is our promise there, not &ldquo;unreadable to us&rdquo;. And we don&apos;t claim
-            that nobody can read your chats: our server passes each message to 0G in memory (never stored, never logged), and 0G reports
-            each answer as sealed but does not give us a per-answer enclave check yet.
-          </p>
-        </section>
-
-        {/* Anti-scam promise */}
-        <section className="py-16">
-          <div className="relative overflow-hidden rounded-[32px] bg-l-ink px-6 py-12 text-center text-l-paper md:px-16">
-            <Image src="/visuals/texture-navy-1536.webp" alt="" fill sizes="(min-width: 1024px) 992px, 100vw" className="object-cover" />
-            {/* navy veil: the beam sits right behind the centred promise text, so it is toned down to keep contrast */}
-            <div className="absolute inset-0 bg-l-ink/80" />
-            <div className="relative">
-              <p className="font-mono text-xs uppercase tracking-[0.2em]">Our promise</p>
-              <p className="mx-auto mt-4 max-w-3xl font-serif text-[clamp(1.8rem,5vw,2.8rem)] leading-tight">
-                {APP_NAME} will never ask you for money, crypto, a wallet, passwords, codes, or to click a link.
-              </p>
-              <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed">
-                Not to &ldquo;verify&rdquo; you, not for a &ldquo;reward&rdquo;, not ever. If something called {APP_NAME} does, it isn&apos;t
-                us. Block it and tell a friend.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* FAQ: native accordion */}
-        <section id="faq" className="mx-auto max-w-2xl scroll-mt-24 py-16">
-          <div className="text-center">
-            <H2>
-              The questions <Em>you came with.</Em>
-            </H2>
-          </div>
-          <div className="mt-8 divide-y divide-l-line rounded-3xl border border-l-line bg-l-card px-6">
-            {FAQ.map((f) => (
-              <details key={f.q} className="group py-4">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
-                  {f.q}
-                  <span className="text-l-muted transition-transform group-open:rotate-45" aria-hidden="true">
-                    +
-                  </span>
-                </summary>
-                <p className="mt-3 text-[15px] leading-relaxed text-l-muted">{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </section>
-
-        {/* Closing CTA */}
-        <section className="relative my-8 overflow-hidden rounded-[32px] px-6 py-20 text-center">
-          <Image src="/visuals/texture-cream-1536.webp" alt="" fill sizes="(min-width: 1024px) 992px, 100vw" className="object-cover" />
-          <div className="relative">
-            <H2>
-              Your next big decision
-              <br />
-              <Em>deserves a sane answer.</Em>
-            </H2>
-            <p className="mt-4 text-l-muted">Say hi. No forms, no setup: it gets to know you as you talk.</p>
-            <div className="mt-8 flex flex-col items-center gap-3">
-              <OpenCta big />
-              <TelegramLink />
-          </div>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t border-l-line">
-        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-10 text-sm text-l-muted md:flex-row md:items-center md:justify-between">
-          <Wordmark />
-          <p>
-            Built at ETHGlobal Mumbai 2026 · AI on 0G Private Computer
-            <br />
-            <span className="text-xs">{AI_PEOPLE}</span>
-          </p>
-          <div className="flex gap-5">
-            <a href="#how">How it works</a>
-            <a href="#privacy">Privacy</a>
-            <Link href="/app">Open {APP_NAME}</Link>
           </div>
         </div>
+      </section>
+
+      {/* PERSPECTIVES */}
+      <section className={`${WRAP} flex flex-col gap-11 py-20 md:py-[120px]`}>
+        <div className="flex max-w-[720px] flex-col gap-3.5">
+          <Eyebrow>Different perspectives</Eyebrow>
+          <H2>
+            Every big choice, <em>three honest voices.</em>
+          </H2>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-3">
+          {PERSPECTIVES.map((p) => (
+            <article key={p.title} className="flex flex-col overflow-hidden rounded-[20px] border border-l-line bg-l-card">
+              {/* phones: 4:3 crop on the face keeps the three cards from being three screens tall */}
+              <div className="relative aspect-[4/3] sm:aspect-square">
+                <Image src={p.img} alt={p.alt} fill sizes="(min-width: 640px) 384px, 100vw" className="object-cover object-[50%_30%]" />
+              </div>
+              <div className="flex flex-col gap-2 p-[22px]">
+                <h3 className="font-serif text-[26px] font-normal">{p.title}</h3>
+                <p className="text-base leading-[1.55] text-l-body">{p.text}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* TRY-ON */}
+      <section id="tryon" className="scroll-mt-4 border-y border-l-line bg-l-card">
+        <div className={`${WRAP} flex flex-col gap-11 py-20 md:py-[120px]`}>
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div className="flex max-w-[680px] flex-col gap-3.5">
+              <Eyebrow>Try-on</Eyebrow>
+              <H2>
+                See it on you <em>before the salon.</em>
+              </H2>
+              <p className="text-lg leading-[1.6] text-l-body">
+                Send a selfie or a photo of your hand. Pick a look. {APP_NAME} shows it on you, then writes the brief to hand your stylist or
+                nail tech.
+              </p>
+            </div>
+            <Pill href="/tryon">Try a look on me</Pill>
+          </div>
+          <div className="grid grid-cols-3 gap-2.5 md:gap-[18px]">
+            {HAIR.map((h) => (
+              <figure key={h.src} className="flex flex-col gap-2.5">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl">
+                  <Image src={h.src} alt={h.alt} fill sizes="(min-width: 768px) 380px, 33vw" className="object-cover" />
+                </div>
+                <figcaption className="font-mono text-[10px] uppercase tracking-[0.1em] text-l-muted md:text-xs">{h.label}</figcaption>
+              </figure>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+            {NAILS.map((n) => (
+              <figure key={n.src} className="flex flex-col gap-2">
+                <div className="relative aspect-square overflow-hidden rounded-[14px]">
+                  <Image src={n.src} alt={n.alt} fill sizes="(min-width: 640px) 280px, 50vw" className="object-cover" />
+                </div>
+                <figcaption className="font-mono text-xs uppercase text-l-muted">{n.label}</figcaption>
+              </figure>
+            ))}
+          </div>
+          <p className="text-[13px] text-l-muted">Every person on this page is a fictional model, AI-generated on 0G.</p>
+        </div>
+      </section>
+
+      {/* FOLLOWS UP */}
+      <section className={`${WRAP} flex flex-wrap items-center gap-14 py-20 md:py-[120px]`}>
+        <div className="relative aspect-[3/2] min-w-0 flex-[1_1_420px] overflow-hidden rounded-[20px]">
+          <Image
+            src="/visuals-west/decision-window.jpg"
+            alt="A young woman by a window at dusk holding her phone, a navy diary on the sill"
+            fill
+            sizes="(min-width: 1024px) 560px, 100vw"
+            className="object-cover"
+          />
+        </div>
+        <div className="flex min-w-0 flex-[1_1_420px] flex-col gap-[22px]">
+          <Eyebrow>It follows up</Eyebrow>
+          <h2 className="font-serif text-[clamp(34px,4vw,52px)] font-normal leading-[1.05]">
+            A diary that <em>remembers to ask.</em>
+          </h2>
+          <div className="flex flex-col gap-3">
+            {FOLLOW_UPS.map((f) => (
+              <div key={f.when} className="flex flex-col gap-1 rounded-2xl border border-l-line bg-l-card px-5 py-4">
+                <p className="font-mono text-xs uppercase text-l-muted">{f.when}</p>
+                <p className="font-serif text-[19px]">{f.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRIVACY */}
+      <section id="privacy" className="scroll-mt-4 border-t border-l-line bg-l-card">
+        <div className={`${WRAP} flex flex-col gap-10 py-20 md:py-28`}>
+          <div className="flex max-w-[720px] flex-col gap-3.5">
+            <Eyebrow>Privacy</Eyebrow>
+            <H2>
+              Every diary <em>needs a lock.</em>
+            </H2>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-3 sm:gap-5">
+            {PRIVACY.map((p) => (
+              <div key={p.t} className="flex flex-col gap-2 border-t-2 border-l-ink pt-[18px]">
+                <h3 className="font-serif text-2xl font-normal">{p.t}</h3>
+                <p className="text-base leading-[1.55] text-l-body">{p.d}</p>
+              </div>
+            ))}
+          </div>
+          {/* Jayant (TG 3486): one quiet, accurate line about try-on photos, here and nowhere louder. */}
+          <p className="text-[13px] text-l-muted">
+            Try-on photos go to an image model on 0G&apos;s standard tier (not the sealed mode your chats use), then they are deleted. We never
+            save them.
+          </p>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section id="start" className="bg-l-ink text-l-paper">
+        <div className={`${WRAP} flex flex-col items-center gap-7 py-20 text-center md:py-[120px]`}>
+          <Mark size={88} reversed lines />
+          <h2 className="font-serif text-[clamp(44px,6vw,80px)] font-normal leading-none">
+            Dear diary, <em>let&apos;s begin.</em>
+          </h2>
+          <p className="max-w-[560px] text-lg leading-[1.6] text-l-on-ink">Your AI companion, your split personality. Free to start, in your browser.</p>
+          <Pill href="/app" big>
+            Open your diary
+          </Pill>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className={`${WRAP} flex flex-wrap items-center justify-between gap-4 pb-10 pt-7 text-[13px] text-l-muted`}>
+        <div className="flex items-center gap-2.5">
+          <Mark size={24} />
+          <span className="font-serif text-xl italic text-l-ink">delulu</span>
+        </div>
+        <p>Built at ETHGlobal Mumbai 2026 · People shown are AI-generated · MIT license</p>
       </footer>
     </div>
   );

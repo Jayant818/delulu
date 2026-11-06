@@ -84,7 +84,7 @@ function Decide({ fromChat }: { fromChat: string }) {
         rows={3}
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        placeholder="Should I take the job in Bangalore or stay near home?"
+        placeholder="Should I take the job in Chicago or stay near home?"
         className="mt-4 w-full rounded-2xl border border-line bg-paper p-4 outline-none focus:border-ink"
       />
       <button

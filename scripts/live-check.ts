@@ -11,7 +11,7 @@ const ctx: Context = {
     facts: [
       "Wants to become a product designer at a good studio",
       "Values freedom, family and honesty",
-      "Trusts her older sister Riya with big choices",
+      "Trusts her older sister Emma with big choices",
       "Afraid of letting her parents down",
     ],
   },
@@ -55,7 +55,7 @@ async function main() {
   show("plain", plain, t1);
 
   // 2. Chat turn with a decision in it: the card depends on this.
-  const [d, t2] = await timed(() => chatTurn(ctx, "ugh my parents want me home but the bangalore offer pays 2x. should i take it or stay in jaipur?"));
+  const [d, t2] = await timed(() => chatTurn(ctx, "ugh my parents want me home but the chicago offer pays 2x. should i take it or stay in ohio?"));
   show("chat+decision", d.ai, t2);
   console.log(`      reply: ${d.reply.slice(0, 140)}\n      decision: ${d.decision ?? "NONE  <- the decision card will not appear; reword the demo message"}`);
   if (!d.decision) failures++;
@@ -66,13 +66,13 @@ async function main() {
   }
 
   // 3. Chat turn with a reminder: the scheduler depends on this.
-  const [r, t3] = await timed(() => chatTurn(ctx, "remind me sunday 6pm to call riya"));
+  const [r, t3] = await timed(() => chatTurn(ctx, "remind me sunday 6pm to call mom"));
   show("chat+reminder", r.ai, t3);
   console.log(`      reminder: ${r.reminder ? `${r.reminder.text} @ ${r.reminder.at}` : "NONE  <- reminders will not be set"}`);
   if (!r.reminder) failures++;
 
   // 3b. No setup questions: the profile grows from the chat, so the model must pick up a lasting fact.
-  const [f, t3b] = await timed(() => chatTurn(ctx, "i'm a 22 yo ux intern in pune and my cat mochi is my whole personality lol"));
+  const [f, t3b] = await timed(() => chatTurn(ctx, "i'm a 22 yo ux intern in austin and my cat mochi is my whole personality lol"));
   show("chat+remember", f.ai, t3b);
   console.log(`      remember: ${f.remember.length ? JSON.stringify(f.remember) : "NONE  <- Delulu will not learn about her from the chat"}`);
   if (!f.remember.length) failures++;
@@ -91,7 +91,7 @@ async function main() {
     ["check in on me every evening at 9", "checkin_set 21:00"],
     ["what can you do", "help"],
     ["what are my reminders", "reminders_list"],
-    ["help me decide between the bangalore job and staying in jaipur", "decide"],
+    ["help me decide between the chicago job and staying in ohio", "decide"],
   ] as const) {
     const [x, ms] = await timed(() => chatTurn(ctx, msg));
     show(`intent`, x.ai, ms);
@@ -103,7 +103,7 @@ async function main() {
   }
 
   // 5. Three voices in parallel: three request IDs.
-  const [views, t5] = await timed(() => allViews(ctx, "Take the design job in Bangalore or stay in Jaipur"));
+  const [views, t5] = await timed(() => allViews(ctx, "Take the design job in Chicago or stay in Ohio"));
   for (const [v, res] of Object.entries(views)) {
     if ("error" in res) {
       failures++;
