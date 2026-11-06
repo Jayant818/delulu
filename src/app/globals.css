@@ -83,3 +83,17 @@ html {
     transform: none;
   }
 }
+
+/* Hero phone: Delulu's typing dots. */
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: none;
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
