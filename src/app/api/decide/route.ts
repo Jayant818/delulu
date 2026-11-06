@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { complete } from "@/lib/ai/provider";
-import { viewSystemPrompt } from "@/lib/persona";
+import { viewOn } from "@/lib/brain";
 import { fail, isView, readDecisions, readHistory, readProfile, str } from "../_shared";
 
 // One view per request. The client asks for all three in parallel, so each view gets its own 0G request ID.
@@ -13,12 +12,10 @@ export async function POST(req: Request) {
   if (!isView(body?.view)) return fail(400, "view must be sane | future | bestie");
 
   try {
-    const r = await complete(
-      [
-        { role: "system", content: viewSystemPrompt(body.view, profile, readDecisions(body?.decisions), readHistory(body?.history, 10)) },
-        { role: "user", content: `The decision I am facing: ${question}` },
-      ],
-      { maxTokens: 400 },
+    const r = await viewOn(
+      body.view,
+      { profile, decisions: readDecisions(body?.decisions), history: readHistory(body?.history, 10) },
+      question,
     );
     return NextResponse.json(r);
   } catch (e) {

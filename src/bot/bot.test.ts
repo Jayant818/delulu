@@ -1,0 +1,125 @@
+// Offline test of the whole Telegram flow: a fake Telegram API (grammY transformer) + MOCK model + a real
+// encrypted store in a temp dir. No token, no network. Run: npm test
+import assert from "node:assert/strict";
+import { randomBytes } from "node:crypto";
+import { mkdtemp, readdir, readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { test } from "node:test";
+import { createBot, footer } from "./bot";
+import { BotStore } from "./store";
+
+delete process.env.ZG_API_KEY; // MOCK backend
+delete process.env.OPENAI_COMPAT_API_KEY;
+
+type Call = { method: string; payload: Record<string, unknown> };
+const USER = { id: 4242, is_bot: false, first_name: "Riya" };
+const CHAT = { id: 4242, type: "private" as const, first_name: "Riya" };
+
+async function setup() {
+  const dir = await mkdtemp(path.join(tmpdir(), "delulu-bot-"));
+  const master = randomBytes(32).toString("base64");
+  const store = new BotStore(dir, master);
+  const bot = createBot("123:fake", { store, checkBackMs: 60_000 }, {
+    id: 1, is_bot: true, first_name: "Delulu", username: "delulu_test_bot",
+    can_join_groups: false, can_read_all_group_messages: false, supports_inline_queries: false,
+    can_connect_to_business: false, has_main_web_app: false,
+  } as never);
+  const calls: Call[] = [];
+  let mid = 100;
+  bot.api.config.use(async (_prev, method, payload) => {
+    calls.push({ method, payload: payload as Record<string, unknown> });
+    const result = method.startsWith("send") ? { message_id: ++mid, date: 0, chat: CHAT, text: "" } : true;
+    return { ok: true, result } as never;
+  });
+  let uid = 1;
+  const text = (t: string) =>
+    bot.handleUpdate({
+      update_id: uid++,
+      message: {
+        message_id: uid, date: 0, chat: CHAT, from: USER, text: t,
+        ...(t.startsWith("/") ? { entities: [{ type: "bot_command", offset: 0, length: t.split(" ")[0].length }] } : {}),
+      },
+    } as never);
+  const press = (data: string) =>
+    bot.handleUpdate({
+      update_id: uid++,
+      callback_query: { id: String(uid), from: USER, chat_instance: "x", data, message: { message_id: 5, date: 0, chat: CHAT, text: "" } },
+    } as never);
+  const sent = () => calls.filter((c) => c.method === "sendMessage").map((c) => c.payload);
+  const lastSent = () => sent().at(-1)!;
+  const buttons = (p: Record<string, unknown>) =>
+    ((p.reply_markup as { inline_keyboard?: { text: string; callback_data: string }[][] })?.inline_keyboard ?? []).flat();
+  return { dir, master, store, calls, text, press, sent, lastSent, buttons };
+}
+
+test("telegram flow: onboarding -> chat -> decision card -> 3 views -> pick -> proof -> forget", async () => {
+  const t = await setup();
+
+  await t.text("/start");
+  assert.match(String(t.sent()[0].text), /never<\/b> ask for money, crypto, a wallet/, "anti-scam promise in the intro");
+  assert.match(String(t.lastSent().text), /1\/5/);
+  for (const a of ["Product designer", "Freedom, family", "My sister", "Letting my parents down", "Bangalore job or Jaipur"]) await t.text(a);
+  assert.match(String(t.lastSent().text), /Tell me anything/);
+
+  // Free talk with a decision in it -> reply + footer + "See 3 views" button.
+  await t.text("parents want me home but should I take the Bangalore job or stay in Jaipur?");
+  const reply = t.lastSent();
+  assert.match(String(reply.text), /MOCK · no AI called/, "footer marks the backend honestly");
+  assert.match(String(reply.text), /Sounds like a decision:/);
+  const see = t.buttons(reply).find((b) => b.text.startsWith("See 3 views"));
+  assert.ok(see, "decision card has a button");
+
+  // Three views in one message, one "Go with" button per voice.
+  await t.press(see!.callback_data);
+  const views = t.lastSent();
+  for (const title of ["Delulu", "Future You at 30", "Your Bestie"]) assert.match(String(views.text), new RegExp(`<b>${title}</b>`));
+  const go = t.buttons(views);
+  assert.equal(go.length, 3);
+
+  await t.press(go[1].callback_data);
+  assert.match(String(t.lastSent().text), /going with <b>Future You at 30<\/b>/);
+  assert.ok(t.calls.some((c) => c.method === "editMessageReplyMarkup"), "buttons removed after the pick");
+
+  await t.text("/proof");
+  assert.match(String(t.lastSent().text), /chat · MOCK/);
+  assert.match(String(t.lastSent().text), /view · MOCK/);
+
+  // Encrypted at rest: no plaintext, no telegram id in file names.
+  const files = await readdir(t.dir);
+  assert.equal(files.length, 1);
+  assert.ok(!files[0].includes("4242"), "file name does not reveal the telegram id");
+  const raw = await readFile(path.join(t.dir, files[0]), "utf8");
+  for (const s of ["Bangalore", "sister", "Future", "4242"]) assert.ok(!raw.includes(s), `no plaintext "${s}" on disk`);
+  const u = await t.store.load(4242);
+  assert.equal(u?.decisions[0].choice, "future");
+  assert.ok(+new Date(u!.decisions[0].checkInAt) - +new Date(u!.decisions[0].at) === 60_000, "demo check-back = 1 min");
+
+  // Wrong master key cannot read it.
+  await assert.rejects(new BotStore(t.dir, randomBytes(32).toString("base64")).load(4242).then((x) => {
+    if (x === null) throw new Error("not found");
+  }));
+
+  await t.text("/forget");
+  assert.equal((await readdir(t.dir)).length, 0, "/forget deletes the record");
+  assert.equal(await t.store.load(4242), null);
+});
+
+test("anti-scam: no outgoing message ever asks for a wallet, seed, payment or link click", async () => {
+  const t = await setup();
+  await t.text("/start");
+  for (const a of ["a", "b", "c", "d", "e"]) await t.text(a);
+  await t.text("hi");
+  await t.text("/help");
+  await t.text("/privacy");
+  for (const p of t.sent()) {
+    const s = String(p.text).toLowerCase();
+    assert.ok(!/(send|enter|share|connect) (your|a) (wallet|seed|private key|payment|card)|click (this|the) link|airdrop|earn /.test(s), s.slice(0, 80));
+  }
+});
+
+test("footer: 0G shows request id + TEE flag; fallback is labelled not sealed", () => {
+  const base = { model: "m", provider: null, costNeuron: null } as const;
+  assert.equal(footer({ ...base, backend: "0g", requestId: "0852f405-6c56", teeVerified: true }), "<i>🔒 0G · 0852f405 · TEE ✓</i>");
+  assert.match(footer({ ...base, backend: "openai", requestId: "chatcmpl-1", teeVerified: null }), /not sealed/);
+});
