@@ -24,10 +24,10 @@ Fix size: S < 15 min, M < 45 min, L more. Priority: P0 honesty, P1 states, P2 mo
 | C3 | App | Bottom nav and composer ignore the iPhone home-indicator safe area; no `viewport-fit=cover`, no keyboard-resize hint | §5 Chat-first | S | P2 | fixed f5d2f3c |
 | C4 | App + landing | Reduced motion: `animate-pulse` and bubble animations still run app-wide | §5 Accessibility | S | P2 | fixed f5d2f3c |
 | C5 | App + landing | 360 px: check every screen for sideways scroll | §9 | S | P2 | fixed f5d2f3c |
-| D1 | Landing privacy | "Every chat is fully private." has no link to a precise explanation | §4.6, §7 | S | P3 | |
-| D2 | Landing | The try-on photo caveat is in the footer, not near the privacy statement | §4.6 | S | P3 | |
-| D3 | App try-on | Subtitle "Then ask the three voices." / unclear next step; result has no "next step" suggestion | §5 One action | S | P3 | |
-| E1 | App | App body uses the system sans; the landing uses Inter: two body fonts | §6 typography | S | P4 | |
+| D1 | Landing privacy | "Every chat is fully private." has no link to a precise explanation | §4.6, §7 | S | P3 | fixed 6fad795 |
+| D2 | Landing | The try-on photo caveat is in the footer, not near the privacy statement | §4.6 | S | P3 | fixed 6fad795 |
+| D3 | App try-on | Subtitle "Then ask the three voices." / unclear next step; result has no "next step" suggestion | §5 One action | S | P3 | fixed 6fad795 |
+| E1 | App | App body uses the system sans; the landing uses Inter: two body fonts | §6 typography | S | P4 | fixed 66a938c |
 
 ## Needs Jayant (design.md proposals NOT implemented: they conflict with his earlier rulings)
 - Palette plum #2D2029 / pink #E75B91 / lavender / sand (§6). Kept: navy #14213D / cream #F4EDE0 / coral #FF6B5B + Sasha pink #F6C9D3 (logo uses them).
