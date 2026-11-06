@@ -12,6 +12,9 @@ export async function GET() {
   return NextResponse.json({ presets: PRESETS, caps: { total: CAP_TOTAL, user: CAP_USER }, mock: backend === "mock", backend, model: imageModel(), privacy: tryonPrivacyLine(backend) });
 }
 
+// Vercel: allow up to 60 s (seedream takes ~15-25 s). 60 s is the Hobby plan maximum without Fluid compute.
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const form = await req.formData().catch(() => null);
   if (!form) return fail(400, "send multipart form data");

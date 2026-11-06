@@ -54,8 +54,8 @@ To try it on a real phone on the same Wi-Fi: `NEXT_PUBLIC_DEMO_FAST=1 npm run de
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | Landing → **Open Delulu** → log in | the 5 setup questions |
-| 2 | answer them | Talk: "Tell Delulu anything", the 🔒 line, no "MOCK" warning |
+| 1 | Landing → **Open Delulu** (log in if Privy is set) | Talk opens directly, input focused, no setup questions |
+| 2 | look at Talk | Talk: "Tell Delulu anything", the 🔒 line, no "MOCK" warning |
 | 3 | "ugh my parents want me home but the bangalore offer pays 2x. should i take it or stay in jaipur?" | a reply with a chip `0G · req xxxxxxxx… · sealed` and "Sounds like a decision … See perspectives" |
 | 4 | **See perspectives** → **Hear all three** | three cards, each with its own `0G` chip |
 | 5 | **I'll go with this** on one | "Saved." Back in Talk the card says "Decided: …" |
@@ -86,7 +86,7 @@ Fresh browser profile (or "delete everything" → Yes), `NEXT_PUBLIC_DEMO_FAST=1
 DEMO_FAST=1 npm run bot      # needs TELEGRAM_BOT_TOKEN
 ```
 
-Same brain, no commands: tap Start, answer 5 questions, then just talk ("help me decide …", "remind me …", "is this private?", "delete everything"). It must be running whenever someone should be able to use it.
+Same brain, no commands: tap Start, then just talk ("help me decide …", "remind me …", "is this private?", "delete everything"). It must be running whenever someone should be able to use it.
 
 ## If 0G is down at demo time
 

@@ -54,14 +54,17 @@ async function setup() {
   return { dir, master, store, calls, text, press, sent, lastSent, buttons, runDue, loadSchedule, bot };
 }
 
-test("telegram flow: onboarding -> chat -> decision card -> 3 views -> pick -> proof -> forget", async () => {
+test("telegram flow: start -> chat (no setup questions) -> decision card -> 3 views -> pick -> proof -> forget", async () => {
   const t = await setup();
 
   await t.text("/start");
   assert.match(String(t.sent()[0].text), /never<\/b> ask for money, crypto, a wallet/, "anti-scam promise in the intro");
-  assert.match(String(t.lastSent().text), /1\/5/);
-  for (const a of ["Product designer", "Freedom, family", "My sister", "Letting my parents down", "Bangalore job or Jaipur"]) await t.text(a);
-  assert.match(String(t.lastSent().text), /Tell me anything/);
+  assert.equal(t.sent().length, 1, "only the intro: no setup questions");
+  assert.doesNotMatch(String(t.lastSent().text), /1\/5|quick questions/);
+
+  // She just talks; a lasting fact about her is learned (mock: "I'm ..." -> one fact).
+  await t.text("I'm a product designer and my sister is my person");
+  assert.deepEqual((await t.store.load(4242))?.profile.facts, ["I'm a product designer and my sister is my person"]);
 
   // Free talk with a decision in it -> reply + footer + "See perspectives" button.
   await t.text("parents want me home but should I take the Bangalore job or stay in Jaipur?");
@@ -113,15 +116,15 @@ test("telegram flow: onboarding -> chat -> decision card -> 3 views -> pick -> p
   assert.equal((await readdir(t.dir)).length, 0, "Yes deletes the record");
   assert.equal(await t.store.load(4242), null);
 
-  // After deleting, any message starts the 5 questions again (no commands needed).
+  // After deleting, she just talks again: a normal reply, no questions, nothing remembered from before.
   await t.text("hey");
-  assert.match(String(t.lastSent().text), /1\/5/);
+  assert.match(String(t.lastSent().text), /MOCK/);
+  assert.deepEqual((await t.store.load(4242))?.profile.facts, []);
 });
 
 test("anti-scam: no outgoing message ever asks for a wallet, seed, payment or link click", async () => {
   const t = await setup();
   await t.text("/start");
-  for (const a of ["a", "b", "c", "d", "e"]) await t.text(a);
   await t.text("hi");
   await t.text("what can you do");
   await t.text("is this private?");
@@ -130,7 +133,7 @@ test("anti-scam: no outgoing message ever asks for a wallet, seed, payment or li
   await t.text("delete everything");
   for (const p of t.sent()) {
     const s = String(p.text).toLowerCase();
-    assert.ok(!/(send|enter|share|connect) (your|a) (wallet|seed|private key|payment|card)|click (this|the) link|airdrop|earn /.test(s), s.slice(0, 80));
+    assert.ok(!/(send|enter|share|connect) (your|a) (wallet|seed|private key|payment|card)|click (this|the) link|airdrop|\bearn /.test(s), s.slice(0, 80));
     // Text-only product (Jayant, TG 3412): no message may tell her to type a slash command.
     assert.ok(!/(^|[\s(>"])\/[a-z]+/.test(s), `slash command in a message: ${s.slice(0, 80)}`);
   }
@@ -147,7 +150,6 @@ test("footer: 0G shows request id + TEE flag; fallback is labelled not sealed", 
 async function onboarded() {
   const t = await setup();
   await t.text("/start");
-  for (const a of ["Product designer", "Freedom, family", "My sister Riya", "Letting my parents down", "Bangalore job or Jaipur"]) await t.text(a);
   return t;
 }
 

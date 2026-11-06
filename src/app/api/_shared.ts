@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { DecisionSummary, Profile, ViewId } from "@/lib/persona";
+import { normalizeProfile, type DecisionSummary, type ViewId } from "@/lib/persona";
 
 // Trust boundary: the browser sends her (decrypted) context per request. The server keeps nothing.
 // ponytail: no auth or rate limit on these routes; anyone who can reach the server can spend the 0G key.
@@ -7,18 +7,8 @@ import type { DecisionSummary, Profile, ViewId } from "@/lib/persona";
 
 export const str = (v: unknown, n: number) => (typeof v === "string" ? v.slice(0, n) : "");
 
-export function readProfile(v: unknown): Profile | null {
-  if (!v || typeof v !== "object") return null;
-  const o = v as Record<string, unknown>;
-  const p: Profile = {
-    goals: str(o.goals, 600),
-    values: str(o.values, 600),
-    trusts: str(o.trusts, 600),
-    fears: str(o.fears, 600),
-    bigDecision: str(o.bigDecision, 600),
-  };
-  return Object.values(p).some(Boolean) ? p : null;
-}
+// A brand-new user has no facts yet; that is normal (no setup questions), never an error.
+export const readProfile = normalizeProfile;
 
 const VIEW_IDS: ViewId[] = ["sane", "future", "bestie"];
 export const isView = (v: unknown): v is ViewId => VIEW_IDS.includes(v as ViewId);

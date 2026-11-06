@@ -10,7 +10,7 @@ import { APP_NAME } from "@/config";
 import type { AiResult } from "@/lib/ai/provider";
 import { sealLabel } from "@/lib/ai/labels";
 import { allViews, chatTurn, checkInText, VIEW_ORDER, type Context as BrainContext } from "@/lib/brain";
-import { ONBOARDING, VIEWS, type Intent, type Outcome, type Profile, type ViewId } from "@/lib/persona";
+import { mergeFacts, VIEWS, type Intent, type Outcome, type ViewId } from "@/lib/persona";
 export { nextDaily } from "@/lib/schedule";
 import { DAY, nextDaily, OUTCOMES, whenIST, type Job } from "@/lib/schedule";
 import { newUser, type BotStore, type BotUser, type Proof } from "./store";
@@ -28,10 +28,10 @@ Tell me anything: your day, your drama, the choice keeping you up at night. When
 🔒 My AI runs sealed on 0G Private Computer (private TEE mode). I store nothing readable. Telegram carries our messages (ask me "is this private?" any time).
 🚫 I will <b>never</b> ask for money, crypto, a wallet, passwords, codes, or ask you to click a link. If "${APP_NAME}" ever does, it isn't me.
 
-First, 5 quick questions so I actually know you.`,
+So, what's on your mind? 💛`,
   privacy: `<b>What happens to what you tell me</b>
 • <b>The AI</b> runs on 0G Private Computer in private TEE mode, and 0G reports each answer as sealed. The request IDs are below.
-• <b>My server</b> stores your setup answers, chat, decisions and reminders encrypted (AES-256-GCM, a key per person). Nothing readable is kept. Say "delete everything" and it's gone, for good.
+• <b>My server</b> stores what you tell me (our chat, what I learn about you, decisions, reminders) encrypted (AES-256-GCM, a key per person). Nothing readable is kept. Say "delete everything" and it's gone, for good.
 • <b>Telegram</b> carries our messages, like any Telegram chat. Telegram can read bot chats; that part is outside my control.
 • No ads, no trackers, no wallet, no payments. Ever.`,
   help: `Just talk to me, like you'd text a friend. No commands. You can also say things like:
@@ -116,15 +116,10 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
   }
 
   const brainCtx = (u: BotUser): BrainContext => ({
-    profile: u.profile!,
+    profile: u.profile,
     decisions: u.decisions.map(({ question, choice, at, outcome }) => ({ question, choice, at, outcome })),
     history: u.chat.slice(-20).map(({ role, content }) => ({ role, content })),
   });
-
-  const askQuestion = (ctx: Context, step: number) => {
-    const q = ONBOARDING[step];
-    return ctx.reply(`<b>${step + 1}/${ONBOARDING.length}</b> ${esc(q.q)}\n<i>${esc(q.hint)}</i>`, { parse_mode: "HTML" });
-  };
 
   async function showViews(ctx: Context, u: BotUser, question: string, pid: string) {
     if (!spend(u, 3)) return void (await ctx.reply(TEXT.limit));
@@ -149,10 +144,8 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
   }
 
   bot.command("start", (ctx) =>
-    withUser(ctx, async (u) => {
-      u.onboarding = { step: 0, answers: {} };
+    withUser(ctx, async () => {
       await ctx.reply(TEXT.intro, { parse_mode: "HTML" });
-      await askQuestion(ctx, 0);
     }),
   );
   // No slash commands (Jayant, TG 3412): everything below is reached from plain text via the model's intent.
@@ -258,7 +251,7 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
       const pid = ctx.match[1];
       const pend = u.pending[pid];
       await ctx.answerCallbackQuery(pend ? "Asking all three…" : "That one expired");
-      if (pend && u.profile) await showViews(ctx, u, pend.question, pid);
+      if (pend) await showViews(ctx, u, pend.question, pid);
     }),
   );
 
@@ -297,30 +290,11 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
       const text = ctx.message.text.trim().slice(0, 2000);
       if (!text) return;
 
-      // Onboarding: one answer per message.
-      if (u.onboarding) {
-        const q = ONBOARDING[u.onboarding.step];
-        u.onboarding.answers[q.key as keyof Profile] = text.slice(0, 600);
-        if (u.onboarding.step + 1 < ONBOARDING.length) {
-          u.onboarding.step += 1;
-          return void (await askQuestion(ctx, u.onboarding.step));
-        }
-        u.profile = { goals: "", values: "", trusts: "", fears: "", bigDecision: "", ...u.onboarding.answers };
-        u.onboarding = null;
-        return void (await ctx.reply(
-          `Got it, I know you a little now 💛 Tell me anything. What's on your mind?\n\n(Want a daily check-in? Just say "check in on me every evening at 9".)`,
-        ));
-      }
-      if (!u.profile) {
-        // No commands: any first message (or a message after "delete everything") starts the 5 questions.
-        u.onboarding = { step: 0, answers: {} };
-        await ctx.reply(TEXT.intro, { parse_mode: "HTML" });
-        return void (await askQuestion(ctx, 0));
-      }
       if (!spend(u, 1)) return void (await ctx.reply(TEXT.limit));
 
       await ctx.replyWithChatAction("typing");
-      const { reply, decision, reminder, intent, ai } = await chatTurn(brainCtx(u), text);
+      const { reply, decision, reminder, intent, remember, ai } = await chatTurn(brainCtx(u), text);
+      u.profile = { facts: mergeFacts(u.profile.facts, remember) }; // no setup questions: it learns from the chat
       const at = new Date().toISOString();
       u.chat = [...u.chat, { role: "user" as const, content: text, at }, { role: "assistant" as const, content: reply, at }].slice(-200);
       u.proofs = [...u.proofs, proofOf(ai, "chat")].slice(-20);
@@ -382,7 +356,7 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
             } else if (j.kind === "daily") {
               if (!u.dailyAt) continue; // turned off since it was scheduled
               u.jobs.push({ id: id(), kind: "daily", at: new Date(nextDaily(u.dailyAt, now)).toISOString() });
-              if (!u.profile || !spend(u, 1)) continue;
+              if (!spend(u, 1)) continue;
               let text = "Hey you 💛 How was today, honestly?";
               let foot = "";
               try {

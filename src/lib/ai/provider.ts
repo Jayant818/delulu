@@ -61,7 +61,7 @@ async function postJsonWithHeaders(url: string, headers: Record<string, string>,
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(90_000),
+    signal: AbortSignal.timeout(50_000), // under the routes' 60 s maxDuration (Vercel)
   });
   const text = await res.text();
   if (!res.ok) throw new Error(`${new URL(url).host} ${res.status}: ${text.slice(0, 300)}`);
@@ -134,8 +134,10 @@ async function callMock(messages: ChatMessage[], o: Opts): Promise<AiResult> {
   const decision = /\b(should i|or not|decide|choose|whether)\b|\?.*\bor\b|\bor\b.*\?/i.test(last) ? last.slice(0, 100) : null;
   // Mock reminder: "remind me ..." -> one minute from now, so the scheduler can be demoed without a key.
   const reminder = /\bremind me\b/i.test(last) ? { text: last.replace(/.*\bremind me( to)?\s*/i, "").slice(0, 80) || "this", at: new Date(Date.now() + 60_000).toISOString() } : null;
+  // Mock "remember": a sentence about herself becomes one fact.
+  const remember = /\b(i am|i'm|i work|i study|i live|my name is)\b/i.test(last) ? [last.slice(0, 100)] : [];
   return {
-    text: o.json ? JSON.stringify({ reply, decision, reminder, intent: mockIntent(last) }) : reply,
+    text: o.json ? JSON.stringify({ reply, decision, reminder, intent: mockIntent(last), remember }) : reply,
     backend: "mock",
     model: "mock",
     requestId: `mock-${crypto.randomUUID()}`,

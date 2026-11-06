@@ -6,7 +6,7 @@
 import { createCipheriv, createDecipheriv, createHmac, randomBytes } from "node:crypto";
 import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Outcome, Profile, ViewId } from "@/lib/persona";
+import { normalizeProfile, type Outcome, type Profile, type ViewId } from "@/lib/persona";
 import type { AiResult } from "@/lib/ai/provider";
 
 export type Proof = Omit<AiResult, "text"> & { at: string; kind: "chat" | "view" | "voice" };
@@ -24,8 +24,7 @@ import type { Job } from "@/lib/schedule";
 export type { Job };
 export type BotUser = {
   uid: number; // telegram user id = private chat id; needed to message her first (check-ins, reminders)
-  profile: Profile | null;
-  onboarding: { step: number; answers: Partial<Profile> } | null;
+  profile: Profile; // facts learned from the chat (no setup questions)
   chat: { role: "user" | "assistant"; content: string; at: string }[];
   decisions: BotDecision[];
   pending: Record<string, { question: string; views?: Partial<Record<ViewId, string>> }>;
@@ -37,8 +36,7 @@ export type BotUser = {
 
 export const newUser = (uid = 0): BotUser => ({
   uid,
-  profile: null,
-  onboarding: null,
+  profile: { facts: [] },
   chat: [],
   decisions: [],
   pending: {},
@@ -87,7 +85,9 @@ export class BotStore {
     }
     const f = JSON.parse(raw) as FileV1;
     const dataKey = open(this.master, f.wk);
-    return { ...newUser(), ...JSON.parse(open(dataKey, f.d).toString("utf8")) };
+    const u = JSON.parse(open(dataKey, f.d).toString("utf8"));
+    delete u.onboarding; // older records: a half-done setup is simply dropped
+    return { ...newUser(), ...u, profile: normalizeProfile(u.profile) }; // older records: 5 setup answers -> facts
   }
 
   async save(userId: number | string, user: BotUser): Promise<void> {

@@ -6,10 +6,19 @@ import { answerCheckback, applyChatResult, checkbackJob, runDue } from "./assist
 import type { Memory } from "./memory";
 
 const NOW = Date.parse("2026-11-06T12:00:00Z"); // 17:30 IST
-const base = (): Memory => ({ profile: { goals: "g", values: "v", trusts: "t", fears: "f", bigDecision: "b" }, chat: [], decisions: [], jobs: [], dailyAt: null });
+const base = (): Memory => ({ profile: { facts: [] }, chat: [], decisions: [], jobs: [], dailyAt: null });
 const res = (over: Partial<ApiResult>): ApiResult =>
   ({ text: "ok", backend: "mock", model: "mock", requestId: "r1", provider: null, teeVerified: null, sealed: null, costUsd: null, ...over }) as ApiResult;
 const apply = (m: Memory, over: Partial<ApiResult>, demo = false) => applyChatResult(m, res(over), undefined, NOW, demo);
+
+test("no setup questions: facts from the chat land in her profile, without duplicates", () => {
+  const m1 = apply(base(), { remember: ["Works as a UX intern in Pune"] }).memory;
+  assert.deepEqual(m1.profile.facts, ["Works as a UX intern in Pune"]);
+  const m2 = apply(m1, { remember: ["works as a ux intern in pune", "Has a cat called Mochi"] }).memory;
+  assert.deepEqual(m2.profile.facts, ["Works as a UX intern in Pune", "Has a cat called Mochi"]);
+  assert.equal(apply(m2, { intent: { type: "help" }, remember: ["Lives with her parents"] }).memory.profile.facts.length, 3, "an intent turn still learns");
+  assert.equal(apply(m2, {}).memory.profile, m2.profile, "nothing learned -> profile untouched");
+});
 
 test("plain reply + decision card + reminder (job + note in the reply)", () => {
   const { memory } = apply(base(), { text: "hey", decision: "Bangalore or Jaipur", reminder: { text: "call Riya", at: "2026-11-08T12:30:00.000Z" } });

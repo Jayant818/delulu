@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { privateKeyToAccount } from "viem/accounts";
 import { APP_NAME } from "../config";
 import { complete, configuredBackends, parse0g } from "./ai/provider";
-import { parseChatReply } from "./persona";
+import { MAX_FACTS, mergeFacts, normalizeProfile, parseChatReply } from "./persona";
 import { deriveKey, KEY_MESSAGE, seal, unseal } from "./vault";
 
 const alice = privateKeyToAccount("0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d");
@@ -72,12 +72,31 @@ test("parseChatReply pulls a decision out of the model's JSON, and never breaks 
     decision: "Take the Bangalore job or stay in Jaipur",
     reminder: null,
     intent: null,
+    remember: [],
   });
-  assert.deepEqual(parseChatReply('```json\n{"reply":"hey","decision":null}\n```'), { reply: "hey", decision: null, reminder: null, intent: null });
-  assert.deepEqual(parseChatReply('{"reply":"hey","decision":"   "}'), { reply: "hey", decision: null, reminder: null, intent: null });
-  assert.deepEqual(parseChatReply("just prose, no json"), { reply: "just prose, no json", decision: null, reminder: null, intent: null });
-  assert.deepEqual(parseChatReply('{"decision":"x"}'), { reply: '{"decision":"x"}', decision: null, reminder: null, intent: null }, "no reply field -> show raw text");
+  assert.deepEqual(parseChatReply('```json\n{"reply":"hey","decision":null}\n```'), { reply: "hey", decision: null, reminder: null, intent: null, remember: [] });
+  assert.deepEqual(parseChatReply('{"reply":"hey","decision":"   "}'), { reply: "hey", decision: null, reminder: null, intent: null, remember: [] });
+  assert.deepEqual(parseChatReply("just prose, no json"), { reply: "just prose, no json", decision: null, reminder: null, intent: null, remember: [] });
+  assert.deepEqual(parseChatReply('{"decision":"x"}'), { reply: '{"decision":"x"}', decision: null, reminder: null, intent: null, remember: [] }, "no reply field -> show raw text");
   assert.equal(parseChatReply(JSON.stringify({ reply: "a", decision: "d".repeat(500) })).decision?.length, 160);
+});
+
+test("remember: model facts are untrusted (strings only, max 3, clipped); old setup answers become facts", () => {
+  const r = parseChatReply(JSON.stringify({ reply: "ok", remember: ["Lives in Pune", 42, "", "x".repeat(300), "Has a cat", "Fourth"] }));
+  assert.deepEqual(r.remember.map((f) => f.length), [13, 160, 9]);
+  assert.deepEqual(parseChatReply('{"reply":"ok","remember":"not a list"}').remember, []);
+
+  assert.deepEqual(normalizeProfile({ goals: "Design", values: "", trusts: "Riya", fears: "", bigDecision: "Bangalore or Jaipur" }).facts, [
+    "Her goals: Design",
+    "Who she trusts: Riya",
+    "A big decision she faced: Bangalore or Jaipur",
+  ]);
+  assert.deepEqual(normalizeProfile(null), { facts: [] });
+  assert.deepEqual(normalizeProfile({ facts: ["a", "A", 3, " b "] }), { facts: ["a", "b"] });
+
+  const many = mergeFacts([], Array.from({ length: MAX_FACTS + 5 }, (_, i) => `fact ${i}`));
+  assert.equal(many.length, MAX_FACTS);
+  assert.equal(many[0], "fact 5", "oldest facts drop first");
 });
 
 test("reminders: accepted only with a parseable time in the next year", () => {

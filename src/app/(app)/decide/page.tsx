@@ -31,7 +31,7 @@ function FromUrl() {
 function Decide({ fromChat }: { fromChat: string }) {
   const vault = useMemoryVault();
   const { profile, decisions } = vault.memory;
-  const [question, setQuestion] = useState(fromChat || (decisions.length ? "" : profile?.bigDecision ?? ""));
+  const [question, setQuestion] = useState(fromChat);
   const [asked, setAsked] = useState("");
   const [cards, setCards] = useState<Partial<Record<ViewId, Card>>>({});
   const [picked, setPicked] = useState<ViewId | null>(null);
@@ -39,7 +39,7 @@ function Decide({ fromChat }: { fromChat: string }) {
 
   async function askAll() {
     const q = question.trim();
-    if (!q || !profile) return;
+    if (!q) return;
     setAsked(q);
     setPicked(null);
     setCards(Object.fromEntries(ORDER.map((v) => [v, { loading: true }])));

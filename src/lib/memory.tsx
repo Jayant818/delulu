@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { clear, del, get, set } from "idb-keyval";
 import type { AiResult } from "@/lib/ai/provider";
-import type { Outcome, Profile, ViewId } from "@/lib/persona";
+import { normalizeProfile, type Outcome, type Profile, type ViewId } from "@/lib/persona";
 import type { Job } from "@/lib/schedule";
 import { useSession } from "@/lib/session";
 import { deriveKey, KEY_MESSAGE, seal, unseal, type Sealed } from "@/lib/vault";
@@ -21,9 +21,9 @@ export type Decision = {
   checkInAt: string;
   outcome?: Outcome;
 };
-export type Memory = { profile: Profile | null; chat: ChatEntry[]; decisions: Decision[]; jobs: Job[]; dailyAt: string | null };
+export type Memory = { profile: Profile; chat: ChatEntry[]; decisions: Decision[]; jobs: Job[]; dailyAt: string | null };
 
-const EMPTY: Memory = { profile: null, chat: [], decisions: [], jobs: [], dailyAt: null };
+const EMPTY: Memory = { profile: { facts: [] }, chat: [], decisions: [], jobs: [], dailyAt: null };
 const storeKey = (address: string) => `memory:v1:${address.toLowerCase()}`;
 
 type Vault = {
@@ -67,7 +67,9 @@ export function MemoryProvider({ children }: { children: ReactNode }) {
         // The signature lives only in this expression: it becomes a non-extractable key and is never stored or sent.
         const key = await deriveKey(await signRef.current(KEY_MESSAGE), address);
         const blob = await get<Sealed>(storeKey(address));
-        const m: Memory = blob ? { ...EMPTY, ...(await unseal<Partial<Memory>>(key, blob)) } : EMPTY; // older records lack jobs
+        const stored = blob ? await unseal<Partial<Memory>>(key, blob) : {};
+        // Older records lack jobs, or hold the 5 setup answers instead of facts: normalize both.
+        const m: Memory = { ...EMPTY, ...stored, profile: normalizeProfile(stored.profile) };
         if (cancelled) return;
         keyRef.current = key;
         memRef.current = m;

@@ -2,7 +2,7 @@
 // OpenAI server stands in. Run: npm test
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
@@ -151,5 +151,22 @@ test("0G path (default with a 0G key): reference-image request, request id back,
     delete process.env.OPENAI_API_KEY;
     zg.close();
     oa.close();
+  }
+});
+
+test("Vercel: with no usage file set, the counts go to the writable temp dir (the deploy folder is read-only)", async () => {
+  const { withUsage } = (await ready).lib;
+  const keep = process.env.TRYON_USAGE_FILE;
+  delete process.env.TRYON_USAGE_FILE;
+  process.env.VERCEL = "1";
+  const file = path.join(tmpdir(), "delulu-tryon-usage.json");
+  await rm(file, { force: true }); // no stale file from an earlier run can make this pass
+  try {
+    await withUsage((u) => ({ usage: { ...u, total: 99 }, result: null }));
+    assert.equal(JSON.parse(await readFile(file, "utf8")).total, 99);
+  } finally {
+    delete process.env.VERCEL;
+    process.env.TRYON_USAGE_FILE = keep;
+    await rm(file, { force: true });
   }
 });

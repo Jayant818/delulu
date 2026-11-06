@@ -2,7 +2,8 @@
 // Login + wallet. Two modes behind one hook:
 // - privy: email/Google login that creates an embedded EVM wallet (no seed phrase UI). Needs NEXT_PUBLIC_PRIVY_APP_ID.
 //   0G shares its own Privy app ID at the event for the iAI bonus (works on localhost:3000/3001/5173 only).
-// - dev: no app ID set -> a local throwaway key in localStorage, clearly labelled DEV. Not for real users.
+// - dev: no app ID set -> a local key in localStorage, made automatically on first open (no login screen). Labelled DEV in
+//   Settings. Weaker than Privy: any script on this origin could read it.
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { PrivyProvider, usePrivy, useSignMessage, useWallets } from "@privy-io/react-auth";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -34,7 +35,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       config={{
         loginMethods: ["email", "google"],
         embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
-        appearance: { theme: "light", accentColor: "#c2410c" },
+        appearance: { theme: "light", accentColor: "#14213D" },
       }}
     >
       <PrivySession>{children}</PrivySession>

@@ -3,10 +3,8 @@
 // The in-app "scheduler" runs these when she opens Delulu and every 15 s while it is open (no web push).
 import type { ApiResult } from "@/lib/api";
 import type { ChatEntry, Memory } from "@/lib/memory";
-import type { Outcome } from "@/lib/persona";
+import { mergeFacts, type Outcome } from "@/lib/persona";
 import { nextDaily, OUTCOMES, whenIST, type Job } from "@/lib/schedule";
-
-export const PRIVACY_LINE = "Your chats are sealed on 0G. Try-on photos are processed by an image model on 0G's network (standard tier, not sealed), then deleted.";
 
 export const WEB_HELP = `Just talk to me, like you'd text a friend. No commands. You can also say:
 • "help me decide between the Bangalore job and staying in Jaipur"
@@ -17,9 +15,9 @@ export const WEB_HELP = `Just talk to me, like you'd text a friend. No commands.
 • "delete everything"
 Or tap Try-on to see a new hair or nail look on you. Reminders and check-ins show up here when you open Delulu.`;
 
-export const WEB_PRIVACY = `${PRIVACY_LINE}
+export const WEB_PRIVACY = `What happens to what you tell me:
 • Chat: every answer comes from a model in private TEE mode on 0G Private Computer, and 0G reports it as sealed. Our server passes your words to 0G in memory and never stores them. The request IDs are below.
-• Memory: encrypted on this device with a key only your wallet can make. Nothing readable is stored on a server.
+• Memory: what I learn about you, our chats and your decisions are encrypted on this device with a key only your wallet can make. Nothing readable is stored on a server.
 • Try-on: your photo goes to an image model on 0G's network (standard tier, not sealed), only to make the look. We never save it, and Delulu keeps only the text.`;
 
 const rid = () => Math.random().toString(16).slice(2, 10);
@@ -34,6 +32,8 @@ export type Effect = { navigate?: string };
 
 /** Turn one /api/chat result into memory changes. Intents are performed by the app, not described by the model. */
 export function applyChatResult(m: Memory, r: ApiResult, meta: ChatEntry["ai"], now: number, demoFast: boolean): { memory: Memory; effect: Effect } {
+  // What it learned about her this turn (no setup questions: the profile grows from the chat).
+  if (r.remember?.length) m = { ...m, profile: { facts: mergeFacts(m.profile.facts, r.remember) } };
   const add = (...es: ChatEntry[]) => ({ ...m, chat: [...m.chat, ...es] });
   const intent = r.intent;
   if (intent) {
@@ -44,7 +44,7 @@ export function applyChatResult(m: Memory, r: ApiResult, meta: ChatEntry["ai"], 
         return { memory: add(entry(WEB_PRIVACY, { kind: "privacy" }, now)), effect: {} };
       case "forget":
         return {
-          memory: add(entry("Delete everything I know about you: your answers, chats, decisions and reminders? This can't be undone.", { kind: "confirm-forget" }, now)),
+          memory: add(entry("Delete everything I know about you: what I learned about you, our chats, your decisions and reminders? This can't be undone.", { kind: "confirm-forget" }, now)),
           effect: {},
         };
       case "checkin_set": {

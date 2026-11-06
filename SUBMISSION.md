@@ -40,7 +40,7 @@ Delulu is your AI companion, your split personality. Tell it anything; it helps 
 
 Girls already tell AI the things they would never say out loud: a job in another city, a relationship, money, family pressure. Today, every one of those messages sits in plain text at an AI company.
 
-**Delulu is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives.** Delusional name, sane answers. It is a mobile-first website (and the same brain runs as a Telegram bot). Five setup questions (goals, values, who she trusts, what she fears, the big thing on her mind), then she just talks, and Delulu answers with her setup answers, past chats and past decisions in mind. There are no commands: "help me decide …", "remind me Sunday 6pm to call Riya", "what are my reminders", "check in on me every evening at 9", "is this private?" and "delete everything" (with a confirm) all work as plain sentences.
+**Delulu is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives.** Delusional name, sane answers. It is a mobile-first website (and the same brain runs as a Telegram bot). No forms and no setup questions: she opens it and talks. Delulu learns lasting facts about her from the chat (goals, people, fears, plans; she can see the list in Settings) and answers with those facts, past chats and past decisions in mind. There are no commands: "help me decide …", "remind me Sunday 6pm to call Riya", "what are my reminders", "check in on me every evening at 9", "is this private?" and "delete everything" (with a confirm) all work as plain sentences.
 
 When she is actually stuck on a choice, Delulu notices. The reply carries "Sounds like a decision: take the Bangalore job or stay in Jaipur" and a **See perspectives** button. One tap shows the same choice from different perspectives, three voices side by side:
 
@@ -54,7 +54,7 @@ She picks the one she will follow. Later, Delulu follows up and asks how it went
 
 This is why it is not a chat wrapper: the companion remembers her, decisions are pulled out of free talk and shown from different perspectives, Delulu follows up on its own, and every chat answer is sealed with a checkable request ID.
 
-Privacy, honestly (the app says this in one line: "Your chats are sealed on 0G. Try-on photos are processed by an image model on 0G's network (standard tier, not sealed), then deleted."):
+Privacy, honestly (chats: a line on the Talk screen; try-on: one line in the landing FAQ):
 
 - **Chats are sealed.** Every chat, decision, check-in and brief call goes to 0G Private Computer in `private` trust mode, so only TeeML providers serve it: the model runs inside an Intel TDX enclave, and 0G documents that neither 0G nor the GPU operator can read the prompt; every response we measured carried `x-0g-e2ee: sealed`.
 - **Memory stays hers.** In the web app, her memory is encrypted on her own device (a key derived from her wallet signature, AES-256-GCM); nothing readable is stored on a server.

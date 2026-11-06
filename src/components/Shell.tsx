@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { APP_NAME } from "@/config";
 import { chatLines, decisionSummaries, postAi, aiMeta } from "@/lib/api";
@@ -19,17 +19,17 @@ function Center({ children }: { children: ReactNode }) {
   return <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-6 text-center">{children}</main>;
 }
 
-// Gate: login -> wallet -> unlock memory -> onboarding -> app.
+// Gate: login -> wallet -> unlock memory -> app. No setup questions (Jayant, TG 3486): it learns about her from the chat.
 export function Shell({ children }: { children: ReactNode }) {
   const session = useSession();
   const vault = useMemoryVault();
   const path = usePathname();
-  const router = useRouter();
-  const needsOnboarding = vault.status === "unlocked" && !vault.memory.profile;
 
+  // DEV mode has nothing to log in to: make the device key at once, so opening the app lands in the chat.
+  const autoLogin = session.mode === "dev" && session.ready && !session.authenticated;
   useEffect(() => {
-    if (needsOnboarding && path !== "/onboarding") router.replace("/onboarding");
-  }, [needsOnboarding, path, router]);
+    if (autoLogin) session.login();
+  }, [autoLogin, session]);
 
   // In-app scheduler: when she opens Delulu, and every 15 s while it is open, due check-backs, reminders and
   // check-ins land in Talk. ponytail: no web push; she sees them when the app is open.
@@ -39,7 +39,7 @@ export function Shell({ children }: { children: ReactNode }) {
     memRef.current = vault.memory;
     updateRef.current = vault.update;
   });
-  const ready = vault.status === "unlocked" && !!vault.memory.profile;
+  const ready = vault.status === "unlocked";
   useEffect(() => {
     if (!ready) return;
     let running = false;
@@ -72,7 +72,7 @@ export function Shell({ children }: { children: ReactNode }) {
     return () => clearInterval(t);
   }, [ready]);
 
-  if (!session.ready) return <Center><p className="text-muted">Loading…</p></Center>;
+  if (!session.ready || autoLogin) return <Center><p className="text-muted">Loading…</p></Center>;
 
   if (!session.authenticated)
     return (
@@ -80,11 +80,8 @@ export function Shell({ children }: { children: ReactNode }) {
         <h1 className="font-serif text-5xl">{APP_NAME}</h1>
         <p className="text-muted">The app with the delulu name that gives you the sane answer. Three voices, your call, and your memory stays encrypted on your phone.</p>
         <button onClick={session.login} className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-ink">
-          {session.mode === "privy" ? "Continue with email or Google" : "Start (DEV wallet)"}
+          Continue with email or Google
         </button>
-        {session.mode === "dev" && (
-          <p className="text-xs text-amber-800">DEV mode: no NEXT_PUBLIC_PRIVY_APP_ID set, so a local test wallet is used.</p>
-        )}
       </Center>
     );
 
@@ -98,27 +95,22 @@ export function Shell({ children }: { children: ReactNode }) {
         <button onClick={() => session.logout()} className="rounded-xl border border-line px-4 py-2">Log out</button>
       </Center>
     );
-  if (needsOnboarding && path !== "/onboarding") return <Center><p className="text-muted">…</p></Center>;
-
-  const showNav = path !== "/onboarding";
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col">
       <main className="flex-1 px-4 pb-24 pt-6">{children}</main>
-      {showNav && (
-        <nav className="fixed inset-x-0 bottom-0 border-t border-line bg-paper/95 backdrop-blur">
-          <div className="mx-auto flex max-w-md">
-            {NAV.map((n) => (
-              <Link
-                key={n.href}
-                href={n.href}
-                className={`flex-1 py-3 text-center text-sm ${path === n.href ? "font-semibold text-ink underline decoration-2 underline-offset-8" : "text-muted"}`}
-              >
-                {n.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
-      )}
+      <nav className="fixed inset-x-0 bottom-0 border-t border-line bg-paper/95 backdrop-blur">
+        <div className="mx-auto flex max-w-md">
+          {NAV.map((n) => (
+            <Link
+              key={n.href}
+              href={n.href}
+              className={`flex-1 py-3 text-center text-sm ${path === n.href ? "font-semibold text-ink underline decoration-2 underline-offset-8" : "text-muted"}`}
+            >
+              {n.label}
+            </Link>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

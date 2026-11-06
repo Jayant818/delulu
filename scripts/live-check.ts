@@ -8,11 +8,12 @@ import { imageBackend, imageModel } from "../src/lib/tryon";
 
 const ctx: Context = {
   profile: {
-    goals: "Become a product designer at a good studio",
-    values: "Freedom, family, honesty",
-    trusts: "My older sister Riya",
-    fears: "Letting my parents down",
-    bigDecision: "Take the design job in Bangalore or stay in Jaipur",
+    facts: [
+      "Wants to become a product designer at a good studio",
+      "Values freedom, family and honesty",
+      "Trusts her older sister Riya with big choices",
+      "Afraid of letting her parents down",
+    ],
   },
   decisions: [],
   history: [],
@@ -64,6 +65,12 @@ async function main() {
   show("chat+reminder", r.ai, t3);
   console.log(`      reminder: ${r.reminder ? `${r.reminder.text} @ ${r.reminder.at}` : "NONE  <- reminders will not be set"}`);
   if (!r.reminder) failures++;
+
+  // 3b. No setup questions: the profile grows from the chat, so the model must pick up a lasting fact.
+  const [f, t3b] = await timed(() => chatTurn(ctx, "i'm a 22 yo ux intern in pune and my cat mochi is my whole personality lol"));
+  show("chat+remember", f.ai, t3b);
+  console.log(`      remember: ${f.remember.length ? JSON.stringify(f.remember) : "NONE  <- Delulu will not learn about her from the chat"}`);
+  if (!f.remember.length) failures++;
 
   // 4. Small talk must NOT produce a decision card.
   const [s, t4] = await timed(() => chatTurn(ctx, "hiii how are you"));

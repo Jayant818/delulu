@@ -1,8 +1,9 @@
-// Server-only: hair + nail try-on via OpenAI's image edit endpoint, with a hard spend cap (Jayant's money).
+// Server-only: hair + nail try-on via the image model (0G by default), with a hard spend cap (Jayant's money).
 // Privacy: the uploaded photo and the result live only in this request's memory; nothing is written to disk.
 // Only usage COUNTS are persisted (per day, keyed by an HMAC, never a raw wallet address or IP).
 import { createHmac } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
 export type TryonKind = "hair" | "nails";
@@ -43,7 +44,12 @@ export function refund(u: Usage, keys: string[]): Usage {
 }
 
 // turbopackIgnore: a runtime data file, not a source to trace into the server bundle.
-const usageFile = () => process.env.TRYON_USAGE_FILE ?? path.join(/* turbopackIgnore: true */ process.cwd(), "data", "tryon-usage.json");
+// Vercel's file system is read-only except /tmp, so the counts go there (VERCEL=1 is set by the platform).
+// ponytail: on Vercel each function instance has its own /tmp, so the caps hold per instance, not globally. Upgrade
+// path: keep the counts in Vercel KV / Upstash Redis (one INCR per try-on) if a real global cap matters.
+const usageFile = () =>
+  process.env.TRYON_USAGE_FILE ??
+  (process.env.VERCEL ? path.join(tmpdir(), "delulu-tryon-usage.json") : path.join(/* turbopackIgnore: true */ process.cwd(), "data", "tryon-usage.json"));
 let lock: Promise<unknown> = Promise.resolve();
 
 /** Serialised read-modify-write of the usage file (one Node process). */
@@ -110,14 +116,16 @@ async function edit0g(photo: Blob, prompt: string): Promise<EditResult> {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.ZG_API_KEY}` },
     body: JSON.stringify({ model: ZG_IMAGE_MODEL, prompt, image: [ref], size: SIZE, n: 1, response_format: "b64_json" }),
-    signal: AbortSignal.timeout(150_000),
+    signal: AbortSignal.timeout(55_000), // under the route's 60 s maxDuration: a slow call ends as our 502 + refund
   });
   const body = await res.text();
   if (!res.ok) throw new Error(`0G image model ${res.status}: ${body.slice(0, 300)}`);
   const j = JSON.parse(body);
   const b64 = j?.data?.[0]?.b64_json;
   if (!b64) throw new Error("0G image model returned no image");
-  return { dataUrl: `data:image/png;base64,${b64}`, ms: Date.now() - t, requestId: j?.x_0g_trace?.request_id ?? null, backend: "0g", model: ZG_IMAGE_MODEL };
+  // seedream returns JPEG (measured: 1024x1024, ~300 KB, far under Vercel's 4.5 MB response limit); label it by its bytes.
+  const mime = b64.startsWith("/9j/") ? "image/jpeg" : "image/png";
+  return { dataUrl: `data:${mime};base64,${b64}`, ms: Date.now() - t, requestId: j?.x_0g_trace?.request_id ?? null, backend: "0g", model: ZG_IMAGE_MODEL };
 }
 
 /** OpenAI (only if chosen): /v1/images/edits. Never sends input_fidelity: this model rejects it (400). */
@@ -134,7 +142,7 @@ async function editOpenAI(photo: Blob, prompt: string): Promise<EditResult> {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
     body: form,
-    signal: AbortSignal.timeout(150_000),
+    signal: AbortSignal.timeout(55_000), // under the route's 60 s maxDuration: a slow call ends as our 502 + refund
   });
   const body = await res.text();
   if (!res.ok) throw new Error(`image model ${res.status}: ${body.slice(0, 300)}`);

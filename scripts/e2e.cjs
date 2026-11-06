@@ -29,25 +29,24 @@ const idb = (page, op) =>
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
 
-  // Login + onboarding -> home is the chat.
+  // No login screen in DEV mode and no setup questions: opening the app lands in the chat, input focused.
   await page.goto(B + "/app");
-  await page.getByRole("button", { name: /DEV wallet/ }).click();
-  await page.waitForURL("**/onboarding");
-  await page.screenshot({ path: `${out}/1-onboarding.png` });
-  const answers = ["Become a product designer", "Freedom and family", "My sister", "Disappointing my parents", "Take a job in Bangalore or stay in Jaipur"];
-  for (let i = 0; i < 5; i++) {
-    await page.locator("textarea").fill(answers[i]);
-    await page.getByRole("button", { name: i < 4 ? "Next" : /Meet/, exact: i < 4 }).click();
-  }
-  await page.waitForURL(B + "/app");
-  ok(await page.getByRole("heading", { name: /Tell Delulu anything/ }).isVisible(), "home is the 'Tell Delulu anything' chat");
+  await page.getByRole("heading", { name: /Tell Delulu anything/ }).waitFor();
+  ok(page.url() === B + "/app", "open -> straight into the chat (no onboarding route)");
+  ok((await page.evaluate(() => document.activeElement?.getAttribute("placeholder"))) === "Tell me anything…", "chat input is focused");
+  await page.screenshot({ path: `${out}/1-open.png` });
+
+  // It learns about her from the chat (mock: "I'm ..." -> one fact), stored encrypted with the rest.
+  await page.getByPlaceholder("Tell me anything…").fill("I'm a UX intern in Pune and my sister is my person");
+  await page.getByRole("button", { name: "Send" }).click();
+  await page.locator("button", { hasText: "MOCK" }).first().waitFor();
 
   // Free talk with a decision in it -> inline decision card.
   const input = page.getByPlaceholder("Tell me anything…");
   await input.fill("ugh my parents want me home but should I take the Bangalore design job or stay in Jaipur?");
   await page.getByRole("button", { name: "Send" }).click();
   await page.getByText("Sounds like a decision:").waitFor();
-  ok((await page.locator("button", { hasText: "MOCK" }).count()) === 1, "chat reply carries a request-ID chip");
+  ok((await page.locator("button", { hasText: "MOCK" }).count()) === 2, "every chat reply carries a request-ID chip");
   await page.screenshot({ path: `${out}/2-talk-decision.png`, fullPage: true });
 
   // Card -> Decide, pre-filled.
@@ -106,7 +105,7 @@ const idb = (page, op) =>
   // Try-on (MOCK without OPENAI_API_KEY): photo -> style -> look -> brief (0G) -> three voices -> pick.
   await page.getByRole("link", { name: "Try-on", exact: true }).click();
   await page.getByRole("heading", { name: "Try the look" }).waitFor();
-  ok(await page.getByText(/Try-on photos are processed by an image model on 0G's network \(standard tier, not sealed\), then deleted/).isVisible(), "honest try-on privacy line");
+  ok((await page.getByText(/Try-on photos are processed/).count()) === 0, "no privacy banner on the try-on screen (it lives in the FAQ)");
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAKklEQVR4nO3NQQkAAAgEsIttEjMZyxQ+hMH+y1SfikAgEAgEAoFAIPgSLPAYWGrIjiB9AAAAAElFTkSuQmCC", "base64");
   await page.locator('input[type="file"]').setInputFiles({ name: "selfie.png", mimeType: "image/png", buffer: png });
   await page.getByRole("img", { name: "Your photo" }).waitFor();
@@ -126,9 +125,12 @@ const idb = (page, op) =>
   // Delete everything.
   await page.getByRole("link", { name: "Settings" }).click();
   await page.getByText(/\d+ decisions/).waitFor();
+  ok(await page.getByText(/· 1 thing it knows about you/).isVisible(), "Settings counts what it learned");
+  await page.getByText(/What Delulu knows about you/).click();
+  ok(await page.getByText("I'm a UX intern in Pune and my sister is my person").isVisible(), "…and lists it");
   await page.getByRole("button", { name: "Delete everything" }).click();
-  await page.getByRole("button", { name: /DEV wallet/ }).waitFor();
-  ok((await idb(page, "count")) === 0, "delete everything wipes IndexedDB and logs out");
+  await page.getByText(/What's on your mind\?/).waitFor();
+  ok((await idb(page, "count")) === 0, "delete everything wipes IndexedDB and starts fresh in the chat");
 
   ok(errors.length === 0, "no page errors" + (errors.length ? ": " + errors.join(" | ") : ""));
   await browser.close();

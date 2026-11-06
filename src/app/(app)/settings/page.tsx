@@ -13,7 +13,7 @@ export default function Settings() {
   const status = useAiStatus();
   const [wiping, setWiping] = useState(false);
 
-  const { chat, decisions } = vault.memory;
+  const { chat, decisions, profile } = vault.memory;
 
   return (
     <div className="space-y-6">
@@ -22,9 +22,19 @@ export default function Settings() {
       <section className="rounded-2xl border border-line bg-paper p-4 text-sm">
         <h2 className="font-semibold">Your private memory</h2>
         <p className="mt-1 text-muted">
-          {chat.length} messages · {decisions.length} decisions. Encrypted on this device (AES-GCM) with a key made from your
-          wallet signature. Nothing is stored on a server.
+          {chat.length} messages · {decisions.length} decisions · {profile.facts.length} {profile.facts.length === 1 ? "thing" : "things"} it knows about you. Encrypted on
+          this device (AES-GCM) with a key made from your wallet signature. Nothing is stored on a server.
         </p>
+        {profile.facts.length > 0 && (
+          <details className="mt-3">
+            <summary className="cursor-pointer font-semibold text-ink">What {APP_NAME} knows about you</summary>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
+              {profile.facts.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          </details>
+        )}
         <p className="mt-3 break-all font-mono text-xs">
           Wallet ({session.mode === "privy" ? "embedded" : "DEV"}): {session.address}
         </p>
@@ -55,7 +65,7 @@ export default function Settings() {
         {wiping ? "Deleting…" : "Delete everything"}
       </button>
       <p className="text-center text-xs text-muted">
-        Deletes your profile, chats and decisions from this device and logs you out of {APP_NAME}. One tap, no undo.
+        Deletes what it knows about you, your chats and decisions from this device, and {APP_NAME} starts fresh. One tap, no undo.
       </p>
     </div>
   );

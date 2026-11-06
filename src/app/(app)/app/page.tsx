@@ -126,7 +126,7 @@ export default function Talk() {
   const vault = useMemoryVault();
   const router = useRouter();
   const m = vault.memory;
-  const { chat, profile, decisions } = m;
+  const { chat, decisions } = m;
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -136,14 +136,14 @@ export default function Talk() {
 
   async function send() {
     const message = text.trim();
-    if (!message || busy || !profile) return;
+    if (!message || busy) return;
     setText("");
     setError(undefined);
     setBusy(true);
     const history = chatLines(vault.memory, 20);
     await vault.update((mm) => ({ ...mm, chat: [...mm.chat, { role: "user", content: message, at: new Date().toISOString() }] }));
     try {
-      const r = await postAi("/api/chat", { profile, decisions: decisionSummaries(vault.memory), history, message });
+      const r = await postAi("/api/chat", { profile: vault.memory.profile, decisions: decisionSummaries(vault.memory), history, message });
       let effect: { navigate?: string } = {};
       await vault.update((mm) => {
         const out = applyChatResult(mm, r, aiMeta(r), Date.now(), DEMO_FAST);
@@ -206,6 +206,7 @@ export default function Talk() {
         className="fixed inset-x-0 bottom-12 mx-auto flex max-w-md gap-2 bg-cream px-4 py-2"
       >
         <input
+          autoFocus
           value={text}
           onChange={(ev) => setText(ev.target.value)}
           placeholder="Tell me anything…"

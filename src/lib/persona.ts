@@ -1,21 +1,39 @@
 // Shared by client (types, questions) and server (prompt builders). No secrets here.
 import { APP_NAME } from "@/config";
 
-export type Profile = {
-  goals: string;
-  values: string;
-  trusts: string;
-  fears: string;
-  bigDecision: string;
-};
+// What Delulu knows about her: short facts it picked up from the chat (no setup questions, Jayant TG 3486).
+// Stored inside her encrypted memory like everything else.
+export type Profile = { facts: string[] };
+export const MAX_FACTS = 40;
 
-export const ONBOARDING: { key: keyof Profile; q: string; hint: string }[] = [
-  { key: "goals", q: "What do you want your life to look like in a few years?", hint: "Career, money, love, where you live: anything." },
-  { key: "values", q: "What matters most to you, even when it is hard?", hint: "Freedom, family, honesty, ambition..." },
-  { key: "trusts", q: "Who do you trust when you have to choose something big?", hint: "A person, a group, or 'only myself'." },
-  { key: "fears", q: "What are you afraid of getting wrong?", hint: "Say it plainly. It is stored encrypted on your phone." },
-  { key: "bigDecision", q: "What is one big decision in front of you right now?", hint: "We can start with this one." },
-];
+/** Any stored or received profile -> { facts }. Old records (5 setup answers) become facts, so nothing is lost. */
+export function normalizeProfile(v: unknown): Profile {
+  if (!v || typeof v !== "object") return { facts: [] };
+  const o = v as Record<string, unknown>;
+  if (Array.isArray(o.facts)) return { facts: mergeFacts([], o.facts) };
+  const old: [string, string][] = [
+    ["goals", "Her goals"],
+    ["values", "What matters to her"],
+    ["trusts", "Who she trusts"],
+    ["fears", "What she fears"],
+    ["bigDecision", "A big decision she faced"],
+  ];
+  return { facts: mergeFacts([], old.filter(([k]) => typeof o[k] === "string" && (o[k] as string).trim()).map(([k, label]) => `${label}: ${o[k]}`)) };
+}
+
+/** Add new facts: strings only, trimmed and clipped, no case-insensitive duplicates, newest MAX_FACTS kept. */
+export function mergeFacts(facts: string[], add: unknown): string[] {
+  const out = [...facts];
+  const seen = new Set(out.map((f) => f.toLowerCase()));
+  for (const f of Array.isArray(add) ? add : []) {
+    const t = typeof f === "string" ? f.trim().slice(0, 160) : "";
+    if (t && !seen.has(t.toLowerCase())) {
+      seen.add(t.toLowerCase());
+      out.push(t);
+    }
+  }
+  return out.slice(-MAX_FACTS);
+}
 
 export type ViewId = "sane" | "future" | "bestie";
 
@@ -50,12 +68,9 @@ Never pretend to be human. Never shame her. Never decide for her: help her decid
 const clip = (s: unknown, n: number) => String(s ?? "").slice(0, n);
 
 export function profileBlock(p: Profile): string {
-  return `ABOUT HER (her own words):
-- Goals: ${clip(p.goals, 600)}
-- Values: ${clip(p.values, 600)}
-- Who she trusts: ${clip(p.trusts, 600)}
-- What she fears: ${clip(p.fears, 600)}
-- Big decision right now: ${clip(p.bigDecision, 600)}`;
+  if (!p.facts.length)
+    return "ABOUT HER: nothing yet, you are just getting to know her. Never interview her; learn about her as she talks.";
+  return "ABOUT HER (what she has told you, oldest first):\n" + p.facts.map((f) => `- ${clip(f, 160)}`).join("\n");
 }
 
 function pastDecisionsBlock(ds: DecisionSummary[]): string {
@@ -107,7 +122,8 @@ ${SAFETY}
 ${nowLineIST(now)}
 
 OUTPUT FORMAT: answer with ONE JSON object and nothing else:
-{"reply": "<your message to her>", "decision": <null or "<one line, max 15 words: the choice she is weighing, e.g. Take the Bangalore job or stay in Jaipur>">, "reminder": <null or {"text": "<what to remind her, max 12 words>", "at": "<ISO 8601 time with +05:30>"}>${bot ? `, "intent": <null or {"type": "...", ...}>` : ""}}
+{"reply": "<your message to her>", "decision": <null or "<one line, max 15 words: the choice she is weighing, e.g. Take the Bangalore job or stay in Jaipur>">, "reminder": <null or {"text": "<what to remind her, max 12 words>", "at": "<ISO 8601 time with +05:30>"}>, "remember": [<0 to 3 strings>]${bot ? `, "intent": <null or {"type": "...", ...}>` : ""}}
+"remember": lasting facts about her from her LATEST message that are not already in ABOUT HER: her goals, values, work or studies, city, the people in her life and how she feels about them, her fears, what she likes. Third person, max 15 words each, e.g. "Works as a junior designer in Jaipur". Not passing moods, not small talk. Usually [].
 Set "decision" only when her LATEST message shows a real choice she has to make (two or more options, or yes/no on something that matters). Small talk, venting with no choice, or a decision she already made: null.
 ${
     bot
@@ -122,7 +138,7 @@ export type Intent =
   | { type: "checkin_set"; time: string }
   | { type: "reminder_cancel"; match: string }
   | { type: "decide"; question: string };
-export type ChatReply = { reply: string; decision: string | null; reminder: Reminder | null; intent: Intent | null };
+export type ChatReply = { reply: string; decision: string | null; reminder: Reminder | null; intent: Intent | null; remember: string[] };
 
 // The Telegram bot has no slash commands: the model routes these from plain text.
 const INTENT_RULES = `There are no commands. Set "intent" when her LATEST message is one of these requests, else null:
@@ -181,11 +197,13 @@ export function parseChatReply(raw: string, now = Date.now()): ChatReply {
       const o = JSON.parse(text.slice(start, end + 1));
       if (o && typeof o.reply === "string" && o.reply.trim()) {
         const d = typeof o.decision === "string" ? o.decision.trim().slice(0, 160) : "";
-        return { reply: o.reply.trim(), decision: d || null, reminder: readReminder(o.reminder, now), intent: readIntent(o.intent) };
+        // The model's facts are untrusted too: at most 3 short strings per turn.
+        const remember = mergeFacts([], o.remember).slice(0, 3);
+        return { reply: o.reply.trim(), decision: d || null, reminder: readReminder(o.reminder, now), intent: readIntent(o.intent), remember };
       }
     } catch {}
   }
-  return { reply: text, decision: null, reminder: null, intent: null };
+  return { reply: text, decision: null, reminder: null, intent: null, remember: [] };
 }
 
 export function viewSystemPrompt(view: ViewId, p: Profile, ds: DecisionSummary[], chat: ChatLine[] = []): string {

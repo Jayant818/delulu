@@ -3,7 +3,7 @@ import type { AiResult } from "@/lib/ai/provider";
 import type { Memory } from "@/lib/memory";
 import type { Intent, Reminder } from "@/lib/persona";
 
-export type ApiResult = AiResult & { decision?: string | null; reminder?: Reminder | null; intent?: Intent | null };
+export type ApiResult = AiResult & { decision?: string | null; reminder?: Reminder | null; intent?: Intent | null; remember?: string[] };
 
 export async function postAi(url: string, body: unknown): Promise<ApiResult> {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -15,6 +15,6 @@ export async function postAi(url: string, body: unknown): Promise<ApiResult> {
 export const decisionSummaries = (m: Memory) => m.decisions.map(({ question, choice, at, outcome }) => ({ question, choice, at, outcome }));
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const aiMeta = ({ text, decision, reminder, intent, ...meta }: ApiResult) => meta;
+export const aiMeta = ({ text, decision, reminder, intent, remember, ...meta }: ApiResult) => meta;
 
 export const chatLines = (m: Memory, n: number) => m.chat.slice(-n).map(({ role, content }) => ({ role, content }));

@@ -6,13 +6,13 @@ import { useEffect, useState } from "react";
 import { AiChip } from "@/components/AiChip";
 import { CHECKBACK_MS } from "@/config";
 import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
-import { checkbackJob, PRIVACY_LINE } from "@/lib/assistant";
+import { checkbackJob } from "@/lib/assistant";
 import { useMemoryVault, type AiMeta, type Decision } from "@/lib/memory";
 import { VIEWS, type ViewId } from "@/lib/persona";
 import { useSession } from "@/lib/session";
 
 type Kind = "hair" | "nails";
-type Info = { presets: Record<Kind, string[]>; caps: { total: number; user: number }; mock: boolean; backend: string; model: string; privacy: string };
+type Info = { presets: Record<Kind, string[]>; caps: { total: number; user: number }; mock: boolean; backend: string; model: string };
 type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string };
 const ORDER: ViewId[] = ["sane", "future", "bestie"];
 
@@ -30,7 +30,6 @@ async function shrink(file: File, max = 1024): Promise<Blob> {
 export default function TryOn() {
   const vault = useMemoryVault();
   const session = useSession();
-  const { profile } = vault.memory;
   const [info, setInfo] = useState<Info>();
   const [kind, setKind] = useState<Kind>("hair");
   const [photo, setPhoto] = useState<{ blob: Blob; url: string }>();
@@ -73,7 +72,7 @@ export default function TryOn() {
   const question = `Should I get this ${kind === "hair" ? "hair" : "nail"} look: ${style.trim()}?`;
 
   async function make() {
-    if (!photo || !style.trim() || !profile) return;
+    if (!photo || !style.trim()) return;
     setMaking(true);
     setError(undefined);
     setBrief(undefined);
@@ -91,7 +90,7 @@ export default function TryOn() {
       setResult(data);
       // The brief (0G, text only) runs right away; the three voices wait for her tap.
       setBrief("loading");
-      const b = await postAi("/api/brief", { profile, kind, style: style.trim() });
+      const b = await postAi("/api/brief", { profile: vault.memory.profile, kind, style: style.trim() });
       setBrief({ text: b.text, ai: aiMeta(b) });
       const label = kind === "hair" ? "💇 Stylist brief" : "💅 Nail tech brief";
       await vault.update((m) => ({
@@ -106,9 +105,8 @@ export default function TryOn() {
   }
 
   async function askViews() {
-    if (!profile) return;
     setCards(Object.fromEntries(ORDER.map((v) => [v, { loading: true }])));
-    const ctx = { profile, decisions: decisionSummaries(vault.memory), history: chatLines(vault.memory, 10), question };
+    const ctx = { profile: vault.memory.profile, decisions: decisionSummaries(vault.memory), history: chatLines(vault.memory, 10), question };
     await Promise.all(
       ORDER.map(async (view) => {
         try {
@@ -150,7 +148,6 @@ export default function TryOn() {
     <div>
       <h1 className="font-serif text-3xl">Try the look</h1>
       <p className="mt-1 text-sm text-muted">See it on you before the salon. Then ask the three voices.</p>
-      <p className="mt-2 rounded-xl border-l-4 border-ink bg-paper px-3 py-2 text-xs leading-relaxed">{info?.privacy ?? PRIVACY_LINE}</p>
 
       <div className="mt-4 flex gap-1 rounded-2xl border border-line bg-paper p-1">
         {tab("hair", "💇 Hair")}
@@ -218,7 +215,7 @@ export default function TryOn() {
               <figcaption className="mt-1 text-center text-xs text-muted">{result.mock ? "MOCK: no image model configured" : `After · ${style}`}</figcaption>
               {!result.mock && (
                 <p className="mt-0.5 text-center font-mono text-[10px] text-muted">
-                  {result.backend === "0g" ? "0G" : "OpenAI"} · {result.requestId ? `req ${result.requestId.slice(0, 8)}… · ` : ""}standard tier, not sealed
+                  {result.backend === "0g" ? "0G" : "OpenAI"} · {result.requestId ? `req ${result.requestId.slice(0, 8)}… · ` : ""}standard tier
                 </p>
               )}
             </figure>

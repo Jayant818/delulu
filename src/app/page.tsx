@@ -1,5 +1,5 @@
 // Landing page. Structure and rhythm inspired by talkamore.com (Jayant's pick); all text, art and colours are
-// Delulu's own. Palette rules: brand/delulu-DESIGN.md (sage = "sealed on 0G" only; orange = honest limits).
+// Delulu's own. Palette rules: brand/delulu-DESIGN.md (navy / cream; coral only on things you press).
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { APP_NAME, TELEGRAM_URL } from "@/config";
@@ -102,7 +102,7 @@ const FAQ = [
   },
   {
     q: "What happens to my try-on photo?",
-    a: "It is processed by an image model on 0G's network (standard tier, not sealed), only to make your look, and then deleted. We never save it, and Delulu keeps only the text (the style you picked and the brief). Your chats are sealed; this part is not, so we say so.",
+    a: "An image model on 0G's network makes your look from it (standard tier, not the sealed mode your chats use), then it's deleted. We never save it.",
   },
   { q: "Will it tell me what to do?", a: "No. It helps you see your options clearly and remembers what you chose. The decision is always yours." },
   {
@@ -138,7 +138,7 @@ export default function Landing() {
       <section className="-mt-16 bg-l-ink bg-[radial-gradient(ellipse_60%_55%_at_30%_0%,rgba(244,237,224,0.16),transparent_70%)] px-4 pt-16 text-l-paper">
         <div className="mx-auto grid max-w-5xl items-center gap-10 pb-20 pt-14 md:grid-cols-2 md:pt-20">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-l-muted-dark">AI companion · sealed on 0G</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-l-muted-dark">AI companion · chats sealed on 0G</p>
             <h1 className="mt-3 font-serif text-[clamp(2.6rem,9vw,4.4rem)] leading-[1.02] tracking-tight">
               Tell {APP_NAME} anything.
               <br />
@@ -290,10 +290,6 @@ export default function Landing() {
               ))}
             </div>
             <p className="mt-2 text-xs text-l-muted">Sample looks made by Delulu&apos;s try-on on 0G, on a fictional model (not a real person).</p>
-            <p className="mt-4 max-w-2xl rounded-2xl border-l-4 border-honest bg-l-paper px-4 py-3 text-[14px] leading-relaxed">
-              <b className="text-honest">Honest note:</b> try-on photos are processed by an image model on 0G&apos;s network (standard tier,
-              not sealed), then deleted. Your chats are sealed; try-on photos are not.
-            </p>
           </div>
         </section>
 
@@ -304,13 +300,13 @@ export default function Landing() {
               Private, <Em>honestly.</Em>
             </H2>
           </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="mx-auto mt-10 grid max-w-3xl gap-4 md:grid-cols-2">
             <article className="rounded-3xl border-2 border-sealed bg-l-card p-6">
               <p className="font-mono text-xs text-sealed">🔒 SEALED</p>
-              <h3 className="mt-2 font-serif text-2xl">AI sealed on 0G</h3>
+              <h3 className="mt-2 font-serif text-2xl">Chats sealed on 0G</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-l-muted">
-                Every answer comes from a model in private TEE mode on 0G Private Computer, and 0G reports it as sealed. Each answer carries
-                a request ID you can check: just ask &ldquo;is this private?&rdquo;.
+                Every chat answer comes from a model in private TEE mode on 0G Private Computer, and 0G reports it as sealed. Each answer
+                carries a request ID you can check: just ask &ldquo;is this private?&rdquo;.
               </p>
             </article>
             <article className="rounded-3xl border border-l-line bg-l-card p-6">
@@ -321,18 +317,9 @@ export default function Landing() {
                 it&apos;s gone. No ads, no trackers, no selling, no training on your words.
               </p>
             </article>
-            <article className="rounded-3xl border border-l-line bg-l-card p-6">
-              <p className="font-mono text-xs text-l-muted">TRY-ON</p>
-              <h3 className="mt-2 font-serif text-2xl">Photos, honestly</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-l-muted">
-                Try-on photos are processed by an image model on 0G&apos;s network (standard tier, not sealed), then deleted. We&apos;d
-                rather tell you than hide it.
-              </p>
-            </article>
           </div>
           <p className="mx-auto mt-6 max-w-3xl rounded-2xl border-l-4 border-honest bg-l-card px-5 py-4 text-[15px] leading-relaxed">
-            <b className="text-honest">What we don&apos;t claim:</b> try-on photos are not sealed (the image model on 0G&apos;s standard tier
-            sees them before they are deleted). In the Telegram version, Telegram carries the messages, and whoever runs the {APP_NAME} server holds the key to
+            <b className="text-honest">What we don&apos;t claim:</b> In the Telegram version, Telegram carries the messages, and whoever runs the {APP_NAME} server holds the key to
             stored memory: &ldquo;nothing readable at rest&rdquo; is our promise there, not &ldquo;unreadable to us&rdquo;. And we don&apos;t claim
             that nobody can read your chats: our server passes each message to 0G in memory (never stored, never logged), and 0G reports
             each answer as sealed but does not give us a per-answer enclave check yet.
@@ -382,7 +369,7 @@ export default function Landing() {
             <br />
             <Em>deserves a sane answer.</Em>
           </H2>
-          <p className="mt-4 text-l-muted">Say hi. It&apos;ll ask you five questions, then it&apos;s just talking.</p>
+          <p className="mt-4 text-l-muted">Say hi. No forms, no setup: it gets to know you as you talk.</p>
           <div className="mt-8 flex flex-col items-center gap-3">
             <OpenCta big />
             <TelegramLink />
