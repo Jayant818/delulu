@@ -36,7 +36,7 @@ export function reserveDemo(u: DemoUsage, key: string, now: number): number {
   if (u.total >= limit("DEMO_GUARD_GLOBAL_PER_DAY", 3000) || c.daily >= limit("DEMO_GUARD_PER_DAY", 150)) {
     until = (day + 1) * DAY - IST;
   }
-  if (c.burst >= limit("DEMO_GUARD_BURST", 20)) until = Math.max(until, c.start + window);
+  if (c.burst >= limit("DEMO_GUARD_BURST", 60)) until = Math.max(until, c.start + window);
   if (until) return Math.max(1, Math.ceil((until - now) / 1000));
   c.daily++;
   c.burst++;

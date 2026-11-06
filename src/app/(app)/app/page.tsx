@@ -10,7 +10,7 @@ import { PrivacyLine } from "@/components/PrivacyLine";
 import { trackEvent } from "@/components/SiteAnalytics";
 import { APP_NAME, DEMO_FAST } from "@/config";
 import { sealLabel } from "@/lib/ai/labels";
-import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
+import { aiMeta, chatLines, decisionSummaries, isDemoLimit, postAi } from "@/lib/api";
 import { answerCheckback, applyChatResult } from "@/lib/assistant";
 import { useMemoryVault, type ChatEntry, type Decision, type Memory } from "@/lib/memory";
 import { VIEWS } from "@/lib/persona";
@@ -144,7 +144,7 @@ function Talk() {
     if (draft) router.replace("/app", { scroll: false }); // a reload must not bring the draft back after she sent it
   }, [draft, router]);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<{ msg: string; limit: boolean }>();
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => end.current?.scrollIntoView({ behavior: "smooth" }), [chat.length, busy]);
@@ -168,7 +168,7 @@ function Talk() {
       });
       if (effect.navigate) router.push(effect.navigate);
     } catch (e) {
-      setError((e as Error).message);
+      setError({ msg: (e as Error).message, limit: isDemoLimit(e) });
     } finally {
       setBusy(false);
     }
@@ -210,7 +210,12 @@ function Talk() {
           </div>
         ))}
         {busy && <p className="animate-pulse text-sm text-muted">{APP_NAME} is thinking privately…</p>}
-        {error && <p role="status" className="max-w-[85%] rounded-2xl border border-line bg-paper px-4 py-2.5 text-[15px] leading-relaxed text-ink">{error}</p>}
+        {error &&
+          (error.limit ? (
+            <p role="status" className="max-w-[85%] rounded-2xl border border-line bg-paper px-4 py-2.5 text-[15px] leading-relaxed text-ink">{error.msg}</p>
+          ) : (
+            <p className="text-sm text-red-700">Not sent to the model: {error.msg}</p>
+          ))}
         {/* spacer so the last bubble clears the fixed input + nav */}
         <div ref={end} className="h-20" />
       </div>

@@ -17,9 +17,9 @@ test("check:url exits truthfully and --chat sends at most one tiny public reques
     res.writeHead(chat ? chatCode : statusCode, { "Content-Type": "application/json" });
     res.end(JSON.stringify(chat ? reply : info));
   });
-  await new Promise((resolve, reject) => { server.once("error", reject); server.listen(3200, "127.0.0.1", resolve); });
+  await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
   t.after(() => new Promise((resolve) => server.close(resolve)));
-  const base = "http://127.0.0.1:3200";
+  const base = `http://127.0.0.1:${server.address().port}`;
   const cases = [
     { name: "0G status only", backends: ["0g"], exit: 0, chats: 0 },
     { name: "mock status", backends: ["mock"], chat: true, exit: 1, chats: 0 },

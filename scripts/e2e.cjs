@@ -27,6 +27,7 @@ const idb = (page, op) =>
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   // Vercel serves this script only on deployments; keep the local browser test independent of analytics.
   await page.route("**/_vercel/insights/script.js", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
+  await page.route("**/va.vercel-scripts.com/**", (route) => route.fulfill({ contentType: "application/javascript", body: "" })); // dev-mode debug script
   const errors = [];
   let testingLimits = false;
   page.on("pageerror", (e) => errors.push(e.message));

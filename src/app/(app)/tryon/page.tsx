@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { AiChip } from "@/components/AiChip";
 import { VoiceTitle } from "@/components/VoiceTitle";
 import { CHECKBACK_MS } from "@/config";
-import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
+import { aiMeta, chatLines, decisionSummaries, isDemoLimit, postAi } from "@/lib/api";
 import { checkbackJob } from "@/lib/assistant";
 import { useMemoryVault, type AiMeta, type Decision } from "@/lib/memory";
 import type { ViewId } from "@/lib/persona";
@@ -14,7 +14,7 @@ import { useSession } from "@/lib/session";
 
 type Kind = "hair" | "nails";
 type Info = { presets: Record<Kind, string[]>; caps: { total: number; user: number }; mock: boolean; backend: string; model: string };
-type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string };
+type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string; limit?: boolean };
 const ORDER: ViewId[] = ["sane", "future", "bestie"];
 
 /** Shrink in the browser before upload: faster, cheaper, and less of her photo leaves the phone. */
@@ -39,7 +39,7 @@ export default function TryOn() {
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<{ image: string; mock: boolean; ms: number; backend: string; requestId: string | null }>();
   const [brief, setBrief] = useState<{ text: string; ai: AiMeta } | "loading">();
-  const [briefError, setBriefError] = useState<string>();
+  const [briefError, setBriefError] = useState<{ msg: string; limit: boolean }>();
   const [cards, setCards] = useState<Partial<Record<ViewId, Card>>>({});
   const [picked, setPicked] = useState<ViewId | null>(null);
 
@@ -96,7 +96,7 @@ export default function TryOn() {
       setBrief("loading");
       const b = await postAi("/api/brief", { profile: vault.memory.profile, kind, style: style.trim() }).catch((e: Error) => {
         setBrief(undefined);
-        setBriefError(e.message);
+        setBriefError({ msg: e.message, limit: isDemoLimit(e) });
         return null;
       });
       if (!b) return;
@@ -122,7 +122,7 @@ export default function TryOn() {
           const r = await postAi("/api/decide", { ...ctx, view });
           setCards((c) => ({ ...c, [view]: { loading: false, text: r.text, ai: aiMeta(r) } }));
         } catch (e) {
-          setCards((c) => ({ ...c, [view]: { loading: false, error: (e as Error).message } }));
+          setCards((c) => ({ ...c, [view]: { loading: false, error: (e as Error).message, limit: isDemoLimit(e) } }));
         }
       }),
     );
@@ -261,7 +261,12 @@ export default function TryOn() {
           <article className="mt-4 rounded-2xl border border-line bg-paper p-4">
             <h2 className="font-semibold">{kind === "hair" ? "💇 Your stylist brief" : "💅 Your nail tech brief"}</h2>
             {brief === "loading" && <p className="mt-2 animate-pulse text-sm text-muted">Writing it privately…</p>}
-            {briefError && <p role="status" className="mt-2 text-sm leading-relaxed text-ink">{briefError}</p>}
+            {briefError &&
+              (briefError.limit ? (
+                <p role="status" className="mt-2 text-sm leading-relaxed text-ink">{briefError.msg}</p>
+              ) : (
+                <p className="mt-2 text-sm text-red-700">Could not write the brief: {briefError.msg}</p>
+              ))}
             {brief && brief !== "loading" && (
               <>
                 <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{brief.text}</p>
@@ -282,7 +287,12 @@ export default function TryOn() {
                   <article key={v} className="rounded-2xl border border-line bg-paper p-4">
                     <VoiceTitle view={v} as="h3" />
                     {c?.loading && <p className="mt-2 animate-pulse text-sm text-muted">…</p>}
-                    {c?.error && <p role="status" className="mt-2 text-sm leading-relaxed text-ink">{c.error}</p>}
+                    {c?.error &&
+                  (c.limit ? (
+                    <p role="status" className="mt-2 text-sm leading-relaxed text-ink">{c.error}</p>
+                  ) : (
+                    <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>
+                  ))}
                     {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{c.text}</p>}
                     {c?.ai && <AiChip ai={c.ai} />}
                     {picked === v && <p className="mt-3 text-sm font-semibold text-ink">✓ Your pick</p>}

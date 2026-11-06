@@ -11,14 +11,14 @@ const fresh = (): DemoUsage => ({ day: -1, total: 0, by: new Map() });
 const now = Date.parse("2026-11-07T12:00:00Z");
 const message = "Delulu is resting. This demo has a daily limit so it stays free. Try again later.";
 
-test("default burst: 20 shared reservations per client, reset at ten minutes", () => {
+test("default burst: 60 shared reservations per client, reset at ten minutes", () => {
   const u = fresh();
-  for (let i = 0; i < 20; i++) assert.equal(reserveDemo(u, "a", now), 0);
+  for (let i = 0; i < 60; i++) assert.equal(reserveDemo(u, "a", now), 0);
   assert.equal(reserveDemo(u, "a", now), 600);
   assert.equal(reserveDemo(u, "a", now + 599_001), 1);
   assert.equal(reserveDemo(u, "b", now), 0);
   assert.equal(reserveDemo(u, "a", now + 600_000), 0);
-  assert.equal(u.total, 22, "rejected calls do not consume quota");
+  assert.equal(u.total, 62, "rejected calls do not consume quota");
 });
 
 test("default daily cap: 150 per client, across burst windows; reset at midnight IST", () => {
@@ -79,7 +79,7 @@ test("invalid env numbers fall back to safe defaults", () => {
   for (const invalid of ["NaN", "Infinity", "-1", "1.5", "", " ", "9007199254740991"]) {
     for (const name of names.slice(1)) process.env[name] = invalid;
     const u = fresh();
-    for (let i = 0; i < 20; i++) assert.equal(reserveDemo(u, "a", now), 0);
+    for (let i = 0; i < 60; i++) assert.equal(reserveDemo(u, "a", now), 0);
     assert.equal(reserveDemo(u, "a", now), 600);
   }
 });
@@ -111,5 +111,5 @@ test("all four paid routes return the exact 429 contract before any model call",
 
 test("postAi preserves the friendly limit message for every UI caller", async (t) => {
   t.mock.method(globalThis, "fetch", async () => Response.json({ error: "demo_limit", message }, { status: 429 }));
-  await assert.rejects(postAi("/api/chat", { message: "hi" }), { message });
+  await assert.rejects(postAi("/api/chat", { message: "hi" }), { message, name: "DemoLimitError" });
 });
