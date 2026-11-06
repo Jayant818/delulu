@@ -27,7 +27,7 @@ const SCRIPT: Beat[] = [
 ];
 const N = SCRIPT.length;
 /** ms before each beat appears; Delulu beats show typing dots for the first 900 ms of their wait. */
-const WAIT = [0, 700, 700, 1100, 1400, 1800, 1300];
+const WAIT = [0, 0, 700, 800, 4400, 1500, 1800]; // index = beat: views at ~2 s, then they hold until the selfie at ~6.5 s
 const HOLD = 5000;
 
 const VIEWS = [

@@ -67,7 +67,7 @@ export default function Landing() {
           Your diary has <em>opinions now.</em>
         </h1>
         <div className="mt-7 grid items-start gap-9 md:mt-8 md:grid-cols-[1fr_auto] md:gap-12">
-          <div className="flex max-w-[480px] flex-col gap-6 md:pt-6">
+          <div className="flex max-w-[480px] flex-col gap-6 md:self-center">
             <p className="text-[18px] leading-[1.55] text-l-body md:text-[21px]">
               {APP_NAME} is the diary that writes back. Your AI companion, your split personality: the sane one, you at 30 and your
               bestie.
@@ -90,23 +90,30 @@ export default function Landing() {
           <div className="grid shadow-[0_30px_60px_-34px_rgba(20,33,61,0.45)] md:grid-cols-2">
             <Page date="Friday, 9:10 am" side="left">
               <p className="text-[15px] font-semibold">The brief for her stylist</p>
-              <div className="flex gap-5">
-                <figure className="w-[42%] shrink-0 -rotate-2 bg-white p-1.5 pb-6 shadow-[0_8px_20px_-8px_rgba(20,33,61,0.35)]">
-                  <div className="relative aspect-square">
-                    <Image src="/visuals-west/hair-west-curtain-bangs.jpg" alt="Sasha with curtain bangs, made by Delulu's try-on" fill sizes="(min-width: 768px) 200px, 40vw" className="object-cover" />
-                  </div>
-                </figure>
-                <p className="font-serif text-[18px] italic leading-[32px]">
-                  Soft curtain bangs from the cheekbone. Keep the length. Warm honey tone. No blunt cut.
-                </p>
+              {/* the try-on, as two polaroids: before and after */}
+              <div className="flex items-start gap-1 pl-1">
+                {[
+                  { src: "/visuals-west/hair-base-west.jpg", label: "before", alt: "Sasha before: long straight hair", tilt: "-rotate-3" },
+                  { src: "/visuals-west/hair-west-curtain-bangs.jpg", label: "after · try-on", alt: "Sasha with curtain bangs, made by Delulu's try-on", tilt: "rotate-2 -ml-6 mt-4" },
+                ].map((ph) => (
+                  <figure key={ph.src} className={`w-[46%] max-w-[190px] ${ph.tilt} bg-white p-1.5 pb-1 shadow-[0_8px_20px_-8px_rgba(20,33,61,0.35)]`}>
+                    <div className="relative aspect-square">
+                      <Image src={ph.src} alt={ph.alt} fill sizes="(min-width: 768px) 190px, 42vw" className="object-cover" />
+                    </div>
+                    <figcaption className="py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.12em] text-l-muted">{ph.label}</figcaption>
+                  </figure>
+                ))}
               </div>
+              <p className="font-serif text-[18px] italic leading-[32px]">
+                Soft curtain bangs from the cheekbone. Keep the length. Warm honey tone. No blunt cut.
+              </p>
             </Page>
             <Page date="Saturday, 10:14 am" side="right">
               <p className="max-w-[340px] font-serif text-[24px] leading-[1.3]">so... how did the date go? And the bangs?</p>
               <p className="max-w-[320px] self-end rounded-[20px] rounded-br-[6px] bg-l-sasha px-4 py-3 text-[17px] leading-snug">
                 he said they suit me. I said I know.
               </p>
-              <p className="mt-auto max-w-[360px] text-[15px] leading-[1.55] text-l-body">
+              <p className="max-w-[360px] pt-2 text-[16px] leading-[1.55] text-l-body">
                 It remembers what you chose, and asks how it went. Try-on works for nails too.
               </p>
             </Page>
