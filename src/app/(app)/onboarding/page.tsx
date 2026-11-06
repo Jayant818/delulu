@@ -29,7 +29,7 @@ export default function Onboarding() {
         {APP_NAME} · {step + 1} of {ONBOARDING.length}
       </p>
       <div className="mt-2 h-1 rounded bg-line">
-        <div className="h-1 rounded bg-accent transition-all" style={{ width: `${((step + 1) / ONBOARDING.length) * 100}%` }} />
+        <div className="h-1 rounded bg-ink transition-all" style={{ width: `${((step + 1) / ONBOARDING.length) * 100}%` }} />
       </div>
       <h1 className="mt-8 font-serif text-3xl leading-tight">{q.q}</h1>
       <p className="mt-2 text-sm text-muted">{q.hint}</p>
@@ -39,7 +39,7 @@ export default function Onboarding() {
         rows={5}
         value={answers[q.key]}
         onChange={(e) => setAnswers({ ...answers, [q.key]: e.target.value })}
-        className="mt-6 w-full rounded-2xl border border-line bg-paper p-4 outline-none focus:border-accent"
+        className="mt-6 w-full rounded-2xl border border-line bg-paper p-4 outline-none focus:border-ink"
       />
       <p className="mt-2 text-xs text-muted">Encrypted on this device with a key only your wallet can make.</p>
       <div className="mt-auto flex gap-3 pt-8">
@@ -51,7 +51,7 @@ export default function Onboarding() {
         <button
           onClick={next}
           disabled={!answers[q.key].trim() || saving}
-          className="flex-1 rounded-2xl bg-accent px-5 py-3 font-semibold text-white disabled:opacity-40"
+          className="flex-1 rounded-2xl bg-accent px-5 py-3 font-semibold text-ink disabled:bg-line disabled:text-muted"
         >
           {last ? (saving ? "Saving…" : `Meet ${APP_NAME}`) : "Next"}
         </button>

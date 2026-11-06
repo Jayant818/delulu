@@ -10,8 +10,8 @@ const STAR = "M32 16.5C33.6 23 36.5 25.9 43 27.5C36.5 29.1 33.6 32 32 38.5C30.4 
 function Mark({ size = 28 }: { size?: number }) {
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
-      <path d={BUBBLE} fill="var(--brand)" />
-      <path d={STAR} fill="var(--pop)" />
+      <path d={BUBBLE} fill="var(--l-ink)" />
+      <path d={STAR} fill="var(--l-paper)" />
     </svg>
   );
 }
@@ -30,7 +30,7 @@ function OpenCta({ big = false }: { big?: boolean }) {
   return (
     <Link
       href="/app"
-      className={`inline-flex items-center justify-center gap-2 rounded-full bg-brand font-semibold text-l-paper ${big ? "px-7 py-4 text-lg" : "px-4 py-2.5 text-sm"}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full bg-brand font-semibold text-l-ink shadow-[0_8px_24px_-12px_rgba(255,107,91,0.8)] ${big ? "px-7 py-4 text-lg" : "px-4 py-2.5 text-sm"}`}
     >
       Open {APP_NAME}
     </Link>
@@ -38,9 +38,14 @@ function OpenCta({ big = false }: { big?: boolean }) {
 }
 
 /** Secondary: the same Delulu in Telegram. Hidden until the bot username is set (no fake link). */
-function TelegramLink() {
+function TelegramLink({ dark = false }: { dark?: boolean }) {
   return TELEGRAM_URL ? (
-    <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-brand underline underline-offset-4">
+    <a
+      href={TELEGRAM_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`text-sm font-semibold underline underline-offset-4 ${dark ? "text-l-paper" : "text-l-ink"}`}
+    >
       or chat on Telegram
     </a>
   ) : null;
@@ -50,15 +55,15 @@ function H2({ children }: { children: ReactNode }) {
   return <h2 className="font-serif text-[clamp(2rem,6vw,3rem)] leading-[1.08] tracking-tight text-l-ink">{children}</h2>;
 }
 
-function Em({ children }: { children: ReactNode }) {
-  return <em className="text-pop-ink">{children}</em>;
+function Em({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
+  return <em className={dark ? "text-pop" : "text-pop-ink"}>{children}</em>;
 }
 
 function Bubble({ me, children }: { me?: boolean; children: ReactNode }) {
   return (
     <div className={me ? "flex justify-end" : ""}>
       <div
-        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-snug ${me ? "rounded-br-md bg-brand text-l-paper" : "rounded-bl-md border border-l-line bg-l-card text-l-ink"}`}
+        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-snug ${me ? "rounded-br-md bg-l-ink text-l-paper" : "rounded-bl-md border border-l-line bg-l-card text-l-ink"}`}
       >
         {children}
       </div>
@@ -120,7 +125,7 @@ export default function Landing() {
           <Link href="/" aria-label={`${APP_NAME} home`}>
             <Wordmark />
           </Link>
-          <div className="hidden gap-6 text-sm text-l-muted md:flex">
+          <div className="hidden gap-6 font-mono text-xs uppercase tracking-wider text-l-muted md:flex">
             <a href="#how">How it works</a>
             <a href="#privacy">Privacy</a>
             <a href="#faq">FAQ</a>
@@ -129,29 +134,30 @@ export default function Landing() {
         </nav>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4">
-        {/* Hero */}
-        <section className="grid items-center gap-10 pb-20 pt-14 md:grid-cols-2 md:pt-20">
+      {/* Hero: the one navy band at the top, with a soft light beam behind the headline. */}
+      <section className="-mt-16 bg-l-ink bg-[radial-gradient(ellipse_60%_55%_at_30%_0%,rgba(244,237,224,0.16),transparent_70%)] px-4 pt-16 text-l-paper">
+        <div className="mx-auto grid max-w-5xl items-center gap-10 pb-20 pt-14 md:grid-cols-2 md:pt-20">
           <div>
-            <h1 className="font-serif text-[clamp(2.6rem,9vw,4.4rem)] leading-[1.02] tracking-tight">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-l-muted-dark">AI companion · sealed on 0G</p>
+            <h1 className="mt-3 font-serif text-[clamp(2.6rem,9vw,4.4rem)] leading-[1.02] tracking-tight">
               Tell {APP_NAME} anything.
               <br />
-              <Em>It helps you decide.</Em>
+              <Em dark>It helps you decide.</Em>
             </h1>
-            <p className="mt-5 max-w-md text-[17px] leading-relaxed text-l-muted">
+            <p className="mt-5 max-w-md text-[17px] leading-relaxed text-l-muted-dark">
               Your AI companion, your split personality. Tell it anything: your day, your people, your plans. When you&apos;re stuck on a
               choice, it helps you decide by showing you different perspectives. And before the salon, see the new hair or nails on you.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-4">
               <OpenCta big />
-              <TelegramLink />
+              <TelegramLink dark />
             </div>
-            <p className="mt-3 text-xs text-l-muted">Free. Opens in your browser. No card, no seed phrase.</p>
+            <p className="mt-3 font-mono text-[11px] text-l-muted-dark">Free · opens in your browser · no card, no seed phrase</p>
           </div>
 
           {/* Product artifact: an example chat, as a physical card */}
           <figure className="mx-auto w-full max-w-sm">
-            <div className="rotate-[0.6deg] rounded-[28px] border border-l-line bg-[#f6ecdf] p-4 shadow-[0_18px_40px_-24px_rgba(59,30,63,0.45)]">
+            <div className="rotate-[0.6deg] rounded-[28px] border border-l-line bg-l-card p-4 text-l-ink shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)]">
               <div className="mb-3 flex items-center gap-2 border-b border-l-line pb-3">
                 <Mark size={26} />
                 <div className="leading-tight">
@@ -170,13 +176,16 @@ export default function Landing() {
                   </div>
                 </Bubble>
                 <div className="flex justify-center">
-                  <span className="rounded-full border border-l-line bg-l-card px-3 py-1 text-[12px] font-semibold text-brand">See perspectives 👀</span>
+                  <span className="rounded-full bg-brand px-3 py-1 text-[12px] font-semibold text-l-ink">See perspectives 👀</span>
                 </div>
               </div>
             </div>
-            <figcaption className="mt-3 text-center text-xs text-l-muted">Example conversation. Every real answer carries its own 0G request ID.</figcaption>
+            <figcaption className="mt-3 text-center text-xs text-l-muted-dark">Example conversation. Every real answer carries its own 0G request ID.</figcaption>
           </figure>
-        </section>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-5xl px-4">
 
         {/* The problem */}
         <section className="mx-auto max-w-2xl py-16 text-center">
@@ -200,7 +209,7 @@ export default function Landing() {
           <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s) => (
               <li key={s.n} className="rounded-3xl border border-l-line bg-l-card p-6">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-brand text-sm font-semibold text-l-paper">{s.n}</span>
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-l-ink font-mono text-sm font-semibold text-l-paper">{s.n}</span>
                 <h3 className="mt-4 font-serif text-2xl">{s.t}</h3>
                 <p className="mt-2 text-[15px] leading-relaxed text-l-muted">{s.d}</p>
               </li>
@@ -219,7 +228,7 @@ export default function Landing() {
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {VOICES.map((v) => (
               <article key={v.t} className="rounded-3xl border border-l-line bg-l-card p-6">
-                <p className="text-xs uppercase tracking-widest text-l-muted">{v.s}</p>
+                <p className="font-mono text-xs uppercase tracking-widest text-l-muted">{v.s}</p>
                 <h3 className="mt-1 font-serif text-3xl italic">{v.t}</h3>
                 <p className="mt-3 text-[15px] leading-relaxed text-l-muted">{v.d}</p>
               </article>
@@ -238,7 +247,7 @@ export default function Landing() {
               life. Made a decision? Later it asks how it went, and remembers the answer.
             </p>
           </div>
-          <div className="mx-auto w-full max-w-sm space-y-2.5 rounded-[28px] border border-l-line bg-[#f6ecdf] p-4">
+          <div className="mx-auto w-full max-w-sm space-y-2.5 rounded-[28px] border border-l-line bg-l-card p-4">
             <Bubble me>remind me sunday 6pm to call riya</Bubble>
             <Bubble>
               On it 💅
@@ -261,7 +270,7 @@ export default function Landing() {
         {/* Try-on */}
         <section className="py-16">
           <div className="rounded-[32px] border border-l-line bg-l-card px-6 py-10 md:px-12">
-            <p className="text-xs uppercase tracking-widest text-l-muted">New look, no regrets</p>
+            <p className="font-mono text-xs uppercase tracking-widest text-l-muted">New look, no regrets</p>
             <H2>
               Try the hair or nails <Em>before the salon.</Em>
             </H2>
@@ -330,8 +339,8 @@ export default function Landing() {
 
         {/* Anti-scam promise */}
         <section className="py-16">
-          <div className="rounded-[32px] bg-brand px-6 py-12 text-center text-l-paper md:px-16">
-            <p className="text-sm uppercase tracking-widest text-pop">Our promise</p>
+          <div className="rounded-[32px] bg-l-ink px-6 py-12 text-center text-l-paper md:px-16">
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-l-muted-dark">Our promise</p>
             <p className="mx-auto mt-4 max-w-3xl font-serif text-[clamp(1.8rem,5vw,2.8rem)] leading-tight">
               {APP_NAME} will never ask you for money, crypto, a wallet, passwords, codes, or to click a link.
             </p>

@@ -26,11 +26,11 @@ function DecisionCard({ summary, decided }: { summary: string; decided?: Decisio
       </p>
     );
   return (
-    <div className="mt-2 rounded-xl border border-accent bg-accent-soft px-3 py-2 text-sm">
+    <div className="mt-2 rounded-xl border border-line bg-accent-soft px-3 py-2 text-sm">
       <p>
         <span className="font-semibold">Sounds like a decision:</span> {summary}
       </p>
-      <Link href={`/decide?q=${encodeURIComponent(summary)}`} className="mt-2 inline-block font-semibold text-accent">
+      <Link href={`/decide?q=${encodeURIComponent(summary)}`} className="mt-2 inline-block rounded-full bg-accent px-3 py-1 font-semibold text-ink">
         See perspectives →
       </Link>
     </div>
@@ -162,7 +162,7 @@ export default function Talk() {
     <div className="flex flex-col">
       <div className="flex items-start justify-between gap-3">
         <h1 className="font-serif text-3xl">Tell {APP_NAME} anything</h1>
-        <Link href="/tryon" className="shrink-0 rounded-full bg-accent-soft px-3 py-1.5 text-sm font-semibold text-accent">
+        <Link href="/tryon" className="shrink-0 rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-semibold text-ink">
           ✨ Try-on
         </Link>
       </div>
@@ -184,7 +184,7 @@ export default function Talk() {
         {chat.map((e, i) => (
           <div key={i} className={e.role === "user" ? "flex justify-end" : ""}>
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${e.role === "user" ? "bg-accent text-white" : "border border-line bg-paper"}`}
+              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${e.role === "user" ? "bg-ink text-cream" : "border border-line bg-paper"}`}
             >
               <p className="whitespace-pre-wrap">{e.content}</p>
               {e.ai && <AiChip ai={e.ai} />}
@@ -209,9 +209,9 @@ export default function Talk() {
           value={text}
           onChange={(ev) => setText(ev.target.value)}
           placeholder="Tell me anything…"
-          className="flex-1 rounded-2xl border border-line bg-paper px-4 py-3 outline-none focus:border-accent"
+          className="flex-1 rounded-2xl border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
         />
-        <button disabled={!text.trim() || busy} className="rounded-2xl bg-accent px-4 font-semibold text-white disabled:opacity-40">
+        <button disabled={!text.trim() || busy} className="rounded-2xl bg-accent px-4 font-semibold text-ink disabled:bg-line disabled:text-muted">
           Send
         </button>
       </form>

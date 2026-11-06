@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "A private AI that helps you make your own decisions.",
     start_url: "/app",
     display: "standalone",
-    background_color: "#fbf6ef",
-    theme_color: "#fbf6ef",
+    background_color: "#f4ede0",
+    theme_color: "#f4ede0",
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
   };
 }

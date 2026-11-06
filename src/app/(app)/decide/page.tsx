@@ -84,12 +84,12 @@ function Decide({ fromChat }: { fromChat: string }) {
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
         placeholder="Should I take the job in Bangalore or stay near home?"
-        className="mt-4 w-full rounded-2xl border border-line bg-paper p-4 outline-none focus:border-accent"
+        className="mt-4 w-full rounded-2xl border border-line bg-paper p-4 outline-none focus:border-ink"
       />
       <button
         onClick={askAll}
         disabled={!question.trim() || busy}
-        className="mt-3 w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-white disabled:opacity-40"
+        className="mt-3 w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-ink disabled:bg-line disabled:text-muted"
       >
         {busy ? "Thinking privately…" : "Hear all three"}
       </button>
@@ -106,9 +106,9 @@ function Decide({ fromChat }: { fromChat: string }) {
                 {c?.error && <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>}
                 {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed">{c.text}</p>}
                 {c?.ai && <AiChip ai={c.ai} />}
-                {picked === v && <p className="mt-3 text-sm font-semibold text-accent">✓ Your pick</p>}
+                {picked === v && <p className="mt-3 text-sm font-semibold text-ink">✓ Your pick</p>}
                 {c?.text && !picked && (
-                  <button onClick={() => choose(v)} className="mt-3 block w-full rounded-xl border border-accent py-2 text-sm font-semibold text-accent">
+                  <button onClick={() => choose(v)} className="mt-3 block w-full rounded-xl bg-accent py-2 text-sm font-semibold text-ink">
                     I&apos;ll go with this
                   </button>
                 )}
@@ -131,7 +131,7 @@ function Decide({ fromChat }: { fromChat: string }) {
                   <p className="mt-1 text-muted">
                     Went with {VIEWS[d.choice].title} · {day(d.at)}
                   </p>
-                  <p className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs ${due ? "bg-accent text-white" : "bg-accent-soft"}`}>
+                  <p className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs ${due ? "bg-ink text-cream" : "bg-accent-soft"}`}>
                     {due ? "Time to check back: how did it go?" : `Check back on ${day(d.checkInAt)}`}
                   </p>
                 </li>

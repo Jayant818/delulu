@@ -1,24 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #fbf6ef;
-  --paper: #ffffff;
-  --ink: #2b1d14;
-  --muted: #7a6a5e;
-  --line: #eadfd2;
-  --accent: #c2410c;
-  --accent-soft: #fde7da;
-  /* Landing palette: brand/delulu-DESIGN.md. Colours are assigned to claims, see that file. */
-  --l-paper: #fbf4ea;
-  --l-card: #fffdf8;
-  --l-ink: #2b1b24;
-  --l-muted: #7b6670;
-  --l-line: #eadbcf;
-  --brand: #3b1e3f;
-  --pop: #ee6c99; /* sparkle, and text on the dark brand ground (5.0:1) */
-  --pop-ink: #c93d72; /* pink TEXT on paper: 4.4:1 (#ee6c99 is only 2.7:1 there) */
-  --sealed: #2d6a5f; /* reserved: only "sealed on 0G" */
-  --honest: #c2410c; /* the honest limits, loud on purpose */
+  /* Jayant's palette (TG 3453): navy #14213D + cream #F4EDE0 + coral #FF6B5B. Coral ONLY on things you press,
+     always with navy text on it (white on coral is 2.8:1). brand/delulu-DESIGN.md has the contrast table. */
+  --cream: #f4ede0; /* app background */
+  --paper: #fbf7f0; /* cards, bubbles */
+  --ink: #14213d; /* navy: text, her bubble, selected states */
+  --muted: #575e6e; /* navy 70% on cream: 5.6:1 */
+  --line: #d9d5cc; /* navy 12% on cream */
+  --accent: #ff6b5b; /* coral: pressable primary actions only */
+  --accent-soft: #ece5d7; /* neutral highlight (decision card, notices), not coral */
+  /* Landing */
+  --l-paper: #f4ede0;
+  --l-card: #fbf7f0;
+  --l-ink: #14213d;
+  --l-muted: #575e6e;
+  --l-muted-dark: #b5b4b2; /* muted text on the navy band: 7.7:1 */
+  --l-line: #d9d5cc;
+  --brand: #ff6b5b; /* the landing's pressable: coral */
+  --pop: #f4ede0; /* italic emphasis on navy */
+  --pop-ink: #2f4a7a; /* italic emphasis on cream: a lighter navy */
+  --sealed: #14213d; /* "sealed" stays neutral navy */
+  --honest: #14213d; /* honest-limits line: navy, bold label, thick rule (coral is for pressables) */
 }
 
 @theme inline {
@@ -34,12 +37,14 @@
   --color-l-ink: var(--l-ink);
   --color-l-muted: var(--l-muted);
   --color-l-line: var(--l-line);
+  --color-l-muted-dark: var(--l-muted-dark);
   --color-brand: var(--brand);
   --color-pop: var(--pop);
   --color-pop-ink: var(--pop-ink);
   --color-sealed: var(--sealed);
   --color-honest: var(--honest);
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-serif: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
 }
 

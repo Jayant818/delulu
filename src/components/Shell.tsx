@@ -79,7 +79,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <Center>
         <h1 className="font-serif text-5xl">{APP_NAME}</h1>
         <p className="text-muted">The app with the delulu name that gives you the sane answer. Three voices, your call, and only you can read it.</p>
-        <button onClick={session.login} className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-white">
+        <button onClick={session.login} className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-ink">
           {session.mode === "privy" ? "Continue with email or Google" : "Start (DEV wallet)"}
         </button>
         {session.mode === "dev" && (
@@ -111,7 +111,7 @@ export function Shell({ children }: { children: ReactNode }) {
               <Link
                 key={n.href}
                 href={n.href}
-                className={`flex-1 py-3 text-center text-sm ${path === n.href ? "font-semibold text-accent" : "text-muted"}`}
+                className={`flex-1 py-3 text-center text-sm ${path === n.href ? "font-semibold text-ink underline decoration-2 underline-offset-8" : "text-muted"}`}
               >
                 {n.label}
               </Link>

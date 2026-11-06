@@ -139,7 +139,7 @@ export default function TryOn() {
   const tab = (k: Kind, label: string) => (
     <button
       onClick={() => reset(k)}
-      className={`flex-1 rounded-xl py-2 text-sm font-semibold ${kind === k ? "bg-accent text-white" : "text-muted"}`}
+      className={`flex-1 rounded-xl py-2 text-sm font-semibold ${kind === k ? "bg-ink text-cream" : "text-muted"}`}
       aria-pressed={kind === k}
     >
       {label}
@@ -150,7 +150,7 @@ export default function TryOn() {
     <div>
       <h1 className="font-serif text-3xl">Try the look</h1>
       <p className="mt-1 text-sm text-muted">See it on you before the salon. Then ask the three voices.</p>
-      <p className="mt-2 rounded-xl border-l-4 border-amber-600 bg-paper px-3 py-2 text-xs leading-relaxed">{info?.privacy ?? PRIVACY_LINE}</p>
+      <p className="mt-2 rounded-xl border-l-4 border-ink bg-paper px-3 py-2 text-xs leading-relaxed">{info?.privacy ?? PRIVACY_LINE}</p>
 
       <div className="mt-4 flex gap-1 rounded-2xl border border-line bg-paper p-1">
         {tab("hair", "💇 Hair")}
@@ -181,7 +181,7 @@ export default function TryOn() {
           <button
             key={p}
             onClick={() => setStyle(p)}
-            className={`rounded-full border px-3 py-1 text-sm ${style === p ? "border-accent bg-accent-soft text-accent" : "border-line bg-paper text-ink"}`}
+            className={`rounded-full border px-3 py-1 text-sm ${style === p ? "border-ink bg-ink text-cream" : "border-line bg-paper text-ink"}`}
           >
             {p}
           </button>
@@ -191,13 +191,13 @@ export default function TryOn() {
         value={style}
         onChange={(e) => setStyle(e.target.value.slice(0, 120))}
         placeholder={kind === "hair" ? "…or describe it: “shoulder-length, soft layers”" : "…or describe it: “short almond, baby blue”"}
-        className="mt-3 w-full rounded-2xl border border-line bg-paper px-4 py-3 outline-none focus:border-accent"
+        className="mt-3 w-full rounded-2xl border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
       />
 
       <button
         onClick={make}
         disabled={!photo || !style.trim() || making}
-        className="mt-3 w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-white disabled:opacity-40"
+        className="mt-3 w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-ink disabled:bg-line disabled:text-muted"
       >
         {making ? "Making your look… about 30 seconds" : "See it on me ✨"}
       </button>
@@ -237,7 +237,7 @@ export default function TryOn() {
           </article>
 
           {!Object.keys(cards).length ? (
-            <button onClick={askViews} className="mt-4 w-full rounded-2xl border border-accent px-5 py-3 font-semibold text-accent">
+            <button onClick={askViews} className="mt-4 w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-ink">
               Should I do it? Ask the three voices
             </button>
           ) : (
@@ -251,9 +251,9 @@ export default function TryOn() {
                     {c?.error && <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>}
                     {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed">{c.text}</p>}
                     {c?.ai && <AiChip ai={c.ai} />}
-                    {picked === v && <p className="mt-3 text-sm font-semibold text-accent">✓ Your pick</p>}
+                    {picked === v && <p className="mt-3 text-sm font-semibold text-ink">✓ Your pick</p>}
                     {c?.text && !picked && (
-                      <button onClick={() => choose(v)} className="mt-3 block w-full rounded-xl border border-accent py-2 text-sm font-semibold text-accent">
+                      <button onClick={() => choose(v)} className="mt-3 block w-full rounded-xl bg-accent py-2 text-sm font-semibold text-ink">
                         I&apos;ll go with this
                       </button>
                     )}

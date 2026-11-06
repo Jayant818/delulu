@@ -15,36 +15,48 @@ What I did NOT copy: any text, images, illustrations, logo, colours or font (tal
 
 ## Failure modes this design must avoid
 
-1. **Looks like a scammy Telegram crypto bot** (neon, coins, "earn", countdowns) → loses every parent, every cautious girl, every judge. Answer: paper, serif, no gradients, no glow; the anti-scam promise is a full section, not a footnote.
-2. **Looks like a clinical mental-health or banking app** → loses the Gen Z warmth and the joke in the name. Answer: a soft wonky serif (Fraunces italic), one playful pink, warm "split personality" companion copy (Jayant, TG 3428: "your AI companion, your split personality", not a big sister).
+1. **Looks like a scammy Telegram crypto bot** (neon, coins, "earn", countdowns) → loses every parent, every cautious girl, every judge. Answer: cream canvas, serif, one flat navy band (its only "glow" is a faint cream beam, never neon); the anti-scam promise is a full section, not a footnote.
+2. **Looks like a clinical mental-health or banking app** → loses the Gen Z warmth and the joke in the name. Answer: a soft wonky serif (Fraunces italic), a warm cream, one coral that you can always press, warm "split personality" companion copy (Jayant, TG 3428: "your AI companion, your split personality", not a big sister).
 
-## Palette (assigned to claims first, components second)
+## Palette: navy + cream + coral (Jayant's pick, TG 3453; replaces aubergine/pink)
 
-| Token | Hex | Claim it carries | Rule |
+Runner-up, if he says "use 2": forest `#1F3D2B` / sand `#E8DCC4` / purple `#8B5CF6` (same roles: forest = ink and bands, sand = canvas, purple = pressables only).
+
+The one rule: **coral is ONLY on things you press** (Open Delulu, Send, Ask the three voices, I'll go with this, See perspectives). It always carries navy text: white on coral is 2.8:1 and fails. Coral is never text, never a badge, never a border, never decoration.
+
+| Token (landing / app) | Hex | Claim it carries | Rule |
 |---|---|---|---|
-| `--paper` | `#FBF4EA` | canvas | page background |
-| `--card` | `#FFFDF8` | objects (chat, cards) | only on things that feel physical |
-| `--ink` | `#2B1B24` | text | body and headings |
-| `--muted` | `#7B6670` | secondary text | |
-| `--line` | `#EADBCF` | hairlines | borders before shadows |
-| `--brand` | `#3B1E3F` (aubergine) | the primary action | "Open in Telegram" pill, logo bubble |
-| `--pop` | `#EE6C99` (delulu pink) | the playful voice | the sparkle, and pink text on the dark brand ground (5.0:1); never on a button |
-| `--pop-ink` | `#C93D72` | the playful voice, as text on paper | italic emphasis in headlines (4.4:1 on paper; `#EE6C99` is only 2.7:1 there and fails) |
-| `--sealed` | `#2D6A5F` (deep sage) | **"sealed on 0G"**, the one guaranteed property | **reserved**: only the lock/sealed badges and the 0G line. Nothing that can fail wears it |
-| `--honest` | `#C2410C` (burnt orange) | the honest limits (Telegram carries messages; the server holds the key) | the loudest warm colour, shown as a visible line in the privacy section, never small print |
+| `--l-paper` / `--cream` | `#F4EDE0` | canvas | page background |
+| `--l-card` / `--paper` | `#FBF7F0` | objects (chat, cards) | only on things that feel physical |
+| `--l-ink` / `--ink` | `#14213D` (navy) | text, her chat bubble, selected states, the hero and promise bands, the logo | body and headings; cream text on it |
+| `--l-muted` / `--muted` | `#575E6E` | secondary text on cream | |
+| `--l-muted-dark` | `#B5B4B2` | secondary text on the navy band | |
+| `--l-line` / `--line` | `#D9D5CC` | hairlines | borders before shadows |
+| `--brand` / `--accent` | `#FF6B5B` (coral) | **the primary action** | fills of pressable primary actions only, navy text |
+| `--pop` | `#F4EDE0` | the italic phrase on navy | |
+| `--pop-ink` | `#2F4A7A` (lighter navy) | the italic phrase on cream | |
+| `--accent-soft` | `#ECE5D7` | neutral highlight (decision card, notices) | not coral |
+| `--sealed` | `#14213D` | **"sealed on 0G"** | neutral navy chip with a dot. Not coral (it is not pressable), not green (green reads as "TEE verified", which the router does not report) |
+| `--honest` | `#14213D` | the honest limits (try-on is not sealed; Telegram carries messages) | navy, bold label, thick left rule |
 
-House DNA conflict, recorded: our DNA says "anything verifiable on-chain is monospace" and "the proof is the hero". Delulu has no on-chain proof yet; the verifiable thing is the 0G request ID, so it is set in monospace wherever it appears. The hero is a conversation, not a number; this is a consumer companion, not a financial instrument.
-House DNA "never" honoured: no invented request IDs or numbers that could pass as real state (the hero chat shows "🔒 sealed on 0G · TEE ✓" with no ID, and the page says every real answer carries its ID).
+Contrast (WCAG, measured): navy on cream 13.7 · cream on navy 13.7 · muted on cream 5.58, on card 6.09 · muted-dark on navy 7.71 · pop-ink on cream 7.57 · navy on coral 5.71 · muted on accent-soft 5.19 · white on coral 2.8 (banned) · coral on cream 2.4 (banned).
+
+Conflicts, recorded so they do not read as oversights:
+- **Old rule broken on purpose:** `--honest` was the loudest warm colour (burnt orange). Coral would be the natural successor, but coral is reserved for pressables, so the honest line is navy and gets its weight from a bold label and a thick rule instead.
+- **`--sealed` lost its reserved colour:** it used to be the one colour nothing else wore. With a three-colour palette, "sealed" is now a navy chip with a dot; the reservation is the dot and the wording, not a hue.
+- House DNA says "anything verifiable on-chain is monospace" and "the proof is the hero". Delulu has no on-chain proof; the verifiable thing is the 0G request ID, set in IBM Plex Mono wherever it appears. Mono is also used for small labels (nav, eyebrows, step numbers). The hero is a conversation, not a number: this is a consumer companion, not a financial instrument.
+- House DNA "never" honoured: no invented request IDs or numbers that could pass as real state (the hero chat shows "🔒 sealed on 0G" with no ID, and the caption says every real answer carries its own 0G request ID).
 
 ## Type
 
-- Display: **Fraunces** (Google Fonts, via `next/font`), 400 roman + italic; headline sizes clamp(2.4rem, 7vw, 4.2rem)
+- Display: **Fraunces** (Google Fonts, via `next/font`), 400 roman + italic; headline sizes clamp(2.4rem, 7vw, 4.4rem); one italic phrase per headline
 - Body: system sans stack
-- Request IDs: monospace
+- Labels and request IDs: **IBM Plex Mono** 400/500 (`--font-mono`)
+
 
 ## Logo set (`brand/`)
 
-`mark-color`, `mark-mono`, `mark-reversed`, `app-icon`, `wordmark`, favicons 16/32/64/180, `contact-sheet.png`. Mark = a speech bubble (she can tell it anything) holding a four-point sparkle (the delulu). Wordmark and app icon reuse the same path data.
+`mark-color`, `mark-mono`, `mark-reversed`, `app-icon`, `wordmark`, favicons 16/32/64/180, `contact-sheet.png`. Mark = a speech bubble (she can tell it anything) holding a four-point sparkle (the delulu): navy bubble, cream sparkle. Reversed and app icon: cream bubble, navy sparkle, on navy. Wordmark and app icon reuse the same path data. With a two-tone mark, `mark-color` and `mark-mono` are now the same file; keep both names for tooling.
 
 Weaknesses, honestly:
 - **app-icon at 16 px loses the sparkle** (it reads as a plain bubble). The favicon therefore uses `mark-color` (no padding), where the sparkle survives at 16 px.
