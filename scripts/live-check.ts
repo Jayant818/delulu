@@ -59,6 +59,11 @@ async function main() {
   show("chat+decision", d.ai, t2);
   console.log(`      reply: ${d.reply.slice(0, 140)}\n      decision: ${d.decision ?? "NONE  <- the decision card will not appear; reword the demo message"}`);
   if (!d.decision) failures++;
+  // The demo shows the card in the chat; a "decide" intent would jump straight to Decide instead.
+  if (d.intent) {
+    failures++;
+    console.log(`      FAIL: the demo message routed to the "${d.intent.type}" intent instead of a decision card`);
+  }
 
   // 3. Chat turn with a reminder: the scheduler depends on this.
   const [r, t3] = await timed(() => chatTurn(ctx, "remind me sunday 6pm to call riya"));
@@ -86,11 +91,13 @@ async function main() {
     ["check in on me every evening at 9", "checkin_set 21:00"],
     ["what can you do", "help"],
     ["what are my reminders", "reminders_list"],
+    ["help me decide between the bangalore job and staying in jaipur", "decide"],
   ] as const) {
     const [x, ms] = await timed(() => chatTurn(ctx, msg));
     show(`intent`, x.ai, ms);
     const got = x.intent ? [x.intent.type, "time" in x.intent ? x.intent.time : ""].join(" ").trim() : "NONE";
-    const ok = got === want;
+    // "help me decide …" may also come back as a decision card (same screen one tap later): both are fine.
+    const ok = got === want || (want === "decide" && got === "NONE" && !!x.decision);
     if (!ok) failures++;
     console.log(`      "${msg}" -> ${got}${ok ? "" : `   <- expected ${want}`}`);
   }

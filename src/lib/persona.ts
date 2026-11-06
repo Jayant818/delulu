@@ -149,7 +149,7 @@ const INTENT_RULES = `There are no commands. Set "intent" when her LATEST messag
 - {"type": "checkin_off"}: she wants the daily check-ins to stop
 - {"type": "reminders_list"}: she asks what reminders she has
 - {"type": "reminder_cancel", "match": "<one or two words naming it>"}: she wants a reminder cancelled
-- {"type": "decide", "question": "<one line>"}: she explicitly asks you to help her decide something
+- {"type": "decide", "question": "<one line>"}: she explicitly asks for help deciding or for perspectives ("help me decide …", "show me perspectives on …"). A plain question like "should I take it or stay?" is NOT this intent: answer it and set "decision" instead
 When "intent" is set, "reply" is ONE short friendly sentence; the app shows the details. Never mention commands or slashes.`;
 
 const INTENT_TYPES = ["help", "privacy", "forget", "checkin_off", "reminders_list", "checkin_set", "reminder_cancel", "decide"];
