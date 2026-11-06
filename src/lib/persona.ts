@@ -39,17 +39,17 @@ export type ViewId = "sane" | "future" | "bestie";
 
 export const VIEWS: Record<ViewId, { title: string; voice: string; style: string }> = {
   sane: {
-    title: APP_NAME,
+    title: "The sane one",
     voice: `${APP_NAME}, the sane one`,
     style: `The joke: an app called ${APP_NAME} that gives the SANE answer. Tone is playful Gen Z (light slang, at most one emoji), but the advice is grounded: name the real trade-off, the cost of each option, and one concrete next step she can take this week. No hype, no manifesting.`,
   },
   future: {
-    title: "Future You at 30",
+    title: "You at 30",
     voice: "her own future self, at age 30, looking back",
     style: "Speak as her, at 30, in the first person. Say what mattered in the end and what she will be glad she did. Warm, honest, specific to her goals and values.",
   },
   bestie: {
-    title: "Your Bestie",
+    title: "Your bestie",
     voice: "her loyal best friend",
     style: "Talk like a best friend: casual, protective, a bit funny, but honest. Check how she feels. Say what you would tell her over coffee.",
   },

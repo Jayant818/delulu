@@ -192,6 +192,13 @@ export default function TryOn() {
         className="mt-3 w-full rounded-2xl border border-line bg-paper px-4 py-3 outline-none focus:border-ink"
       />
 
+      {/* Consent before the photo leaves the phone (design.md §3.2): one short, true line, right at the button. */}
+      {photo && (
+        <p className="mt-3 rounded-xl border border-line bg-paper px-3 py-2 text-xs leading-relaxed text-muted">
+          Tapping &ldquo;See it on me&rdquo; sends this photo to an image model on 0G (standard tier, not the sealed mode your chats use).
+          It is deleted right after; we never save it.
+        </p>
+      )}
       <button
         onClick={make}
         disabled={!photo || !style.trim() || making}
@@ -200,7 +207,24 @@ export default function TryOn() {
         {making ? "Making your look… about 30 seconds" : "See it on me ✨"}
       </button>
       {info && <p className="mt-2 text-center text-xs text-muted">Up to {info.caps.user} try-ons per person per day.</p>}
-      {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
+      {making && (
+        <div className="mt-4 grid grid-cols-2 gap-2" aria-live="polite">
+          <div className="aspect-square animate-pulse rounded-xl bg-line" />
+          <div className="grid aspect-square place-items-center rounded-xl border border-dashed border-line px-3 text-center text-xs text-muted">
+            Making your AI preview… usually 15–30 seconds. Stay on this page.
+          </div>
+        </div>
+      )}
+      {error && !making && (
+        <div className="mt-3 flex flex-wrap items-center gap-3" role="alert">
+          <p className="text-sm text-red-700">{error}</p>
+          {photo && style.trim() && (
+            <button onClick={make} className="min-h-11 rounded-xl border border-ink px-4 text-sm font-semibold text-ink">
+              Try again
+            </button>
+          )}
+        </div>
+      )}
 
       {result && photo && (
         <section className="mt-6">
@@ -212,8 +236,8 @@ export default function TryOn() {
             </figure>
             <figure>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={result.image} alt={`After: ${style}`} className="w-full rounded-xl" />
-              <figcaption className="mt-1 text-center text-xs text-muted">{result.mock ? "MOCK: no image model configured" : `After · ${style}`}</figcaption>
+              <img src={result.image} alt={`AI preview: ${style}`} className="w-full rounded-xl" />
+              <figcaption className="mt-1 text-center text-xs text-muted">{result.mock ? "MOCK: no image model configured" : `AI preview · ${style}`}</figcaption>
               {!result.mock && (
                 <p className="mt-0.5 text-center font-mono text-[10px] text-muted">
                   {result.backend === "0g" ? "0G" : "OpenAI"} · {result.requestId ? `req ${result.requestId.slice(0, 8)}… · ` : ""}standard tier

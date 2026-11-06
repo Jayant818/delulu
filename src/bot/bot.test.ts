@@ -77,12 +77,12 @@ test("telegram flow: start -> chat (no setup questions) -> decision card -> 3 vi
   // Three views in one message, one "Go with" button per voice.
   await t.press(see!.callback_data);
   const views = t.lastSent();
-  for (const title of ["Delulu", "Future You at 30", "Your Bestie"]) assert.match(String(views.text), new RegExp(`<b>${title}</b>`));
+  for (const title of ["The sane one", "You at 30", "Your bestie"]) assert.match(String(views.text), new RegExp(`<b>${title}</b>`));
   const go = t.buttons(views);
   assert.equal(go.length, 3);
 
   await t.press(go[1].callback_data);
-  assert.match(String(t.lastSent().text), /going with <b>Future You at 30<\/b>/);
+  assert.match(String(t.lastSent().text), /going with <b>You at 30<\/b>/);
   assert.ok(t.calls.some((c) => c.method === "editMessageReplyMarkup"), "buttons removed after the pick");
 
   await t.text("is this private?");

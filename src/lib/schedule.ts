@@ -16,7 +16,8 @@ export function nextDaily(hhmm: string, now: number): number {
 }
 
 export const whenIST = (iso: string) =>
-  new Date(iso).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
+  new Date(iso).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" }) +
+  " IST"; // the zone is part of the time she reads (design.md §5 Reminders)
 
 export const OUTCOMES: { key: Outcome; label: string; reply: string }[] = [
   { key: "glad", label: "😊 Glad I did", reply: "Love that for you 💛 Noted. Remember this feeling next time you doubt yourself." },

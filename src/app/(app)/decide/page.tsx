@@ -79,7 +79,11 @@ function Decide({ fromChat }: { fromChat: string }) {
   return (
     <div>
       <h1 className="font-serif text-3xl">What are you deciding?</h1>
-      {fromChat && <p className="mt-1 text-xs text-muted">Pulled from your chat. Edit it if it is not quite right.</p>}
+      {fromChat ? (
+        <p className="mt-1 text-xs text-muted">Pulled from your chat. Edit it if it is not quite right.</p>
+      ) : (
+        <p className="mt-1 text-sm text-muted">Write the choice you&apos;re stuck on. The sane one, you at 30 and your bestie each answer.</p>
+      )}
       <textarea
         rows={3}
         value={question}

@@ -57,7 +57,7 @@ const idb = (page, op) =>
   await page.getByRole("button", { name: "Hear all three" }).click();
   await page.getByRole("button", { name: /go with this/ }).nth(2).waitFor(); // all three voices answered
   ok((await page.locator("button", { hasText: "MOCK" }).count()) === 3, "three views, three request-ID chips");
-  for (const t of ["Delulu", "Future You at 30", "Your Bestie"]) ok(await page.getByRole("heading", { name: t }).isVisible(), `view ${t}`);
+  for (const t of ["The sane one", "You at 30", "Your bestie"]) ok(await page.getByRole("heading", { name: t }).isVisible(), `view ${t}`);
   await page.getByRole("button", { name: /go with this/ }).nth(1).click();
   await page.getByText("Saved.").waitFor();
   ok(await page.getByText(/Check back on/).isVisible(), "30-day check-back item shown");
@@ -67,12 +67,12 @@ const idb = (page, op) =>
   const raw = await idb(page, "all");
   ok(raw.includes('"ct"') && !raw.includes("Bangalore") && !raw.includes("sister"), "IndexedDB holds ciphertext only");
   await page.goto(B + "/decide");
-  await page.getByText(/Went with Future You at 30/).waitFor();
+  await page.getByText(/Went with You at 30/).waitFor();
   ok(true, "memory decrypts after reload");
 
   // Back in chat: the card now shows the outcome; small talk makes no card.
   await page.getByRole("link", { name: "Talk" }).click();
-  await page.getByText(/Decided: went with Future You at 30/).waitFor();
+  await page.getByText(/Decided: went with You at 30/).waitFor();
   ok(true, "chat card shows the decision she made");
 
   // In-app check-back (dev server runs with NEXT_PUBLIC_CHECKBACK_MS=8000; the scheduler ticks every 15 s).

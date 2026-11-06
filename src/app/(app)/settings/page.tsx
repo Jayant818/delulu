@@ -25,15 +25,26 @@ export default function Settings() {
           {chat.length} messages · {decisions.length} decisions · {profile.facts.length} {profile.facts.length === 1 ? "thing" : "things"} it knows about you. Encrypted on
           this device (AES-GCM) with a key made from your wallet signature. Nothing is stored on a server.
         </p>
-        {profile.facts.length > 0 && (
+        {profile.facts.length > 0 ? (
           <details className="mt-3">
             <summary className="cursor-pointer font-semibold text-ink">What {APP_NAME} knows about you</summary>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
+            <ul className="mt-2 space-y-1">
               {profile.facts.map((f) => (
-                <li key={f}>{f}</li>
+                <li key={f} className="flex items-center justify-between gap-3 text-muted">
+                  <span>{f}</span>
+                  <button
+                    onClick={() => vault.update((m) => ({ ...m, profile: { facts: m.profile.facts.filter((x) => x !== f) } }))}
+                    className="min-h-11 shrink-0 px-2 text-xs font-semibold text-ink underline underline-offset-4"
+                    aria-label={`Forget: ${f}`}
+                  >
+                    Forget
+                  </button>
+                </li>
               ))}
             </ul>
           </details>
+        ) : (
+          <p className="mt-3 text-muted">Nothing yet. As you talk, {APP_NAME} keeps short facts about you here, and you can forget any of them.</p>
         )}
         <p className="mt-3 break-all font-mono text-xs">
           Wallet ({session.mode === "privy" ? "embedded" : "DEV"}): {session.address}
