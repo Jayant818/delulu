@@ -9,7 +9,7 @@ import { randomBytes } from "node:crypto";
 import { APP_NAME } from "@/config";
 import type { AiResult } from "@/lib/ai/provider";
 import { allViews, chatTurn, checkInText, VIEW_ORDER, type Context as BrainContext } from "@/lib/brain";
-import { ONBOARDING, VIEWS, type Outcome, type Profile, type ViewId } from "@/lib/persona";
+import { ONBOARDING, VIEWS, type Intent, type Outcome, type Profile, type ViewId } from "@/lib/persona";
 import { newUser, type BotStore, type BotUser, type Job, type Proof } from "./store";
 
 const DAY = 86_400_000;
@@ -40,24 +40,22 @@ export const TEXT = {
 
 Tell me anything: your day, your drama, the choice keeping you up at night. When you're stuck on a decision, I'll show you three views and check back on you in 30 days.
 
-🔒 My AI runs sealed on 0G Private Computer: not even 0G can read it. I store nothing readable. Telegram carries our messages (/privacy).
+🔒 My AI runs sealed on 0G Private Computer: not even 0G can read it. I store nothing readable. Telegram carries our messages (ask me "is this private?" any time).
 🚫 I will <b>never</b> ask for money, crypto, a wallet, passwords, codes, or ask you to click a link. If "${APP_NAME}" ever does, it isn't me.
 
 First, 5 quick questions so I actually know you.`,
   privacy: `<b>What happens to what you tell me</b>
-• <b>The AI</b> runs on 0G Private Computer in private mode: inside a hardware enclave, so not even 0G or the GPU owner can read it. /proof shows the request IDs.
-• <b>My server</b> stores your setup answers, chat, decisions and reminders encrypted (AES-256-GCM, a key per person). Nothing readable is kept. /forget deletes all of it, for good.
+• <b>The AI</b> runs on 0G Private Computer in private mode: inside a hardware enclave, so not even 0G or the GPU owner can read it. The request IDs are below.
+• <b>My server</b> stores your setup answers, chat, decisions and reminders encrypted (AES-256-GCM, a key per person). Nothing readable is kept. Say "delete everything" and it's gone, for good.
 • <b>Telegram</b> carries our messages, like any Telegram chat. Telegram can read bot chats; that part is outside my control.
 • No ads, no trackers, no wallet, no payments. Ever.`,
-  help: `Just talk to me. Things I can do:
-/decide &lt;your decision&gt;: three views right now
-"remind me Sunday 6pm to call Riya": I'll remind you
-/reminders: see or cancel your reminders
-/checkin 21:00: a daily check-in from me (/checkin off to stop)
-/proof: the 0G request IDs behind my last answers
-/privacy: what happens to your data
-/forget: delete everything I know about you
-/start: redo the 5 setup questions`,
+  help: `Just talk to me, like you'd text a friend. No commands. You can also say things like:
+• "help me decide between the Bangalore job and staying in Jaipur"
+• "remind me Sunday 6pm to call Riya"
+• "what are my reminders" / "cancel the Riya reminder"
+• "check in on me every evening at 9" / "stop checking in"
+• "is this private?" (I'll show you the proof)
+• "delete everything"`,
   busy: `My private brain is taking a moment. Try again in a minute? 🙏`,
   limit: `That's a lot of thinking for one day 😅 Let's pick this up tomorrow.`,
 };
@@ -80,7 +78,7 @@ export type BotDeps = {
   store: BotStore;
   dailyLimit?: number;
   checkBackMs?: number; // default 30 days
-  demoFast?: boolean; // first daily check-in fires 1 minute after /checkin
+  demoFast?: boolean; // first daily check-in fires 1 minute after she asks for one
 };
 
 export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe) {
@@ -172,67 +170,94 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
       await askQuestion(ctx, 0);
     }),
   );
-  bot.command("help", (ctx) => ctx.reply(TEXT.help, { parse_mode: "HTML" }));
-  bot.command("privacy", (ctx) => ctx.reply(TEXT.privacy, { parse_mode: "HTML" }));
+  // No slash commands (Jayant, TG 3412): everything below is reached from plain text via the model's intent.
+  async function sendHelp(ctx: Context) {
+    await ctx.reply(TEXT.help, { parse_mode: "HTML" });
+  }
 
-  bot.command("forget", async (ctx) => {
-    const uid = ctx.from?.id;
-    if (!uid) return;
+  async function sendPrivacy(ctx: Context, u: BotUser) {
+    const lines = u.proofs.slice(-10).map((p) => {
+      const tee = p.teeVerified === true ? "TEE ✓" : p.teeVerified === false ? "TEE ✗" : "no TEE check";
+      const where = p.backend === "0g" ? `0G ${p.model}` : p.backend === "openai" ? "fallback (not sealed)" : "MOCK";
+      return `• ${p.kind} · ${where} · <code>${esc(p.requestId ?? "no-id")}</code> · ${tee}`;
+    });
+    const proof = lines.length ? `\n\n<b>Request IDs behind my last answers</b>\n${lines.join("\n")}` : "";
+    await ctx.reply(TEXT.privacy + proof, { parse_mode: "HTML" });
+  }
+
+  async function askForget(ctx: Context) {
+    const kb = new InlineKeyboard().text("Yes, delete everything", "fg:yes").row().text("No, keep it", "fg:no");
+    await ctx.reply("Delete everything I know about you: your answers, chats, decisions and reminders? This can't be undone.", { reply_markup: kb });
+  }
+
+  async function setCheckin(ctx: Context, u: BotUser, hhmm: string) {
+    u.jobs = u.jobs.filter((j) => j.kind !== "daily");
+    u.dailyAt = hhmm;
+    const at = deps.demoFast ? Date.now() + 60_000 : nextDaily(hhmm, Date.now());
+    u.jobs.push({ id: id(), kind: "daily", at: new Date(at).toISOString() });
+    await ctx.reply(`Done ✅ I'll check in on you every day at ${hhmm} IST. First one: ${when(new Date(at).toISOString())}.\nSay "stop checking in" whenever you want.`);
+  }
+
+  async function checkinOff(ctx: Context, u: BotUser) {
+    u.jobs = u.jobs.filter((j) => j.kind !== "daily");
+    u.dailyAt = null;
+    await ctx.reply("Daily check-in off. I'm still here whenever you want to talk 💛");
+  }
+
+  async function listReminders(ctx: Context, u: BotUser) {
+    const rs = u.jobs.filter((j) => j.kind === "reminder").sort((a, b) => a.at.localeCompare(b.at));
+    if (!rs.length) return void (await ctx.reply(`No reminders right now. Just tell me, like "remind me Sunday 6pm to call Riya".`));
+    const kb = new InlineKeyboard();
+    for (const r of rs) kb.text(`Cancel: ${(r.text ?? "").slice(0, 24)}`, `rc:${r.id}`).row();
+    await ctx.reply(rs.map((r) => `⏰ ${esc(r.text ?? "")} · ${when(r.at)}`).join("\n"), { parse_mode: "HTML", reply_markup: kb });
+  }
+
+  async function cancelReminder(ctx: Context, u: BotUser, match: string) {
+    const words = match.toLowerCase().split(/\s+/).filter(Boolean);
+    const hits = u.jobs.filter((j) => j.kind === "reminder" && words.every((w) => (j.text ?? "").toLowerCase().includes(w)));
+    if (hits.length === 1) {
+      u.jobs = u.jobs.filter((j) => j.id !== hits[0].id);
+      return void (await ctx.reply(`Cancelled ⏰ ${hits[0].text}`));
+    }
+    if (!hits.length) await ctx.reply(`I couldn't find a reminder about "${match}". Here's what I have:`);
+    await listReminders(ctx, u); // zero or several matches: let her tap the right one
+  }
+
+  async function runIntent(ctx: Context, u: BotUser, intent: Intent) {
+    switch (intent.type) {
+      case "help":
+        return sendHelp(ctx);
+      case "privacy":
+        return sendPrivacy(ctx, u);
+      case "forget":
+        return askForget(ctx);
+      case "checkin_set":
+        return setCheckin(ctx, u, intent.time);
+      case "checkin_off":
+        return checkinOff(ctx, u);
+      case "reminders_list":
+        return listReminders(ctx, u);
+      case "reminder_cancel":
+        return cancelReminder(ctx, u, intent.match);
+      case "decide":
+        return showViews(ctx, u, intent.question, id());
+    }
+  }
+
+  bot.callbackQuery("fg:yes", async (ctx) => {
+    const uid = ctx.from.id;
     await locked(uid, () => deps.store.forget(uid));
     nextDue.delete(uid);
-    await ctx.reply("Done. Everything I knew about you is deleted, for good, including reminders. /start if you ever want to begin again 💛");
+    await ctx.answerCallbackQuery("Deleted");
+    await ctx.editMessageReplyMarkup({ reply_markup: undefined }).catch(() => {});
+    await ctx.reply("Done. Everything I knew about you is deleted, for good, including reminders. Say hi any time if you want to start again 💛");
   });
 
-  bot.command("proof", (ctx) =>
-    withUser(ctx, async (u) => {
-      if (!u.proofs.length) return void (await ctx.reply("No answers yet. Talk to me first 🙂"));
-      const lines = u.proofs.slice(-10).map((p) => {
-        const tee = p.teeVerified === true ? "TEE ✓" : p.teeVerified === false ? "TEE ✗" : "no TEE check";
-        const where = p.backend === "0g" ? `0G ${p.model}` : p.backend === "openai" ? "fallback (not sealed)" : "MOCK";
-        return `• ${p.kind} · ${where} · <code>${esc(p.requestId ?? "no-id")}</code> · ${tee}`;
-      });
-      await ctx.reply(`<b>Request IDs behind my last answers</b>\n${lines.join("\n")}`, { parse_mode: "HTML" });
-    }),
-  );
-
-  bot.command("decide", (ctx) =>
-    withUser(ctx, async (u) => {
-      if (!u.profile) return void (await ctx.reply("Let's do the 5 setup questions first: /start"));
-      const q = ctx.match.trim();
-      if (!q) return void (await ctx.reply("Tell me the decision, like: /decide take the Bangalore job or stay in Jaipur"));
-      await showViews(ctx, u, q.slice(0, 300), id());
-    }),
-  );
-
-  bot.command("checkin", (ctx) =>
-    withUser(ctx, async (u) => {
-      const arg = ctx.match.trim().toLowerCase();
-      u.jobs = u.jobs.filter((j) => j.kind !== "daily");
-      if (arg === "off") {
-        u.dailyAt = null;
-        return void (await ctx.reply("Daily check-in off. I'm still here whenever you want to talk 💛"));
-      }
-      const m = arg.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
-      if (!m) {
-        const now = u.dailyAt ? `Right now I check in every day at ${u.dailyAt} IST.` : "No daily check-in yet.";
-        return void (await ctx.reply(`${now}\nSet one with /checkin 21:00 (IST, 24h), or /checkin off.`));
-      }
-      u.dailyAt = `${m[1].padStart(2, "0")}:${m[2]}`;
-      const at = deps.demoFast ? Date.now() + 60_000 : nextDaily(u.dailyAt, Date.now());
-      u.jobs.push({ id: id(), kind: "daily", at: new Date(at).toISOString() });
-      await ctx.reply(`Done ✅ I'll check in on you every day at ${u.dailyAt} IST. First one: ${when(new Date(at).toISOString())}.`);
-    }),
-  );
-
-  bot.command("reminders", (ctx) =>
-    withUser(ctx, async (u) => {
-      const rs = u.jobs.filter((j) => j.kind === "reminder").sort((a, b) => a.at.localeCompare(b.at));
-      if (!rs.length) return void (await ctx.reply(`No reminders. Just tell me, like "remind me Sunday 6pm to call Riya".`));
-      const kb = new InlineKeyboard();
-      for (const r of rs) kb.text(`Cancel: ${(r.text ?? "").slice(0, 24)}`, `rc:${r.id}`).row();
-      await ctx.reply(rs.map((r) => `⏰ ${esc(r.text ?? "")} · ${when(r.at)}`).join("\n"), { parse_mode: "HTML", reply_markup: kb });
-    }),
-  );
+  bot.callbackQuery("fg:no", async (ctx) => {
+    await ctx.answerCallbackQuery("Kept");
+    await ctx.editMessageReplyMarkup({ reply_markup: undefined }).catch(() => {});
+    await ctx.reply("Okay, keeping everything 💛");
+  });
 
   bot.callbackQuery(/^rc:([0-9a-f]+)$/, (ctx) =>
     withUser(ctx, async (u) => {
@@ -298,17 +323,28 @@ export function createBot(token: string, deps: BotDeps, botInfo?: UserFromGetMe)
         u.profile = { goals: "", values: "", trusts: "", fears: "", bigDecision: "", ...u.onboarding.answers };
         u.onboarding = null;
         return void (await ctx.reply(
-          `Got it, I know you a little now 💛 Tell me anything. What's on your mind?\n\n(Want me to check in on you every evening? Send /checkin 21:00)`,
+          `Got it, I know you a little now 💛 Tell me anything. What's on your mind?\n\n(Want a daily check-in? Just say "check in on me every evening at 9".)`,
         ));
       }
-      if (!u.profile) return void (await ctx.reply(`Hi! Tap /start and I'll ask you 5 quick questions first.`));
+      if (!u.profile) {
+        // No commands: any first message (or a message after "delete everything") starts the 5 questions.
+        u.onboarding = { step: 0, answers: {} };
+        await ctx.reply(TEXT.intro, { parse_mode: "HTML" });
+        return void (await askQuestion(ctx, 0));
+      }
       if (!spend(u, 1)) return void (await ctx.reply(TEXT.limit));
 
       await ctx.replyWithChatAction("typing");
-      const { reply, decision, reminder, ai } = await chatTurn(brainCtx(u), text);
+      const { reply, decision, reminder, intent, ai } = await chatTurn(brainCtx(u), text);
       const at = new Date().toISOString();
       u.chat = [...u.chat, { role: "user" as const, content: text, at }, { role: "assistant" as const, content: reply, at }].slice(-200);
       u.proofs = [...u.proofs, proofOf(ai, "chat")].slice(-20);
+
+      if (intent) {
+        // The app does the thing; the model's one-liner is not shown, so it can never contradict the real data.
+        u.chat[u.chat.length - 1].content = `[${intent.type}]`;
+        return void (await runIntent(ctx, u, intent));
+      }
 
       const kb = new InlineKeyboard();
       let body = `${esc(reply)}\n\n${footer(ai)}`;

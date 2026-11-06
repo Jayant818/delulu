@@ -35,6 +35,7 @@ Expect every line to start with `PASS`, `0g` as the backend, `tee=true`, and a f
 | `decision: NONE` | the model did not flag the demo message as a decision | reword the demo message to state both options plainly ("should I take X or Y?") and rerun |
 | `reminder: NONE` | the model did not return a reminder time | try "remind me on Sunday at 6 pm to call Riya"; if still none, leave reminders out of the video |
 | `small talk produced a decision` | over-eager detection | note it; the card is harmless (she can ignore it) |
+| `"…" -> NONE <- expected …` (intent lines) | the model did not route a plain-text request | rerun once; if it still fails, use the exact phrasing from the live check in the demo |
 
 ## 3. Start the bot in demo mode (30 s)
 
@@ -46,20 +47,20 @@ Expect: `[bot] @<username> running (long polling). AI backends: 0g. No message c
 
 ## 4. Five-minute live check on a phone
 
-Use a fresh Telegram account or send `/forget` first.
+Use a fresh Telegram account, or type "delete everything" and tap **Yes** first.
 
 | # | Send / tap | Expect |
 |---|---|---|
-| 1 | `/start` | intro with the 🚫 anti-scam line, then question 1/5 |
-| 2 | answer the 5 questions | "Got it, I know you a little now 💛" + the `/checkin 21:00` hint |
+| 1 | tap **Start** (or just say hi) | intro with the 🚫 anti-scam line, then question 1/5 |
+| 2 | answer the 5 questions | "Got it, I know you a little now 💛" + the "check in on me every evening at 9" hint |
 | 3 | "ugh my parents want me home but the bangalore offer pays 2x. should i take it or stay in jaipur?" | a reply, footer `🔒 0G · xxxxxxxx · TEE ✓`, "Sounds like a decision: …", button **See 3 views 👀** |
 | 4 | tap **See 3 views** | one message: Delulu / Future You at 30 / Your Bestie, each with its own 0G footer, three **Go with …** buttons |
 | 5 | tap **Go with Future You at 30** | buttons disappear, "Saved ✅ … I'll check back on you on …" |
 | 6 | wait about 1 minute | "💛 Check-back. … How did it go?" with Glad / Mixed / Regret; tap one, get a reply |
 | 7 | "remind me in 2 minutes to call Riya" | "⏰ Reminder set: …" with a cancel button; it arrives about 2 minutes later |
-| 8 | `/checkin 21:00` | "Done ✅ … First one: …" (in demo mode about 1 minute later, an AI check-in with a 0G footer) |
-| 9 | `/proof` | the last request IDs, each `0G 0gm-1.0-35b-a3b … TEE ✓` |
-| 10 | `/privacy`, then `/forget` | the honest privacy text; then "Everything I knew about you is deleted" |
+| 8 | "check in on me every evening at 9" | "Done ✅ … First one: …" (in demo mode about 1 minute later, an AI check-in with a 0G footer) |
+| 9 | "is this private?" | the honest privacy text, then the last request IDs, each `0G 0gm-1.0-35b-a3b … TEE ✓` |
+| 10 | "what are my reminders", then "delete everything" → **Yes** | the reminders list with cancel buttons; then the confirm question; then "Everything I knew about you is deleted" |
 
 Any footer that says `MOCK` or `fallback model, not sealed` means the bot is not on 0G. Stop and go back to step 2.
 
@@ -73,7 +74,7 @@ The **Open in Telegram** button must open the bot (it says "coming soon" until `
 
 ## 6. Record the demo
 
-Send `/forget`, restart with `DEMO_FAST=1 npm run bot`, follow the script in README.md ("Demo script"). Keep a backup take.
+Type "delete everything" → **Yes**, restart with `DEMO_FAST=1 npm run bot`, follow the script in README.md ("Demo script"). Keep a backup take.
 
 ## 7. During judging
 

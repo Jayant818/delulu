@@ -99,6 +99,27 @@ async function callOpenAI(messages: ChatMessage[], o: Opts): Promise<AiResult> {
   };
 }
 
+// Keyword stand-in for the model's intent routing, so the command-free bot can be tested without a key.
+function mockIntent(t: string): Record<string, string> | null {
+  const s = t.toLowerCase();
+  if (/delete everything|forget me/.test(s)) return { type: "forget" };
+  if (/what can you do|how does this work/.test(s)) return { type: "help" };
+  if (/proof|is this private|who can read/.test(s)) return { type: "privacy" };
+  if (/stop checking in/.test(s)) return { type: "checkin_off" };
+  const ci = s.match(/check in (?:on me )?every (?:\w+ )?at (\d{1,2})(?::(\d\d))?\s*(am|pm)?/);
+  if (ci) {
+    let h = Number(ci[1]);
+    if ((ci[3] === "pm" || /evening|night/.test(s)) && h < 12) h += 12;
+    return { type: "checkin_set", time: `${String(h).padStart(2, "0")}:${ci[2] ?? "00"}` };
+  }
+  if (/what are my reminders|my reminders/.test(s)) return { type: "reminders_list" };
+  const rc = t.match(/cancel (?:the )?(.+?) reminder/i);
+  if (rc) return { type: "reminder_cancel", match: rc[1] };
+  const hd = t.match(/help me decide (.+)/i);
+  if (hd) return { type: "decide", question: hd[1] };
+  return null;
+}
+
 async function callMock(messages: ChatMessage[], o: Opts): Promise<AiResult> {
   const last = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
   const voice = messages[0]?.content.match(/^VOICE: (.+)$/m)?.[1] ?? "the app";
@@ -108,7 +129,7 @@ async function callMock(messages: ChatMessage[], o: Opts): Promise<AiResult> {
   // Mock reminder: "remind me ..." -> one minute from now, so the scheduler can be demoed without a key.
   const reminder = /\bremind me\b/i.test(last) ? { text: last.replace(/.*\bremind me( to)?\s*/i, "").slice(0, 80) || "this", at: new Date(Date.now() + 60_000).toISOString() } : null;
   return {
-    text: o.json ? JSON.stringify({ reply, decision, reminder }) : reply,
+    text: o.json ? JSON.stringify({ reply, decision, reminder, intent: mockIntent(last) }) : reply,
     backend: "mock",
     model: "mock",
     requestId: `mock-${crypto.randomUUID()}`,

@@ -21,15 +21,8 @@ const { bot, runDue, loadSchedule } = createBot(token, {
 });
 
 async function main() {
-  await bot.api.setMyCommands([
-    { command: "decide", description: "Three views on a decision" },
-    { command: "reminders", description: "See or cancel reminders" },
-    { command: "checkin", description: "Daily check-in time, e.g. /checkin 21:00" },
-    { command: "proof", description: "0G request IDs behind my answers" },
-    { command: "privacy", description: "What happens to your data" },
-    { command: "forget", description: "Delete everything about you" },
-    { command: "start", description: "Redo the 5 setup questions" },
-  ]);
+  // No command menu (Jayant, TG 3412): she just talks. Telegram's own Start button still sends /start.
+  await bot.api.deleteMyCommands();
   console.log(`[bot] @${(await bot.api.getMe()).username} running (long polling). AI backends: ${configuredBackends().join(" -> ")}. No message content is logged.`);
   await loadSchedule();
   // Scheduled messages (check-backs, daily check-ins, reminders): checked every 15 s.

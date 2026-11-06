@@ -82,8 +82,9 @@ test("telegram flow: onboarding -> chat -> decision card -> 3 views -> pick -> p
   assert.match(String(t.lastSent().text), /going with <b>Future You at 30<\/b>/);
   assert.ok(t.calls.some((c) => c.method === "editMessageReplyMarkup"), "buttons removed after the pick");
 
-  await t.text("/proof");
-  assert.match(String(t.lastSent().text), /chat · MOCK/);
+  await t.text("is this private?");
+  assert.match(String(t.lastSent().text), /What happens to what you tell me/, "privacy intent: the honest text");
+  assert.match(String(t.lastSent().text), /chat · MOCK/, "…plus the request IDs");
   assert.match(String(t.lastSent().text), /view · MOCK/);
 
   // Encrypted at rest: no plaintext, no telegram id in file names.
@@ -101,9 +102,20 @@ test("telegram flow: onboarding -> chat -> decision card -> 3 views -> pick -> p
     if (x === null) throw new Error("not found");
   }));
 
-  await t.text("/forget");
-  assert.equal((await readdir(t.dir)).length, 0, "/forget deletes the record");
+  // "delete everything" asks first; "No" keeps it, "Yes" deletes.
+  await t.text("delete everything");
+  const confirm = t.buttons(t.lastSent());
+  assert.deepEqual(confirm.map((b) => b.callback_data), ["fg:yes", "fg:no"]);
+  await t.press("fg:no");
+  assert.ok(await t.store.load(4242), "No keeps the record");
+  await t.text("delete everything");
+  await t.press("fg:yes");
+  assert.equal((await readdir(t.dir)).length, 0, "Yes deletes the record");
   assert.equal(await t.store.load(4242), null);
+
+  // After deleting, any message starts the 5 questions again (no commands needed).
+  await t.text("hey");
+  assert.match(String(t.lastSent().text), /1\/5/);
 });
 
 test("anti-scam: no outgoing message ever asks for a wallet, seed, payment or link click", async () => {
@@ -111,12 +123,18 @@ test("anti-scam: no outgoing message ever asks for a wallet, seed, payment or li
   await t.text("/start");
   for (const a of ["a", "b", "c", "d", "e"]) await t.text(a);
   await t.text("hi");
-  await t.text("/help");
-  await t.text("/privacy");
+  await t.text("what can you do");
+  await t.text("is this private?");
+  await t.text("remind me to call Riya");
+  await t.text("what are my reminders");
+  await t.text("delete everything");
   for (const p of t.sent()) {
     const s = String(p.text).toLowerCase();
     assert.ok(!/(send|enter|share|connect) (your|a) (wallet|seed|private key|payment|card)|click (this|the) link|airdrop|earn /.test(s), s.slice(0, 80));
+    // Text-only product (Jayant, TG 3412): no message may tell her to type a slash command.
+    assert.ok(!/(^|[\s(>"])\/[a-z]+/.test(s), `slash command in a message: ${s.slice(0, 80)}`);
   }
+  assert.match(String(t.sent().find((p) => /no commands/i.test(String(p.text)))?.text), /help me decide/, "help is in plain words");
 });
 
 test("footer: 0G shows request id + TEE flag; fallback is labelled not sealed", () => {
@@ -134,7 +152,7 @@ async function onboarded() {
 
 test("T3 check-back: picking a decision schedules it; runDue asks how it went; the answer becomes memory", async () => {
   const t = await onboarded();
-  await t.text("/decide take the Bangalore job or stay in Jaipur");
+  await t.text("help me decide take the Bangalore job or stay in Jaipur");
   await t.press(t.buttons(t.lastSent())[0].callback_data); // go with Delulu
   assert.equal(await t.runDue(Date.now() + 30_000), 0, "nothing due before the check-back time");
   assert.equal(await t.runDue(Date.now() + 61_000), 1);
@@ -148,9 +166,9 @@ test("T3 check-back: picking a decision schedules it; runDue asks how it went; t
   assert.equal(await t.runDue(Date.now() + 120_000), 0, "never delivered twice");
 });
 
-test("T3 daily check-in: /checkin 21:00 schedules the next 21:00 IST and reschedules after sending", async () => {
+test("T3 daily check-in: 'check in on me every evening at 9' schedules 21:00 IST and reschedules after sending", async () => {
   const t = await onboarded();
-  await t.text("/checkin 21:00");
+  await t.text("check in on me every evening at 9");
   assert.match(String(t.lastSent().text), /every day at 21:00 IST/);
   const job = (await t.store.load(4242))!.jobs.find((j) => j.kind === "daily")!;
   const at = Date.parse(job.at);
@@ -161,17 +179,17 @@ test("T3 daily check-in: /checkin 21:00 schedules the next 21:00 IST and resched
   assert.match(String(t.lastSent().text), /MOCK · no AI called/, "check-in is an AI message with the honest footer");
   const next = (await t.store.load(4242))!.jobs.find((j) => j.kind === "daily")!;
   assert.equal(Date.parse(next.at) - at, 86_400_000, "rescheduled for the same time tomorrow");
-  await t.text("/checkin off");
+  await t.text("stop checking in");
   assert.equal((await t.store.load(4242))!.jobs.filter((j) => j.kind === "daily").length, 0);
 });
 
-test("T3 reminders: from chat, listed, cancellable, delivered once; survive a restart; /forget clears them", async () => {
+test("T3 reminders: from chat, listed, cancellable by name, delivered once; survive a restart; deleting clears them", async () => {
   const t = await onboarded();
   await t.text("remind me to call Riya");
   const set = t.lastSent();
   assert.match(String(set.text), /Reminder set:<\/b> call Riya/);
   assert.ok(t.buttons(set).some((b) => b.text === "Cancel reminder"));
-  await t.text("/reminders");
+  await t.text("what are my reminders");
   assert.match(String(t.lastSent().text), /⏰ call Riya/);
 
   // Restart: a new bot instance rebuilds the schedule from the encrypted store.
@@ -191,7 +209,11 @@ test("T3 reminders: from chat, listed, cancellable, delivered once; survive a re
   const cancel = t.buttons(t.lastSent()).find((b) => b.text === "Cancel reminder")!;
   await t.press(cancel.callback_data);
   assert.equal((await t.store.load(4242))!.jobs.filter((j) => j.kind === "reminder").length, 0);
+  await t.text("remind me to stretch");
+  await t.text("cancel the stretch reminder");
+  assert.match(String(t.lastSent().text), /Cancelled ⏰ stretch/, "cancel by name");
   await t.text("remind me to sleep");
-  await t.text("/forget");
-  assert.equal(await t.runDue(Date.now() + 61_000), 0, "nothing fires after /forget");
+  await t.text("delete everything");
+  await t.press("fg:yes");
+  assert.equal(await t.runDue(Date.now() + 61_000), 0, "nothing fires after deleting");
 });

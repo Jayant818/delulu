@@ -7,6 +7,7 @@ import {
   parseChatReply,
   viewSystemPrompt,
   type ChatLine,
+  type Channel,
   type ChatReply,
   type DecisionSummary,
   type Profile,
@@ -18,10 +19,10 @@ export const VIEW_ORDER: ViewId[] = ["sane", "future", "bestie"];
 export type Context = { profile: Profile; decisions: DecisionSummary[]; history: ChatLine[] };
 
 /** One chat turn: a reply, plus a one-line decision when her message contains a real choice. */
-export async function chatTurn(ctx: Context, message: string, opts: { canRemind?: boolean } = {}): Promise<ChatReply & { ai: AiResult }> {
+export async function chatTurn(ctx: Context, message: string, opts: { channel?: Channel } = {}): Promise<ChatReply & { ai: AiResult }> {
   const ai = await complete(
     [
-      { role: "system", content: chatSystemPrompt(ctx.profile, ctx.decisions, new Date(), opts.canRemind ?? true) },
+      { role: "system", content: chatSystemPrompt(ctx.profile, ctx.decisions, new Date(), opts.channel ?? "telegram") },
       ...ctx.history.slice(-20),
       { role: "user", content: message },
     ],

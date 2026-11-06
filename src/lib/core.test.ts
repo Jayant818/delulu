@@ -68,11 +68,12 @@ test("parseChatReply pulls a decision out of the model's JSON, and never breaks 
     reply: "ok bestie",
     decision: "Take the Bangalore job or stay in Jaipur",
     reminder: null,
+    intent: null,
   });
-  assert.deepEqual(parseChatReply('```json\n{"reply":"hey","decision":null}\n```'), { reply: "hey", decision: null, reminder: null });
-  assert.deepEqual(parseChatReply('{"reply":"hey","decision":"   "}'), { reply: "hey", decision: null, reminder: null });
-  assert.deepEqual(parseChatReply("just prose, no json"), { reply: "just prose, no json", decision: null, reminder: null });
-  assert.deepEqual(parseChatReply('{"decision":"x"}'), { reply: '{"decision":"x"}', decision: null, reminder: null }, "no reply field -> show raw text");
+  assert.deepEqual(parseChatReply('```json\n{"reply":"hey","decision":null}\n```'), { reply: "hey", decision: null, reminder: null, intent: null });
+  assert.deepEqual(parseChatReply('{"reply":"hey","decision":"   "}'), { reply: "hey", decision: null, reminder: null, intent: null });
+  assert.deepEqual(parseChatReply("just prose, no json"), { reply: "just prose, no json", decision: null, reminder: null, intent: null });
+  assert.deepEqual(parseChatReply('{"decision":"x"}'), { reply: '{"decision":"x"}', decision: null, reminder: null, intent: null }, "no reply field -> show raw text");
   assert.equal(parseChatReply(JSON.stringify({ reply: "a", decision: "d".repeat(500) })).decision?.length, 160);
 });
 
@@ -84,4 +85,15 @@ test("reminders: accepted only with a parseable time in the next year", () => {
   assert.equal(r({ text: "call Riya", at: "next sunday" }), null, "unparseable");
   assert.equal(r({ text: "", at: "2026-11-08T18:00:00+05:30" }), null, "empty text");
   assert.equal(r({ text: "x", at: "2028-11-08T18:00:00+05:30" }), null, "more than a year out");
+});
+
+test("intents (Telegram, no commands): only known types with valid fields survive", () => {
+  const i = (intent: unknown) => parseChatReply(JSON.stringify({ reply: "ok", decision: null, reminder: null, intent })).intent;
+  assert.deepEqual(i({ type: "forget" }), { type: "forget" });
+  assert.deepEqual(i({ type: "checkin_set", time: "9:05" }), { type: "checkin_set", time: "09:05" });
+  assert.equal(i({ type: "checkin_set", time: "25:00" }), null, "bad time");
+  assert.deepEqual(i({ type: "reminder_cancel", match: "Riya" }), { type: "reminder_cancel", match: "Riya" });
+  assert.equal(i({ type: "reminder_cancel", match: "" }), null);
+  assert.equal(i({ type: "transfer_money" }), null, "unknown intent types are dropped");
+  assert.equal(i("forget"), null, "not an object");
 });

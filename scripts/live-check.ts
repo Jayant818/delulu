@@ -1,5 +1,5 @@
 // Live check: run this the moment the real keys are in .env.local.  npm run check:live
-// Makes ~7 real calls through the same brain the bot uses and prints what a judge would see.
+// Makes ~11 real calls through the same brain the bot uses and prints what a judge would see.
 // Exit code 1 if anything is not served by 0G in private (TEE-verified) mode, so a silent fallback cannot pass.
 import { Bot } from "grammy";
 import { complete, configuredBackends, ZG_MODEL, ZG_TRUST_MODE, type AiResult } from "../src/lib/ai/provider";
@@ -69,6 +69,21 @@ async function main() {
   if (s.decision) {
     failures++;
     console.log(`      FAIL: small talk produced a decision: ${s.decision}`);
+  }
+
+  // 4b. No commands in the bot: these plain sentences must route to the right intent.
+  for (const [msg, want] of [
+    ["delete everything", "forget"],
+    ["check in on me every evening at 9", "checkin_set 21:00"],
+    ["what can you do", "help"],
+    ["what are my reminders", "reminders_list"],
+  ] as const) {
+    const [x, ms] = await timed(() => chatTurn(ctx, msg));
+    show(`intent`, x.ai, ms);
+    const got = x.intent ? [x.intent.type, "time" in x.intent ? x.intent.time : ""].join(" ").trim() : "NONE";
+    const ok = got === want;
+    if (!ok) failures++;
+    console.log(`      "${msg}" -> ${got}${ok ? "" : `   <- expected ${want}`}`);
   }
 
   // 5. Three voices in parallel: three request IDs.

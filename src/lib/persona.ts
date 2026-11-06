@@ -85,8 +85,12 @@ export function nowLineIST(now = new Date()): string {
   return `NOW: ${ist.toISOString().slice(0, 16).replace("T", " ")} IST (${wd}), UTC+05:30`;
 }
 
-// canRemind: only the Telegram bot has a scheduler. Elsewhere the model must not promise reminders.
-export function chatSystemPrompt(p: Profile, ds: DecisionSummary[], now = new Date(), canRemind = true): string {
+// channel "telegram": the bot has a scheduler and NO commands, so the model also routes intents ("delete everything",
+// "what are my reminders"...). channel "web": no reminders, no intents (the web app has buttons for those).
+export type Channel = "telegram" | "web";
+
+export function chatSystemPrompt(p: Profile, ds: DecisionSummary[], now = new Date(), channel: Channel = "telegram"): string {
+  const bot = channel === "telegram";
   return `VOICE: ${VIEWS.sane.voice}
 You are ${APP_NAME}, a private AI companion. She can tell you anything: her day, her feelings, her plans, her drama. You listen, remember, and help her think. The joke is the name: ${APP_NAME} gives the sane answer. Playful Gen Z tone (light slang, at most one emoji), grounded advice. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
 
@@ -99,17 +103,56 @@ ${SAFETY}
 ${nowLineIST(now)}
 
 OUTPUT FORMAT: answer with ONE JSON object and nothing else:
-{"reply": "<your message to her>", "decision": <null or "<one line, max 15 words: the choice she is weighing, e.g. Take the Bangalore job or stay in Jaipur>">, "reminder": <null or {"text": "<what to remind her, max 12 words>", "at": "<ISO 8601 time with +05:30>"}>}
+{"reply": "<your message to her>", "decision": <null or "<one line, max 15 words: the choice she is weighing, e.g. Take the Bangalore job or stay in Jaipur>">, "reminder": <null or {"text": "<what to remind her, max 12 words>", "at": "<ISO 8601 time with +05:30>"}>${bot ? `, "intent": <null or {"type": "...", ...}>` : ""}}
 Set "decision" only when her LATEST message shows a real choice she has to make (two or more options, or yes/no on something that matters). Small talk, venting with no choice, or a decision she already made: null.
 ${
-    canRemind
+    bot
       ? `Set "reminder" only when her LATEST message asks you to remind her of something at a time you can work out from NOW. Otherwise null. If she asks for a reminder but the time is unclear, ask her when in "reply" and set "reminder" to null.`
       : `Always set "reminder" to null: you cannot set reminders here. If she asks, tell her reminders work in the ${APP_NAME} Telegram bot.`
-  }`;
+  }${bot ? `\n\n${INTENT_RULES}` : ""}`;
 }
 
 export type Reminder = { text: string; at: string };
-export type ChatReply = { reply: string; decision: string | null; reminder: Reminder | null };
+export type Intent =
+  | { type: "help" | "privacy" | "forget" | "checkin_off" | "reminders_list" }
+  | { type: "checkin_set"; time: string }
+  | { type: "reminder_cancel"; match: string }
+  | { type: "decide"; question: string };
+export type ChatReply = { reply: string; decision: string | null; reminder: Reminder | null; intent: Intent | null };
+
+// The Telegram bot has no slash commands: the model routes these from plain text.
+const INTENT_RULES = `There are no commands. Set "intent" when her LATEST message is one of these requests, else null:
+- {"type": "help"}: she asks what you can do or how this works
+- {"type": "privacy"}: she asks if this is private, who can read it, or for proof that it is sealed
+- {"type": "forget"}: she asks you to delete everything or forget her (the app asks her to confirm)
+- {"type": "checkin_set", "time": "HH:MM"}: she wants a daily check-in at a time (24h, IST; "evening at 9" = "21:00")
+- {"type": "checkin_off"}: she wants the daily check-ins to stop
+- {"type": "reminders_list"}: she asks what reminders she has
+- {"type": "reminder_cancel", "match": "<one or two words naming it>"}: she wants a reminder cancelled
+- {"type": "decide", "question": "<one line>"}: she explicitly asks you to help her decide something
+When "intent" is set, "reply" is ONE short friendly sentence; the app shows the details. Never mention commands or slashes.`;
+
+const INTENT_TYPES = ["help", "privacy", "forget", "checkin_off", "reminders_list", "checkin_set", "reminder_cancel", "decide"];
+
+function readIntent(v: unknown): Intent | null {
+  if (!v || typeof v !== "object") return null;
+  const o = v as Record<string, unknown>;
+  const type = typeof o.type === "string" ? o.type : "";
+  if (!INTENT_TYPES.includes(type)) return null;
+  if (type === "checkin_set") {
+    const m = String(o.time ?? "").match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+    return m ? { type, time: `${m[1].padStart(2, "0")}:${m[2]}` } : null;
+  }
+  if (type === "reminder_cancel") {
+    const match = String(o.match ?? "").trim().slice(0, 60);
+    return match ? { type, match } : null;
+  }
+  if (type === "decide") {
+    const question = String(o.question ?? "").trim().slice(0, 300);
+    return question ? { type, question } : null;
+  }
+  return { type } as Intent;
+}
 
 // A reminder is only accepted if its time parses and lies between now and one year from now.
 function readReminder(v: unknown, now: number): Reminder | null {
@@ -132,11 +175,11 @@ export function parseChatReply(raw: string, now = Date.now()): ChatReply {
       const o = JSON.parse(text.slice(start, end + 1));
       if (o && typeof o.reply === "string" && o.reply.trim()) {
         const d = typeof o.decision === "string" ? o.decision.trim().slice(0, 160) : "";
-        return { reply: o.reply.trim(), decision: d || null, reminder: readReminder(o.reminder, now) };
+        return { reply: o.reply.trim(), decision: d || null, reminder: readReminder(o.reminder, now), intent: readIntent(o.intent) };
       }
     } catch {}
   }
-  return { reply: text, decision: null, reminder: null };
+  return { reply: text, decision: null, reminder: null, intent: null };
 }
 
 export function viewSystemPrompt(view: ViewId, p: Profile, ds: DecisionSummary[], chat: ChatLine[] = []): string {
