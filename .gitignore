@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Telegram bot store (encrypted, still never committed)
 /data
+
+# Phone screenshots for Jayant (local only)
+/demo-shots
