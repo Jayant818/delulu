@@ -128,10 +128,33 @@ export default function Landing() {
       <section id="privacy" className="bg-l-ink text-l-paper">
         <div className={`${WRAP} grid gap-6 py-20 md:grid-cols-2 md:items-end md:gap-16 md:py-28`}>
           <h2 className="font-serif text-[clamp(38px,5vw,68px)] font-normal leading-[1] [text-wrap:balance]">Every chat is fully private.</h2>
-          <p className="text-[17px] leading-[1.7] text-l-on-ink md:text-[19px]">
-            Sealed AI on 0G · nothing stored in readable form · memory encrypted on your phone · delete everything in one line · no ads,
-            ever.
-          </p>
+          <div className="flex flex-col gap-4">
+            <p className="text-[17px] leading-[1.7] text-l-on-ink md:text-[19px]">
+              Sealed AI on 0G · nothing stored in readable form · memory encrypted on your phone · delete everything in one line · no ads,
+              ever.
+            </p>
+            {/* The precise explanation next to the claim (design.md §4.6). The try-on line lives here too (Jayant TG 3486). */}
+            <details className="group text-[15px] leading-[1.65] text-l-on-ink">
+              <summary className="inline-flex min-h-11 cursor-pointer list-none items-center font-semibold text-l-paper underline underline-offset-4">
+                How exactly?
+              </summary>
+              <ul className="mt-2 flex flex-col gap-2">
+                <li>
+                  <b className="text-l-paper">Chats.</b> Your words go to an AI model in 0G&apos;s private (TEE) mode; 0G reports each answer as
+                  sealed, and every answer in the app shows its 0G request ID. Our server passes your message to 0G in memory and never
+                  stores or logs it.
+                </li>
+                <li>
+                  <b className="text-l-paper">Memory.</b> What {APP_NAME} remembers is encrypted on your phone, with a key only your device can
+                  make. You can forget any single fact, or everything.
+                </li>
+                <li>
+                  <b className="text-l-paper">Try-on photos.</b> They go to an image model on 0G&apos;s standard tier, not the sealed mode, and are
+                  deleted right after. We never save them.
+                </li>
+              </ul>
+            </details>
+          </div>
         </div>
       </section>
 
@@ -146,8 +169,6 @@ export default function Landing() {
           <Mark size={18} />
           <span className="font-serif text-[16px] italic text-l-ink">delulu</span>
         </span>
-        {/* Jayant (TG 3486): one quiet, accurate line about try-on photos. */}
-        <span>Try-on photos go to an image model on 0G&apos;s standard tier, not the sealed one, and are deleted after.</span>
         <span>ETHGlobal Mumbai 2026 · People shown are AI-generated · MIT</span>
       </footer>
     </div>

@@ -148,7 +148,7 @@ export default function TryOn() {
   return (
     <div>
       <h1 className="font-serif text-3xl">Try the look</h1>
-      <p className="mt-1 text-sm text-muted">See it on you before the salon. Then ask the three voices.</p>
+      <p className="mt-1 text-sm text-muted">See a new look on your own photo before the salon. Then ask the sane one, you at 30 and your bestie.</p>
 
       <div className="mt-4 flex gap-1 rounded-2xl border border-line bg-paper p-1">
         {tab("hair", "💇 Hair")}
