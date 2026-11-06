@@ -1,6 +1,6 @@
 # Delulu
 
-**Delulu is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives.** Built for young women. **The website is the main product** (landing at `/`, the app at `/app`, mobile-first); the same brain also runs as a Telegram bot.
+**Delulu is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives.** Built for young women. **The website is the only door** (landing at `/`, the app at `/app`, mobile-first). Also: a Telegram bot with the same brain (experimental, not linked from the site).
 
 She tells Delulu anything, and it remembers her (what it learns about her from the chat, past chats, past decisions; no setup questions). When she is weighing a choice, Delulu pulls it out of the conversation ("Sounds like a decision: … See perspectives") and shows it from different perspectives, three voices side by side: **Delulu** (the sane one: an app called Delulu that gives the grounded answer), **Future You at 30**, and **Your Bestie**. She picks one; later Delulu asks how it went. Like a good secretary, it keeps her reminders ("remind me Sunday 6pm to call Mom") and checks in on her daily at a time she picks. And before the salon, **Try-on** shows a new hair or nail look on her own photo, then writes the brief for her stylist or nail tech.
 
@@ -117,7 +117,7 @@ src/bot/bot.ts              Telegram bot (grammY), no commands: chat, decision c
 src/bot/store.ts            encrypted-at-rest per-user store (HMAC file names, per-user data key)
 src/bot/index.ts            entry: npm run bot
 src/app/api/{chat,decide,status}  web API routes (input clipped and validated, no storage)
-src/app/page.tsx            landing page (static; "Open Delulu" -> /app; Telegram link from NEXT_PUBLIC_TELEGRAM_BOT)
+src/app/page.tsx            landing page ("Open Delulu" / "Make it write back" -> /app; no Telegram link)
 src/app/(app)/              the web app behind the wallet gate: app/ (Talk), decide/, tryon/, settings/
 src/lib/assistant.ts        web intents + in-app scheduler (pure, unit-tested)
 src/lib/tryon.ts            image edit call (0G default, OpenAI optional), prompts, presets, spend caps, privacy line per backend

@@ -83,6 +83,13 @@ const PRIVACY = [
   { t: "Gone in one line", d: "Type “delete everything” and it is gone. No settings maze." },
 ];
 
+const RECAP = [
+  { t: "Write anything", d: "Your day, your drama, the 2am text. It remembers you, so you never start from zero." },
+  { t: "Different perspectives", d: "The sane one, you at 30, and your bestie write back. You pick." },
+  { t: "Try it on you", d: "New hair and nails on your own photo, before the salon." },
+  { t: "It follows up", d: "Reminders, check-ins, and later: so... how did it go?" },
+];
+
 const WRAP = "mx-auto w-full max-w-[1200px] px-6";
 const LINK = "no-underline hover:text-l-hover";
 
@@ -107,7 +114,7 @@ export default function Landing() {
             Privacy
           </a>
           <Pill href="/app" where="nav">
-            Open your diary
+            Open {APP_NAME}
           </Pill>
         </div>
       </nav>
@@ -162,6 +169,51 @@ export default function Landing() {
           <em>Your turn.</em>
         </h2>
         <FirstLineForm id="first-line-2" where="your-turn" placeholder="Dear diary, ..." />
+      </section>
+
+      {/* Features recap (Musk plan, msg#1634): four tiles after the story, then privacy. */}
+      <section className={`${WRAP} py-16 md:py-20`} aria-label="What Delulu does">
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {RECAP.map((r, i) => (
+            <li key={r.t} className="flex flex-col gap-2 rounded-[20px] border border-l-line bg-l-card p-6">
+              <span className="font-mono text-xs text-l-muted">0{i + 1}</span>
+              <h3 className="font-serif text-[24px] font-normal leading-tight">{r.t}</h3>
+              <p className="text-[15px] leading-[1.55] text-l-body">{r.d}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* PRIVACY */}
+      <section id="privacy" className="scroll-mt-4 border-t border-l-line bg-l-card">
+        <div className={`${WRAP} flex flex-col gap-10 py-20 md:py-28`}>
+          <div className="flex max-w-[760px] flex-col gap-3.5">
+            <Eyebrow>Privacy</Eyebrow>
+            {/* H2: Jayant's call (TG 3541). It holds for the web app, the only door on this page (no Telegram link here).
+                The proof line under it is the true specifics; the in-app "is this private?" answer says the server
+                passes each message to 0G in memory and never logs or stores it. */}
+            <H2>
+              Every chat is <em>fully private.</em>
+            </H2>
+            <p className="text-lg leading-[1.6] text-l-body">
+              Sealed AI on 0G · nothing stored in readable form · memory encrypted on your phone · delete everything in one line · no ads,
+              ever.
+            </p>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-3 sm:gap-5">
+            {PRIVACY.map((p) => (
+              <div key={p.t} className="flex flex-col gap-2 border-t-2 border-l-ink pt-[18px]">
+                <h3 className="font-serif text-2xl font-normal">{p.t}</h3>
+                <p className="text-base leading-[1.55] text-l-body">{p.d}</p>
+              </div>
+            ))}
+          </div>
+          {/* Jayant (TG 3486): one quiet, accurate line about try-on photos, here and nowhere louder. */}
+          <p className="text-[13px] text-l-muted">
+            Try-on photos go to an image model on 0G&apos;s standard tier (not the sealed mode your chats use), then they are deleted. We never
+            save them.
+          </p>
+        </div>
       </section>
 
       {/* TWO PAGES */}
@@ -299,31 +351,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* PRIVACY */}
-      <section id="privacy" className="scroll-mt-4 border-t border-l-line bg-l-card">
-        <div className={`${WRAP} flex flex-col gap-10 py-20 md:py-28`}>
-          <div className="flex max-w-[720px] flex-col gap-3.5">
-            <Eyebrow>Privacy</Eyebrow>
-            <H2>
-              Every diary <em>needs a lock.</em>
-            </H2>
-          </div>
-          <div className="grid gap-8 sm:grid-cols-3 sm:gap-5">
-            {PRIVACY.map((p) => (
-              <div key={p.t} className="flex flex-col gap-2 border-t-2 border-l-ink pt-[18px]">
-                <h3 className="font-serif text-2xl font-normal">{p.t}</h3>
-                <p className="text-base leading-[1.55] text-l-body">{p.d}</p>
-              </div>
-            ))}
-          </div>
-          {/* Jayant (TG 3486): one quiet, accurate line about try-on photos, here and nowhere louder. */}
-          <p className="text-[13px] text-l-muted">
-            Try-on photos go to an image model on 0G&apos;s standard tier (not the sealed mode your chats use), then they are deleted. We never
-            save them.
-          </p>
-        </div>
-      </section>
-
       {/* FINAL CTA */}
       <section id="start" className="bg-l-ink text-l-paper">
         <div className={`${WRAP} flex flex-col items-center gap-7 py-20 text-center md:py-[120px]`}>
@@ -333,7 +360,7 @@ export default function Landing() {
           </h2>
           <p className="max-w-[560px] text-lg leading-[1.6] text-l-on-ink">Your AI companion, your split personality. Free to start, in your browser.</p>
           <Pill href="/app" where="final" big>
-            Open your diary
+            Open {APP_NAME}
           </Pill>
         </div>
       </section>

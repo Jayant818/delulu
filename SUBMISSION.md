@@ -40,7 +40,7 @@ Delulu is your AI companion, your split personality. Tell it anything; it helps 
 
 Girls already tell AI the things they would never say out loud: a job in another city, a relationship, money, family pressure. Today, every one of those messages sits in plain text at an AI company.
 
-**Delulu is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives.** Delusional name, sane answers. It is a mobile-first website (and the same brain runs as a Telegram bot). No forms and no setup questions: she opens it and talks. Delulu learns lasting facts about her from the chat (goals, people, fears, plans; she can see the list in Settings) and answers with those facts, past chats and past decisions in mind. There are no commands: "help me decide …", "remind me Sunday 6pm to call Mom", "what are my reminders", "check in on me every evening at 9", "is this private?" and "delete everything" (with a confirm) all work as plain sentences.
+**Delulu is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives.** Delusional name, sane answers. It is a mobile-first website. No forms and no setup questions: she opens it and talks. Delulu learns lasting facts about her from the chat (goals, people, fears, plans; she can see the list in Settings) and answers with those facts, past chats and past decisions in mind. There are no commands: "help me decide …", "remind me Sunday 6pm to call Mom", "what are my reminders", "check in on me every evening at 9", "is this private?" and "delete everything" (with a confirm) all work as plain sentences.
 
 When she is actually stuck on a choice, Delulu notices. The reply carries "Sounds like a decision: take the Chicago offer or stay in Ohio" and a **See perspectives** button. One tap shows the same choice from different perspectives, three voices side by side:
 
@@ -72,7 +72,7 @@ Safety: if she mentions self-harm, abuse or danger, every voice stops advising a
 - **Follow-ups without push:** check-backs, reminders and daily check-ins are jobs inside her encrypted memory; an in-app scheduler delivers them when she opens Delulu and every 15 s while it is open.
 - **Try-on on 0G:** `bytedance/seedream-5.0-flash` via the router's `/v1/images/generations` with her photo as a reference image (1024 px): ~17 s for hair, ~14 s for nails, $0.027 per image, standard tier (not sealed; labelled). Each image shows its 0G request ID. OpenAI's image edit API is an optional backend that must be chosen explicitly; a 0G failure never falls back to it, so the photo only ever goes where the copy says. The browser shrinks the photo to 1024 px first. A hard spend cap (40 images per day in total, 5 per person per day, on wallet and IP, failed calls refunded) protects the key; only hashed per-day counts are written to disk. The brief is a 0G call (text only).
 - **Encrypted memory:** WebCrypto: wallet signature (deterministic RFC 6979) → HKDF-SHA256 → AES-256-GCM, key not extractable, ciphertext in IndexedDB.
-- **Same brain on Telegram:** grammY bot with the same persona, intents and scheduler; per-user records encrypted at rest.
+- **Also: Telegram bot (experimental):** grammY bot with the same brain, not linked from the site; per-user records encrypted at rest.
 - **Tests:** 22 unit/integration cases (assistant logic, crypto, 0G parsing, try-on caps and the exact request to the image model against a fake OpenAI server, the whole Telegram flow offline) and a 22-step headless-browser run of the website (chat → decision → three voices → check-back → plain-text intents → try-on → no photo stored → delete everything). `npm run check:live` replays the demo against the real 0G router and fails if any answer is not sealed.
 
 ## Tracks
@@ -94,7 +94,6 @@ MIT (LICENSE file in the repo). Copyright (c) 2026 Jayant Yadav.
 
 - GitHub (public, required): TODO
 - Live demo URL: TODO (hosting is Jayant's call; the caps stay on).
-- Telegram bot (optional): t.me/<bot username>: TODO, only if the bot is running.
 - Demo video (< 3 min): TODO. The script is in README.md.
 - Contracts: none.
 - Team: names, Telegram, X: TODO.

@@ -12,7 +12,7 @@ ZG_API_KEY=sk-<from pc.0g.ai, Dashboard -> API Keys, trust mode = Private>     #
 # optional
 NEXT_PUBLIC_PRIVY_APP_ID=<Privy app ID>        # real Google/email login; without it a labelled DEV wallet is used
 TELEGRAM_BOT_TOKEN=<from @BotFather>           # only for the Telegram bot
-NEXT_PUBLIC_TELEGRAM_BOT=<bot username>        # landing page's secondary "chat on Telegram" link
+# NEXT_PUBLIC_TELEGRAM_BOT is not used: the landing has no Telegram link (web app is the only door)
 ```
 
 ## 1. Offline sanity (30 s)
