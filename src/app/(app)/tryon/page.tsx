@@ -195,8 +195,11 @@ export default function TryOn() {
       {/* Consent before the photo leaves the phone (design.md §3.2): one short, true line, right at the button. */}
       {photo && (
         <p className="mt-3 rounded-xl border border-line bg-paper px-3 py-2 text-xs leading-relaxed text-muted">
-          Tapping &ldquo;See it on me&rdquo; sends this photo to an image model on 0G (standard tier, not the sealed mode your chats use).
-          It is deleted right after; we never save it.
+          {info?.backend === "mock"
+            ? "No image model is set up here (MOCK), so your photo stays in this tab."
+            : info?.backend === "openai"
+              ? "Tapping “See it on me” sends this photo to OpenAI's image model (not 0G, not sealed). It is deleted right after; we never save it."
+              : "Tapping “See it on me” sends this photo to an image model on 0G (standard tier, not the sealed mode your chats use). It is deleted right after; we never save it."}
         </p>
       )}
       <button
@@ -252,7 +255,7 @@ export default function TryOn() {
             {brief === "loading" && <p className="mt-2 animate-pulse text-sm text-muted">Writing it privately…</p>}
             {brief && brief !== "loading" && (
               <>
-                <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed">{brief.text}</p>
+                <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{brief.text}</p>
                 <AiChip ai={brief.ai} />
               </>
             )}
@@ -271,7 +274,7 @@ export default function TryOn() {
                     <VoiceTitle view={v} as="h3" />
                     {c?.loading && <p className="mt-2 animate-pulse text-sm text-muted">…</p>}
                     {c?.error && <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>}
-                    {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed">{c.text}</p>}
+                    {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{c.text}</p>}
                     {c?.ai && <AiChip ai={c.ai} />}
                     {picked === v && <p className="mt-3 text-sm font-semibold text-ink">✓ Your pick</p>}
                     {c?.text && !picked && (

@@ -202,7 +202,7 @@ function Talk() {
             <div
               className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${e.role === "user" ? "bg-ink text-cream" : "border border-line bg-paper"}`}
             >
-              <p className="whitespace-pre-wrap">{e.content}</p>
+              <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{e.content}</p>
               {e.ai && <AiChip ai={e.ai} />}
               {e.decision && <DecisionCard summary={e.decision} decided={decisions.find((d) => d.question === e.decision)} />}
               <Extras e={e} i={i} m={m} />

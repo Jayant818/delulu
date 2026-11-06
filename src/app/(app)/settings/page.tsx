@@ -31,7 +31,7 @@ export default function Settings() {
             <ul className="mt-2 space-y-1">
               {profile.facts.map((f) => (
                 <li key={f} className="flex items-center justify-between gap-3 text-muted">
-                  <span>{f}</span>
+                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">{f}</span>
                   <button
                     onClick={() => vault.update((m) => ({ ...m, profile: { facts: m.profile.facts.filter((x) => x !== f) } }))}
                     className="min-h-11 shrink-0 px-2 text-xs font-semibold text-ink underline underline-offset-4"
