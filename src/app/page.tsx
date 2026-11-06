@@ -57,16 +57,16 @@ export default function Landing() {
         </Link>
       </nav>
 
-      {/* HERO (Jayant TG 3605): centred words beside the phone; the phone stays on the first screen (TG 3552). */}
+      {/* HERO: left-aligned words, vertically centred on the phone's height (Jayant TG 3605/3612); the phone stays on the first screen (TG 3552). */}
       <header className={`${WRAP} grid items-center gap-10 pb-16 pt-4 md:grid-cols-[1fr_auto] md:gap-12 md:pb-20 md:pt-6`}>
-        <div className="flex flex-col items-center gap-6 text-center">
+        <div className="flex flex-col items-start gap-6">
           <h1 className="font-serif text-[clamp(44px,5.9vw,86px)] font-normal leading-[0.98] tracking-[-0.02em] [text-wrap:balance]">
             Your diary has <em>opinions now.</em>
           </h1>
           <p className="max-w-[480px] text-[18px] leading-[1.55] text-l-body md:text-[21px]">
             Your AI companion, your split personality: the sane one, you at 30 and your bestie, all writing back.
           </p>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <OpenDelulu where="hero" />
             <p className="text-[14px] text-l-muted">Free. No sign-up.</p>
           </div>
