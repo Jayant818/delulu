@@ -78,6 +78,7 @@ export default function Landing() {
           </div>
           <div className="md:-mt-[210px] md:w-[340px]">
             <HeroPhone />
+            <p className="pt-3 text-center font-mono text-[11px] text-l-muted">Example chat · Sasha is fictional</p>
           </div>
         </div>
       </header>
@@ -93,7 +94,7 @@ export default function Landing() {
               <div className="flex items-start gap-1 pl-1">
                 {[
                   { src: "/visuals-west/hair-base-west.jpg", label: "before", alt: "Sasha before: long straight hair", tilt: "-rotate-3" },
-                  { src: "/visuals-west/hair-west-curtain-bangs.jpg", label: "after · try-on", alt: "Sasha with curtain bangs, made by Delulu's try-on", tilt: "rotate-2 -ml-6 mt-4" },
+                  { src: "/visuals-west/hair-west-curtain-bangs.jpg", label: "after · AI preview", alt: "Sasha with curtain bangs, made by Delulu's try-on", tilt: "rotate-2 -ml-6 mt-4" },
                 ].map((ph) => (
                   <figure key={ph.src} className={`w-[46%] max-w-[190px] ${ph.tilt} bg-white p-1.5 pb-1 shadow-[0_8px_20px_-8px_rgba(20,33,61,0.35)]`}>
                     <div className="relative aspect-square overflow-hidden">
@@ -118,6 +119,7 @@ export default function Landing() {
               </p>
             </Page>
           </div>
+          <p className="text-[13px] text-l-muted">An example. Sasha and her photos are AI-generated; the brief and the check-in are real {APP_NAME} features.</p>
         </div>
       </section>
 

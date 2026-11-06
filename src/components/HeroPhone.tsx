@@ -23,7 +23,7 @@ const SCRIPT: Beat[] = [
   { k: "views" },
   { k: "s-photo" },
   { k: "tryon" },
-  { k: "s", text: "ok I'm booking it" },
+  { k: "s", text: "ok. curtain bangs it is" },
 ];
 const N = SCRIPT.length;
 /** ms before each beat appears; Delulu beats show typing dots for the first 900 ms of their wait. */

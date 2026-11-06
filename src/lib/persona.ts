@@ -237,7 +237,8 @@ ${nowLineIST(now)}
 ${SAFETY}`;
 }
 
-// Stylist brief (hair) or nail tech brief (nails): what she shows at the salon. Text only; the photo never reaches 0G.
+// Stylist brief (hair) or nail tech brief (nails): what she shows at the salon. Text only: the photo is not part of this call
+// (try-on sends the photo to 0G's image model separately, see src/lib/tryon.ts).
 export function briefPrompt(kind: "hair" | "nails", style: string, p: Profile): string {
   const who = kind === "hair" ? "hair stylist" : "nail technician";
   return `You are ${APP_NAME}. Write a short brief she can show her ${who} for this look: "${clip(style, 120)}".

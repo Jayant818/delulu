@@ -139,7 +139,7 @@ brand/                      DESIGN.md, SVG logo set, favicons, contact sheet
 | Event | When |
 |---|---|
 | (page view) | every page, automatic; the landing view is the `/` page view |
-| `walkthrough_complete` | the last bubble of "Sasha's Friday" is on screen (once per page view) |
+| `walkthrough_complete` | the example chat in the hero phone played to its last message (once per page view) |
 | `cta_open_app` | any landing button into the app ("Open your diary", "Make it write back", the spread buttons, "Try a look on me"), with `where` = nav / hero / your-turn / spread / tryon / final |
 | `cta_telegram` | any element with `data-track="cta_telegram"` (no Telegram link on the site yet) |
 | `app_first_message` | her first message on this device in `/app` |
