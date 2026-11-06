@@ -138,7 +138,7 @@ export default function TryOn() {
   const tab = (k: Kind, label: string) => (
     <button
       onClick={() => reset(k)}
-      className={`flex-1 rounded-xl py-2 text-sm font-semibold ${kind === k ? "bg-ink text-cream" : "text-muted"}`}
+      className={`min-h-11 flex-1 rounded-xl text-sm font-semibold ${kind === k ? "bg-ink text-cream" : "text-muted"}`}
       aria-pressed={kind === k}
     >
       {label}
@@ -179,7 +179,7 @@ export default function TryOn() {
           <button
             key={p}
             onClick={() => setStyle(p)}
-            className={`rounded-full border px-3 py-1 text-sm ${style === p ? "border-ink bg-ink text-cream" : "border-line bg-paper text-ink"}`}
+            className={`min-h-11 rounded-full border px-4 text-sm ${style === p ? "border-ink bg-ink text-cream" : "border-line bg-paper text-ink"}`}
           >
             {p}
           </button>

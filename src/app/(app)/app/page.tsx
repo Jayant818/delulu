@@ -31,14 +31,14 @@ function DecisionCard({ summary, decided }: { summary: string; decided?: Decisio
       <p>
         <span className="font-semibold">Sounds like a decision:</span> {summary}
       </p>
-      <Link href={`/decide?q=${encodeURIComponent(summary)}`} className="mt-2 inline-block rounded-full bg-accent px-3 py-1 font-semibold text-ink">
+      <Link href={`/decide?q=${encodeURIComponent(summary)}`} className="mt-2 inline-flex min-h-11 items-center rounded-full bg-accent px-4 font-semibold text-ink">
         See perspectives →
       </Link>
     </div>
   );
 }
 
-const pill = "rounded-full border border-line bg-cream px-3 py-1 text-sm text-ink";
+const pill = "min-h-11 rounded-full border border-line bg-cream px-4 text-sm text-ink"; // 44 px targets (design.md §5)
 
 /** The extra controls an app-made message carries (check-back answers, delete confirm, reminders list, proof). */
 function Extras({ e, i, m }: { e: ChatEntry; i: number; m: Memory }) {
@@ -63,7 +63,7 @@ function Extras({ e, i, m }: { e: ChatEntry; i: number; m: Memory }) {
     return (
       <div className="mt-2 flex flex-wrap gap-1.5">
         <button
-          className="rounded-full bg-red-700 px-3 py-1 text-sm font-semibold text-white"
+          className="min-h-11 rounded-full bg-red-700 px-4 text-sm font-semibold text-white"
           onClick={async () => {
             await vault.wipe();
             router.replace("/app");
@@ -178,7 +178,7 @@ function Talk() {
     <div className="flex flex-col">
       <div className="flex items-start justify-between gap-3">
         <h1 className="font-serif text-3xl">Tell {APP_NAME} anything</h1>
-        <Link href="/tryon" className="shrink-0 rounded-full border border-line bg-paper px-3 py-1.5 text-sm font-semibold text-ink">
+        <Link href="/tryon" className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-paper px-4 text-sm font-semibold text-ink">
           ✨ Try-on
         </Link>
       </div>
@@ -190,7 +190,7 @@ function Talk() {
             <p>What&apos;s on your mind? Big or small, I&apos;m listening.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {STARTERS.map((s) => (
-                <button key={s} onClick={() => setText(s)} className="rounded-full border border-line px-3 py-1 text-ink">
+                <button key={s} onClick={() => setText(s)} className="min-h-11 rounded-full border border-line px-4 text-ink">
                   {s}
                 </button>
               ))}
@@ -219,7 +219,7 @@ function Talk() {
           ev.preventDefault();
           send();
         }}
-        className="fixed inset-x-0 bottom-12 mx-auto flex max-w-md gap-2 bg-cream px-4 py-2"
+        className="fixed inset-x-0 bottom-[calc(3rem+env(safe-area-inset-bottom))] mx-auto flex max-w-md gap-2 bg-cream px-4 py-2"
       >
         <input
           autoFocus

@@ -70,6 +70,20 @@ html {
   html {
     scroll-behavior: auto;
   }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keyboard users see where they are (design.md §5). currentColor keeps it visible on cream, coral and navy. */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  border-radius: 8px;
 }
 
 /* Sasha's Friday walkthrough: each new bubble rises in (only used when the user has not asked for reduced motion). */

@@ -19,7 +19,13 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: `${APP_NAME}: the diary that writes back` },
 };
 
-export const viewport: Viewport = { themeColor: "#f4ede0", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = {
+  themeColor: "#f4ede0",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // safe-area insets for the fixed composer and nav
+  interactiveWidget: "resizes-content", // the keyboard shrinks the page, so the composer stays above it
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
