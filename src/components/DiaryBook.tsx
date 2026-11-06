@@ -57,10 +57,10 @@ const SPREADS: Spread[] = [
   },
   {
     key: "color",
-    tab: "Color",
+    tab: "Hair color",
     left: {
       date: "Sunday, 4:15 pm",
-      title: "Which color looks good on her?",
+      title: "Which hair color looks good on her?",
       photos: [
         { src: `${W}/hair-color-copper.jpg`, label: "AI · copper", alt: "Sasha with copper red hair, an AI preview" },
         { src: `${W}/hair-color-honey.jpg`, label: "AI · honey", alt: "Sasha with honey blonde hair, an AI preview" },
@@ -72,7 +72,7 @@ const SPREADS: Spread[] = [
       date: "Tuesday, 7:40 pm",
       delulu: "Did you tell your colorist? How's the honey?",
       sasha: "she said it's my color. I'm keeping it.",
-      foot: "See a color on your own photo before you dye.",
+      foot: "See a hair color on your own photo before you dye. One at a time.",
     },
   },
 ];
@@ -259,8 +259,16 @@ export function DiaryBook() {
       // perspective on the grid reaches the leaf only because each page column keeps 3D (preserve-3d); without it the
       // leaf is flattened and the turn reads as a squash
       <div className="grid grid-cols-2 [perspective:2800px]">
-        <div className={`relative ${PAPER} rounded-l-[10px] shadow-[inset_-28px_0_30px_-26px_rgba(20,33,61,0.28)] [transform-style:preserve-3d]`}>
-          <LeftPage s={turn ? baseLeft : cur} />
+        <div className={`relative grid ${PAPER} rounded-l-[10px] shadow-[inset_-28px_0_30px_-26px_rgba(20,33,61,0.28)] [transform-style:preserve-3d]`}>
+          {/* invisible copies of every page in the same cell: the book is always as tall as its tallest spread */}
+          {SPREADS.map((s) => (
+            <div key={s.key} aria-hidden="true" className="invisible [grid-area:1/1]">
+              <LeftPage s={s} />
+            </div>
+          ))}
+          <div className="[grid-area:1/1]">
+            <LeftPage s={turn ? baseLeft : cur} />
+          </div>
           {turn && !fwd && cast("right")}
           {turn && !fwd && (
             <div className="absolute inset-0 z-10 [transform-style:preserve-3d]" style={leafStyle(angle(0, 180), "right center")}>
@@ -275,8 +283,15 @@ export function DiaryBook() {
             </div>
           )}
         </div>
-        <div className={`relative ${PAPER} rounded-r-[10px] shadow-[inset_28px_0_30px_-26px_rgba(20,33,61,0.28)] [transform-style:preserve-3d]`}>
-          <RightPage s={turn ? baseRight : cur} />
+        <div className={`relative grid ${PAPER} rounded-r-[10px] shadow-[inset_28px_0_30px_-26px_rgba(20,33,61,0.28)] [transform-style:preserve-3d]`}>
+          {SPREADS.map((s) => (
+            <div key={s.key} aria-hidden="true" className="invisible [grid-area:1/1]">
+              <RightPage s={s} />
+            </div>
+          ))}
+          <div className="[grid-area:1/1]">
+            <RightPage s={turn ? baseRight : cur} />
+          </div>
           {turn && fwd && cast("left")}
           {turn && fwd && (
             <div className="absolute inset-0 z-10 [transform-style:preserve-3d]" style={leafStyle(angle(0, -180), "left center")}>
@@ -359,7 +374,7 @@ export function DiaryBook() {
         <button onClick={user(prev)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand font-semibold text-l-ink" aria-label="Previous page">
           ←
         </button>
-        <div className="flex items-center gap-1 sm:gap-4" role="tablist" aria-label="Diary pages">
+        <div className="flex items-center gap-0.5 sm:gap-4" role="tablist" aria-label="Diary pages">
           {SPREADS.map((s, i) => {
             const on = i === shown;
             return (
@@ -369,7 +384,7 @@ export function DiaryBook() {
                 aria-selected={on}
                 aria-label={`Page ${i + 1} of ${N}: ${s.tab}`}
                 onClick={user(() => flipTo(i, i > at ? 1 : -1))}
-                className={`min-h-11 px-2 font-mono text-[12px] uppercase tracking-[0.12em] underline-offset-[6px] ${on ? "text-l-ink underline decoration-brand decoration-[3px]" : "text-l-muted"}`}
+                className={`min-h-11 whitespace-nowrap px-1 font-mono text-[12px] uppercase tracking-[0.06em] underline-offset-[6px] sm:px-2 sm:tracking-[0.12em] ${on ? "text-l-ink underline decoration-brand decoration-[3px]" : "text-l-muted"}`}
               >
                 {s.tab}
               </button>
