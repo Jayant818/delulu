@@ -5,14 +5,20 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { APP_NAME, TELEGRAM_URL } from "@/config";
 
-const BUBBLE = "M14 8h36a10 10 0 0 1 10 10v20a10 10 0 0 1-10 10H29l-13 10.5V48h-2A10 10 0 0 1 4 38V18A10 10 0 0 1 14 8z";
-const STAR = "M32 16.5C33.6 23 36.5 25.9 43 27.5C36.5 29.1 33.6 32 32 38.5C30.4 32 27.5 29.1 21 27.5C27.5 25.9 30.4 23 32 16.5z";
+// Logo (Jayant, TG 3524): "two pages", an open diary. Navy left page = what she writes, coral right page = what
+// writes back, navy spark above. Source of truth: brand/final/. Under ~48 px the text lines blur, so small marks
+// use the favicon cut (pages + spark only).
+const PAGE_L = "M256 172 C206 138 146 128 80 138 V388 C146 378 206 386 256 416 Z";
+const PAGE_R = "M256 172 C306 138 366 128 432 138 V388 C366 378 306 386 256 416 Z";
+const SPARK = "M256 52 Q262 86 296 92 Q262 98 256 132 Q250 98 216 92 Q250 86 256 52 Z";
 
 function Mark({ size = 28 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
-      <path d={BUBBLE} fill="var(--l-ink)" />
-      <path d={STAR} fill="var(--l-paper)" />
+    // viewBox cropped to the drawing (the 512 canvas has wide margins), so the mark matches the wordmark height
+    <svg viewBox="72 44 368 380" width={size} height={size} aria-hidden="true">
+      <path d={PAGE_L} fill="var(--l-ink)" />
+      <path d={PAGE_R} fill="var(--brand)" />
+      <path d={SPARK} fill="var(--l-ink)" />
     </svg>
   );
 }

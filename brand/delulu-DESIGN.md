@@ -54,11 +54,16 @@ Conflicts, recorded so they do not read as oversights:
 - Labels and request IDs: **IBM Plex Mono** 400/500 (`--font-mono`)
 
 
-## Logo set (`brand/`)
+## Logo: "Two pages" (final, Jayant TG 3524, 2026-11-06)
 
-`mark-color`, `mark-mono`, `mark-reversed`, `app-icon`, `wordmark`, favicons 16/32/64/180, `contact-sheet.png`. Mark = a speech bubble (she can tell it anything) holding a four-point sparkle (the delulu): navy bubble, cream sparkle. Reversed and app icon: cream bubble, navy sparkle, on navy. Wordmark and app icon reuse the same path data. With a two-tone mark, `mark-color` and `mark-mono` are now the same file; keep both names for tooling.
+Files: `brand/final/` (source of truth). Tagline: **"the diary that writes back"**. Wordmark: "delulu" in Fraunces italic (live text).
 
-Weaknesses, honestly:
-- **app-icon at 16 px loses the sparkle** (it reads as a plain bubble). The favicon therefore uses `mark-color` (no padding), where the sparkle survives at 16 px.
-- `mark-mono` relies on the bubble silhouette; at 16 px in one colour the sparkle is a 3-pixel notch.
-- The wordmark is live text (Fraunces italic, Georgia fallback), not outlined paths: it changes slightly where Fraunces is missing.
+- Mark: an open diary. Navy left page = what she writes; coral right page = what writes back; cream text lines on both; navy spark above (the delulu).
+- `mark-color.svg` (+ 512/1024/2048 PNG), `mark-reversed.svg` (cream page + lines on navy grounds), `mark-mono.svg`.
+- `favicon.svg` + 16/32/48 PNG: the simplified cut, pages + spark, no lines (lines blur below ~48 px). The landing's small marks (nav, chat card, footer) use this cut too.
+- `app-icon.svg` + 180/192/512/1024 PNG: navy rounded square.
+- Wired in: `src/app/icon.svg` (favicon cut), `src/app/apple-icon.png` (180), `public/icons/app-icon-192/512.png` (manifest), `src/app/opengraph-image.png` + `twitter-image.png` (1200x630: mark + wordmark + tagline, rendered with Fraunces).
+- Telegram bot: no avatar file in the repo; set `brand/final/app-icon-512.png` with @BotFather `/setuserpic`.
+- The old speech-bubble set is kept in `brand/archive-bubble/` (not used).
+
+Conflict, recorded: the mark carries coral (the right page), while the palette rule says coral only on things you press. The logo is the one exception: it is Jayant's pick, and the coral page means "the side that answers", which is the product. Coral still never appears as text, badges or decoration.

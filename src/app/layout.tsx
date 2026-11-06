@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: `${APP_NAME}: your AI companion, your split personality`,
   description: `${APP_NAME} is your AI companion, your split personality. Tell it anything; it helps you decide by showing you different perspectives. Chats sealed on 0G.`,
   appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "default" },
+  // The images come from app/opengraph-image.png + twitter-image.png (logo + "the diary that writes back").
+  openGraph: { title: `${APP_NAME}: the diary that writes back`, siteName: APP_NAME, type: "website" },
+  twitter: { card: "summary_large_image", title: `${APP_NAME}: the diary that writes back` },
 };
 
 export const viewport: Viewport = { themeColor: "#f4ede0", width: "device-width", initialScale: 1 };
