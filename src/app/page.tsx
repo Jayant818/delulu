@@ -98,7 +98,7 @@ const FAQ = [
   { q: "Is it free?", a: "Yes. No subscription, no card. It opens in your browser, and there's a Telegram version too." },
   {
     q: `Can anyone read what I tell ${APP_NAME}?`,
-    a: "Your chats are sealed on 0G: the AI runs inside a hardware enclave on 0G Private Computer, so not even 0G or the GPU owner can read them. In the app, your memory is encrypted on your own phone. If you use the Telegram version, Telegram carries those messages, like any Telegram chat.",
+    a: "Your chats run sealed on 0G Private Computer (private TEE mode), and every answer carries its 0G request ID. Our server passes each message to 0G in memory and never stores or logs it. Without 0G, an AI company could read them. In the app, your memory is encrypted on your own phone. If you use the Telegram version, Telegram carries those messages, like any Telegram chat.",
   },
   {
     q: "What happens to my try-on photo?",
@@ -309,8 +309,8 @@ export default function Landing() {
               <p className="font-mono text-xs text-sealed">🔒 SEALED</p>
               <h3 className="mt-2 font-serif text-2xl">AI sealed on 0G</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-l-muted">
-                Every answer comes from a model running inside a hardware enclave on 0G Private Computer. Not even 0G or the GPU owner can
-                read it. Each answer carries a request ID you can check: just ask &ldquo;is this private?&rdquo;.
+                Every answer comes from a model in private TEE mode on 0G Private Computer, and 0G reports it as sealed. Each answer carries
+                a request ID you can check: just ask &ldquo;is this private?&rdquo;.
               </p>
             </article>
             <article className="rounded-3xl border border-l-line bg-l-card p-6">
@@ -333,7 +333,9 @@ export default function Landing() {
           <p className="mx-auto mt-6 max-w-3xl rounded-2xl border-l-4 border-honest bg-l-card px-5 py-4 text-[15px] leading-relaxed">
             <b className="text-honest">What we don&apos;t claim:</b> try-on photos are not sealed (the image model on 0G&apos;s standard tier
             sees them before they are deleted). In the Telegram version, Telegram carries the messages, and whoever runs the {APP_NAME} server holds the key to
-            stored memory: &ldquo;nothing readable at rest&rdquo; is our promise there, not &ldquo;unreadable to us&rdquo;.
+            stored memory: &ldquo;nothing readable at rest&rdquo; is our promise there, not &ldquo;unreadable to us&rdquo;. And we don&apos;t claim
+            that nobody can read your chats: our server passes each message to 0G in memory (never stored, never logged), and 0G reports
+            each answer as sealed but does not give us a per-answer enclave check yet.
           </p>
         </section>
 

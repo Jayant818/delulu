@@ -25,12 +25,12 @@ export const TEXT = {
 
 Tell me anything: your day, your drama, the choice keeping you up at night. When you're stuck on a decision, I'll help you decide by showing you different perspectives.
 
-🔒 My AI runs sealed on 0G Private Computer: not even 0G can read it. I store nothing readable. Telegram carries our messages (ask me "is this private?" any time).
+🔒 My AI runs sealed on 0G Private Computer (private TEE mode). I store nothing readable. Telegram carries our messages (ask me "is this private?" any time).
 🚫 I will <b>never</b> ask for money, crypto, a wallet, passwords, codes, or ask you to click a link. If "${APP_NAME}" ever does, it isn't me.
 
 First, 5 quick questions so I actually know you.`,
   privacy: `<b>What happens to what you tell me</b>
-• <b>The AI</b> runs on 0G Private Computer in private mode: inside a hardware enclave, so not even 0G or the GPU owner can read it. The request IDs are below.
+• <b>The AI</b> runs on 0G Private Computer in private TEE mode, and 0G reports each answer as sealed. The request IDs are below.
 • <b>My server</b> stores your setup answers, chat, decisions and reminders encrypted (AES-256-GCM, a key per person). Nothing readable is kept. Say "delete everything" and it's gone, for good.
 • <b>Telegram</b> carries our messages, like any Telegram chat. Telegram can read bot chats; that part is outside my control.
 • No ads, no trackers, no wallet, no payments. Ever.`,

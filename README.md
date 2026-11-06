@@ -61,7 +61,7 @@ Without keys everything still runs, labelled: chat answers say MOCK, try-on retu
 - **We store nothing readable.** The bot keeps each person's memory encrypted at rest (per-user key, wrapped by a server master key). The web app keeps memory encrypted on her own device. Neither logs message content.
 - **Try-on photos are NOT sealed.** They are processed by an image model on 0G's network (standard tier: no enclave), then deleted: the photo and the result exist only in that request's memory and in her browser tab, never on our disk, never in her stored memory. The app says this on the try-on screen and shows the 0G request ID of each image.
 - **Telegram carries the messages** (bot only). Telegram can read bot chats, like any Telegram chat. That part is outside our control, and the bot says so when she asks "is this private?".
-- **What we do not claim:** whoever runs the bot server holds the master key and could decrypt the store. "Nothing readable at rest" is the claim, not "unreadable to us".
+- **What we do not claim:** whoever runs the bot server holds the master key and could decrypt the store. "Nothing readable at rest" is the claim, not "unreadable to us". We also do not claim "nobody can read your chats": our server relays each message to 0G in memory (never stored or logged), and the router reports `x-0g-e2ee: sealed` but returns no `tee_verified`, so the app says "sealed", never "TEE verified".
 
 ## 0G facts verified at the source (2026-11-06)
 
@@ -79,7 +79,7 @@ Run `NEXT_PUBLIC_DEMO_FAST=1 npm run dev` so the check-back arrives 1 minute aft
 
 | Time | Screen | Do | Say |
 |---|---|---|---|
-| 0:00 | Landing | Scroll the hero, tap **Open Delulu** | "Every girl I know tells an AI things she'd never say out loud. Delulu is your AI companion, your split personality: tell it anything, it helps you decide by showing you different perspectives, and nobody else can read it." |
+| 0:00 | Landing | Scroll the hero, tap **Open Delulu** | "Every girl I know tells an AI things she'd never say out loud. Delulu is your AI companion, your split personality: tell it anything, it helps you decide by showing you different perspectives, and every chat runs sealed on 0G." |
 | 0:10 | Login + setup | Log in, show 2 of the 5 answers | "Five questions so it actually knows her. Memory is encrypted on her phone." |
 | 0:20 | Talk | Type the Bangalore message | "She can tell Delulu anything, and it notices when she's stuck on a choice." |
 | 0:30 | Talk | Point at the chip `0G · req … · sealed` and the decision card | "Every answer is a sealed request on 0G Private Computer: here's its request ID." |

@@ -22,7 +22,7 @@ Draft for the ETHGlobal form. **PENDING-KEY** tags were cleared on 2026-11-06 af
 
 ## What breaks if 0G is removed (one sentence, for the form)
 
-Without 0G, every secret and every decision a girl tells Delulu would be readable by whichever AI company runs the model; with 0G Private Computer each chat answer comes from a sealed hardware enclave, and its request ID shows it.
+Without 0G, every secret and every decision a girl tells Delulu would be readable by whichever AI company runs the model; with 0G Private Computer each chat answer runs in private TEE mode, 0G reports it as sealed, and its request ID is on screen.
 
 ## Project name
 

@@ -13,7 +13,7 @@ export function PrivacyLine({ compact = false }: { compact?: boolean }) {
   if (compact)
     return (
       <p className="mt-1 text-xs text-muted">
-        🔒 Your chats are sealed on 0G: not even 0G can read them. Without 0G, an AI company could.
+        🔒 Your chats run sealed on 0G (private TEE mode). Without 0G, an AI company could read them.
         {now && <span className="font-semibold text-amber-800"> Right now: {now}.</span>}
       </p>
     );
@@ -22,7 +22,7 @@ export function PrivacyLine({ compact = false }: { compact?: boolean }) {
     <aside className="mt-3 rounded-2xl border border-line bg-paper px-4 py-3 text-xs leading-relaxed text-muted">
       <p>
         <span className="font-semibold text-ink">🔒 Sealed by 0G.</span> {APP_NAME} sends your words only to an AI model that
-        runs inside a hardware enclave on 0G Private Computer. Not even 0G or the GPU owner can read them.{" "}
+        runs in private TEE mode on 0G Private Computer, and shows the request ID of every answer.{" "}
         <span className="text-ink">Without 0G, the AI company running the model could read everything you type.</span>
       </p>
       {now && <p className="mt-2 font-semibold text-amber-800">Right now: {now}.</p>}

@@ -13,7 +13,7 @@ export const ONBOARDING: { key: keyof Profile; q: string; hint: string }[] = [
   { key: "goals", q: "What do you want your life to look like in a few years?", hint: "Career, money, love, where you live: anything." },
   { key: "values", q: "What matters most to you, even when it is hard?", hint: "Freedom, family, honesty, ambition..." },
   { key: "trusts", q: "Who do you trust when you have to choose something big?", hint: "A person, a group, or 'only myself'." },
-  { key: "fears", q: "What are you afraid of getting wrong?", hint: "Say it plainly. Only you can read this." },
+  { key: "fears", q: "What are you afraid of getting wrong?", hint: "Say it plainly. It is stored encrypted on your phone." },
   { key: "bigDecision", q: "What is one big decision in front of you right now?", hint: "We can start with this one." },
 ];
 

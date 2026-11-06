@@ -18,7 +18,7 @@ export const WEB_HELP = `Just talk to me, like you'd text a friend. No commands.
 Or tap Try-on to see a new hair or nail look on you. Reminders and check-ins show up here when you open Delulu.`;
 
 export const WEB_PRIVACY = `${PRIVACY_LINE}
-• Chat: every answer comes from a model inside a hardware enclave on 0G Private Computer. Not even 0G or the GPU owner can read it. The request IDs are below.
+• Chat: every answer comes from a model in private TEE mode on 0G Private Computer, and 0G reports it as sealed. Our server passes your words to 0G in memory and never stores them. The request IDs are below.
 • Memory: encrypted on this device with a key only your wallet can make. Nothing readable is stored on a server.
 • Try-on: your photo goes to an image model on 0G's network (standard tier, not sealed), only to make the look. We never save it, and Delulu keeps only the text.`;
 
