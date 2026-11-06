@@ -1,9 +1,11 @@
 // Landing, gauntlet redesign (Jayant TG 3552): the phone on the first screen, minimal, hand-made.
-// Hero with Sasha's chat playing in the phone -> the three voices -> privacy -> the last call. One CTA: "Open Delulu".
+// A diary entry for a hero (date line, headline, Sasha's Thursday night playing in the phone) -> the next page of the
+// diary (Friday's brief, Saturday's check-in) -> privacy -> the last call. One CTA: "Open Delulu".
 // Palette rule (brand/delulu-DESIGN.md): coral only on things you press, navy text on it. Every person shown is
 // fictional, generated on 0G (public/visuals-west/).
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { HeroPhone } from "@/components/HeroPhone";
 import { Mark } from "@/components/Mark";
 import { APP_NAME } from "@/config";
@@ -22,90 +24,93 @@ function OpenDelulu({ where }: { where: string }) {
   );
 }
 
-// The same question the phone shows, answered at full size: the product's one idea.
-const VOICES = [
-  {
-    who: "The sane one",
-    img: "/visuals-west/persp-sane.jpg",
-    alt: "The sane one: a calm young woman with a notebook",
-    say: "Bangs take three months to grow out. The date is in three days. Try them on first, then decide.",
-  },
-  {
-    who: "You at 30",
-    img: "/visuals-west/persp-future30.jpg",
-    alt: "You at 30: a confident woman in window light",
-    say: "You'll love the photos. Nobody remembers the haircut, everyone remembers you were brave.",
-  },
-  {
-    who: "Your bestie",
-    img: "/visuals-west/persp-bestie.jpg",
-    alt: "Your bestie: a young woman laughing in a coral hoodie",
-    say: "Curtain bangs. Not blunt. Trust me, and send me a pic.",
-  },
-];
+/** One page of the open diary: ruled paper, a date line at the top. */
+function Page({ date, side, children }: { date: string; side: "left" | "right"; children: ReactNode }) {
+  return (
+    <div
+      className={`relative flex min-h-[360px] flex-col gap-5 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_31px,rgba(20,33,61,0.08)_31px,rgba(20,33,61,0.08)_32px)] bg-l-card px-7 pb-10 pt-6 md:min-h-[440px] md:px-10 ${
+        side === "left"
+          ? "rounded-t-[10px] md:rounded-l-[10px] md:rounded-tr-none md:shadow-[inset_-28px_0_30px_-26px_rgba(20,33,61,0.28)]"
+          : "rounded-b-[10px] border-t border-l-line md:rounded-r-[10px] md:rounded-bl-none md:border-t-0 md:shadow-[inset_28px_0_30px_-26px_rgba(20,33,61,0.28)]"
+      }`}
+    >
+      <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-l-muted">{date}</p>
+      {children}
+    </div>
+  );
+}
 
 const WRAP = "mx-auto w-full max-w-[1180px] px-5 md:px-8";
+const H2 = "font-serif text-[clamp(34px,4.4vw,58px)] font-normal leading-[1.02] [text-wrap:balance]";
 
 export default function Landing() {
   return (
     <div className="flex min-h-dvh flex-col bg-l-paper font-body text-l-ink">
-      {/* HERO: the headline, one button, and the phone already talking. */}
-      <section>
-        <nav className={`${WRAP} flex items-center justify-between py-4 md:py-6`}>
-          <Link href="/" aria-label={`${APP_NAME} home`} className="flex items-center gap-2 text-l-ink no-underline">
-            <Mark size={30} />
-            <span className="font-serif text-[26px] font-medium italic leading-none">delulu</span>
-          </Link>
-          {/* one coral button above the fold: the nav link is plain text, and phones don't need it (the hero button is right there) */}
-          <Link href="/app" data-track="cta_open_app" data-where="nav" className="hidden text-[15px] font-semibold text-l-ink underline-offset-4 hover:underline sm:inline">
-            Open {APP_NAME} →
-          </Link>
-        </nav>
+      <nav className={`${WRAP} flex items-center justify-between py-4 md:py-6`}>
+        <Link href="/" aria-label={`${APP_NAME} home`} className="flex items-center gap-2 text-l-ink no-underline">
+          <Mark size={30} />
+          <span className="font-serif text-[26px] font-medium italic leading-none">delulu</span>
+        </Link>
+        {/* one coral button above the fold: the nav link is plain text, and phones don't need it (the hero button is right there) */}
+        <Link href="/app" data-track="cta_open_app" data-where="nav" className="hidden text-[15px] font-semibold text-l-ink underline-offset-4 hover:underline sm:inline">
+          Open {APP_NAME} →
+        </Link>
+      </nav>
 
-        <div className={`${WRAP} grid items-center gap-9 pb-16 pt-2 md:grid-cols-[1.3fr_1fr] md:gap-10 md:pb-20 md:pt-4`}>
-          <div className="flex flex-col gap-5 md:gap-7">
-            <h1 className="font-serif text-[clamp(44px,5.2vw,76px)] font-normal leading-[0.98] tracking-[-0.02em]">
-              Your diary
-              <br />
-              has <em>opinions now.</em>
-            </h1>
-            <p className="max-w-[460px] text-[18px] leading-[1.5] text-l-body md:text-[20px]">
-              {APP_NAME} is the diary that writes back. Your AI companion, your split personality.
+      {/* HERO: a diary entry. Date line, the headline across the page, then the words and the phone side by side. */}
+      <header className={`${WRAP} pb-16 pt-1 md:pb-20 md:pt-2`}>
+        <div className="flex items-center gap-4 border-b border-l-ink/25 pb-2">
+          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-l-muted">Thursday, 11:48 pm</span>
+        </div>
+        {/* the headline keeps clear of the phone column; the phone rises into the space beside it */}
+        <h1 className="pt-4 font-serif text-[clamp(44px,5.9vw,86px)] font-normal leading-[0.98] tracking-[-0.02em] [text-wrap:balance] md:max-w-[calc(100%-400px)] md:pt-5">
+          Your diary has <em>opinions now.</em>
+        </h1>
+        <div className="mt-7 grid items-start gap-9 md:mt-8 md:grid-cols-[1fr_auto] md:gap-12">
+          <div className="flex max-w-[480px] flex-col gap-6 md:pt-6">
+            <p className="text-[18px] leading-[1.55] text-l-body md:text-[21px]">
+              {APP_NAME} is the diary that writes back. Your AI companion, your split personality: the sane one, you at 30 and your
+              bestie.
             </p>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <OpenDelulu where="hero" />
               <p className="text-[14px] text-l-muted">Free. No sign-up.</p>
             </div>
           </div>
-          <HeroPhone />
+          <div className="md:-mt-[210px] md:w-[340px]">
+            <HeroPhone />
+          </div>
         </div>
-      </section>
+      </header>
 
-      {/* THE IDEA: one question, three voices. */}
-      <section className="border-t border-l-line bg-l-card">
-        <div className={`${WRAP} flex flex-col gap-10 py-20 md:gap-14 md:py-28`}>
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <h2 className="max-w-[560px] font-serif text-[clamp(34px,4.4vw,58px)] font-normal leading-[1.02]">Three of you write back.</h2>
-            <p className="max-w-[300px] self-start rounded-[20px] rounded-br-[6px] bg-l-sasha px-4 py-3 text-[17px] leading-snug md:self-auto">
-              date on friday. should I get bangs or is that a mistake
-            </p>
+      {/* THE NEXT PAGE: Friday and Saturday, as an open diary. Moves the story on; nothing from the phone repeats. */}
+      <section className="border-t border-l-line">
+        <div className={`${WRAP} flex flex-col gap-10 py-20 md:gap-12 md:py-28`}>
+          <h2 className={H2}>And on Saturday, it asks.</h2>
+          <div className="grid shadow-[0_30px_60px_-34px_rgba(20,33,61,0.45)] md:grid-cols-2">
+            <Page date="Friday, 9:10 am" side="left">
+              <p className="text-[15px] font-semibold">The brief for her stylist</p>
+              <div className="flex gap-5">
+                <figure className="w-[42%] shrink-0 -rotate-2 bg-white p-1.5 pb-6 shadow-[0_8px_20px_-8px_rgba(20,33,61,0.35)]">
+                  <div className="relative aspect-square">
+                    <Image src="/visuals-west/hair-west-curtain-bangs.jpg" alt="Sasha with curtain bangs, made by Delulu's try-on" fill sizes="(min-width: 768px) 200px, 40vw" className="object-cover" />
+                  </div>
+                </figure>
+                <p className="font-serif text-[18px] italic leading-[32px]">
+                  Soft curtain bangs from the cheekbone. Keep the length. Warm honey tone. No blunt cut.
+                </p>
+              </div>
+            </Page>
+            <Page date="Saturday, 10:14 am" side="right">
+              <p className="max-w-[340px] font-serif text-[24px] leading-[1.3]">so... how did the date go? And the bangs?</p>
+              <p className="max-w-[320px] self-end rounded-[20px] rounded-br-[6px] bg-l-sasha px-4 py-3 text-[17px] leading-snug">
+                he said they suit me. I said I know.
+              </p>
+              <p className="mt-auto max-w-[360px] text-[15px] leading-[1.55] text-l-body">
+                It remembers what you chose, and asks how it went. Try-on works for nails too.
+              </p>
+            </Page>
           </div>
-          <div className="grid gap-5 md:grid-cols-3 md:gap-6">
-            {VOICES.map((v) => (
-              <figure key={v.who} className="flex flex-col gap-4">
-                <div className="relative aspect-[4/5] overflow-hidden rounded-[18px] md:aspect-[3/4]">
-                  <Image src={v.img} alt={v.alt} fill sizes="(min-width: 768px) 360px, 100vw" className="object-cover object-[50%_30%]" />
-                </div>
-                <figcaption className="flex flex-col gap-1.5">
-                  <span className="text-[15px] font-semibold">{v.who}</span>
-                  <span className="font-serif text-[20px] leading-[1.4]">{v.say}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-          <p className="max-w-[560px] text-[16px] leading-[1.6] text-l-body">
-            Then see the bangs on your own selfie before the salon, and on Saturday it asks how the date went.
-          </p>
         </div>
       </section>
 
@@ -113,7 +118,7 @@ export default function Landing() {
           passes each message to 0G in memory and never logs or stores it. */}
       <section id="privacy" className="bg-l-ink text-l-paper">
         <div className={`${WRAP} grid gap-6 py-20 md:grid-cols-2 md:items-end md:gap-16 md:py-28`}>
-          <h2 className="font-serif text-[clamp(38px,5vw,68px)] font-normal leading-[1]">Every chat is fully private.</h2>
+          <h2 className="font-serif text-[clamp(38px,5vw,68px)] font-normal leading-[1] [text-wrap:balance]">Every chat is fully private.</h2>
           <p className="text-[17px] leading-[1.7] text-l-on-ink md:text-[19px]">
             Sealed AI on 0G · nothing stored in readable form · memory encrypted on your phone · delete everything in one line · no ads,
             ever.
@@ -123,11 +128,11 @@ export default function Landing() {
 
       {/* LAST CALL */}
       <section className={`${WRAP} flex flex-col items-start gap-7 py-20 md:flex-row md:items-end md:justify-between md:py-28`}>
-        <h2 className="font-serif text-[clamp(40px,5.6vw,76px)] font-normal leading-[0.98]">Dear diary, let&apos;s begin.</h2>
+        <h2 className="font-serif text-[clamp(40px,5.6vw,76px)] font-normal leading-[0.98] [text-wrap:balance]">Dear diary, let&apos;s begin.</h2>
         <OpenDelulu where="final" />
       </section>
 
-      <footer className={`${WRAP} flex flex-col gap-2 border-t border-l-line py-6 text-[12px] text-l-muted md:flex-row md:items-center md:justify-between`}>
+      <footer className={`${WRAP} flex flex-col gap-2 border-t border-l-line py-6 text-[12.5px] text-l-muted md:flex-row md:items-center md:justify-between`}>
         <span className="flex items-center gap-2">
           <Mark size={18} />
           <span className="font-serif text-[16px] italic text-l-ink">delulu</span>

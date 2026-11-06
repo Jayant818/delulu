@@ -15,21 +15,20 @@ type Beat =
   | { k: "tryon" }
   | { k: "day"; text: string };
 
+// The phone tells Thursday night; the page below it tells Friday and Saturday (no beat repeats on the page).
 const SCRIPT: Beat[] = [
   { k: "day", text: "Thursday, 11:48 pm" },
   { k: "s", text: "date on friday. should I get bangs or is that a mistake" },
-  { k: "d", text: "Three of me have opinions." },
+  { k: "d", text: "Three of me weigh in." },
   { k: "views" },
   { k: "s-photo" },
   { k: "tryon" },
   { k: "s", text: "ok I'm booking it" },
-  { k: "day", text: "Saturday" },
-  { k: "d", text: "so... how did the date go? And the bangs?" },
 ];
 const N = SCRIPT.length;
 /** ms before each beat appears; Delulu beats show typing dots for the first 900 ms of their wait. */
-const WAIT = [0, 700, 1200, 1300, 3000, 2200, 1700, 1400, 1500];
-const HOLD = 4200;
+const WAIT = [0, 700, 700, 1100, 1400, 1800, 1300];
+const HOLD = 5000;
 
 const VIEWS = [
   { who: "The sane one", img: "/visuals-west/persp-sane.jpg", say: "Bangs take 3 months to grow out. The date is in 3 days. Try them on first." },
@@ -53,7 +52,7 @@ function Bubble({ beat }: { beat: Beat }): ReactNode {
         <div className={`${d} flex w-[86%] flex-col gap-2.5 py-2.5`}>
           {VIEWS.map((v) => (
             <div key={v.who} className="flex gap-2.5">
-              <Image src={v.img} alt="" width={28} height={28} sizes="28px" className="h-7 w-7 shrink-0 rounded-full object-cover object-[50%_25%]" />
+              <Image src={v.img} alt="" width={28} height={28} sizes="28px" className="h-7 w-7 shrink-0 rounded-full object-cover object-[50%_18%]" />
               <p className="text-[13px] leading-snug">
                 <span className="font-semibold">{v.who}.</span> {v.say}
               </p>
@@ -154,7 +153,7 @@ export function HeroPhone() {
 
   return (
     <div className="relative mx-auto w-full max-w-[340px]">
-      <div className="flex h-[min(640px,76svh)] flex-col overflow-hidden rounded-[46px] border-[9px] border-l-ink bg-l-paper shadow-[0_40px_80px_-30px_rgba(20,33,61,0.55)]">
+      <div className="flex h-[min(580px,62svh)] flex-col overflow-hidden rounded-[46px] border-[9px] border-l-ink bg-l-paper shadow-[0_40px_80px_-30px_rgba(20,33,61,0.55)]">
         {/* status bar + app header */}
         <div className="flex items-center justify-between px-6 pb-1 pt-2.5 text-[11px] font-semibold text-l-ink" aria-hidden="true">
           <span>9:41</span>
