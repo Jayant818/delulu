@@ -58,7 +58,7 @@ export function DecisionCard({ summary, decided }: { summary: string; decided?: 
   return (
     <section aria-label="Three perspectives" className="mt-2 border-t border-line pt-2">
       <p className="text-sm"><span className="font-semibold">Sounds like a decision:</span> {summary}</p>
-      {!cards ? <button onClick={() => ask()} className={`${pill} mt-2 bg-accent font-semibold`}>Hear all three</button> : (
+      {!cards ? <button onClick={() => ask()} className="mt-2 min-h-11 rounded-full bg-accent px-4 text-sm font-semibold text-ink">Hear all three</button> : (
         <div className="mt-3 divide-y divide-line">
           {ORDER.map((v) => (
             <article key={v} className="space-y-2 py-3">
