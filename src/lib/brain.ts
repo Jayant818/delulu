@@ -76,7 +76,7 @@ export function looksFor(profile: Profile, history: ChatLine[]): Promise<AiResul
 }
 
 /** Stylist / nail tech brief for a try-on look (one 0G call, text only). */
-export function briefFor(kind: "hair" | "nails", style: string, profile: Profile): Promise<AiResult> {
+export function briefFor(kind: "hair" | "nails" | "face", style: string, profile: Profile): Promise<AiResult> {
   return complete(
     [
       { role: "system", content: briefPrompt(kind, style, profile) },

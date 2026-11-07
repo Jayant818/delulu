@@ -11,6 +11,10 @@ test("only hair and nails ideas get through, at most 3, clipped", () => {
   assert.equal(looks[1].prompt.length, 120);
 });
 
+test("face ideas (lashes, makeup) get through", () => {
+  assert.deepEqual(parseLooks('{"looks": [{"kind": "face", "label": "Wispy lashes", "prompt": "Wispy natural lashes"}]}')?.map((l) => l.kind), ["face"]);
+});
+
 test("garbage gives null, so the app shows the fixed chips", () => {
   assert.equal(parseLooks("[MOCK, no model configured]"), null);
   assert.equal(parseLooks('{"looks": []}'), null);

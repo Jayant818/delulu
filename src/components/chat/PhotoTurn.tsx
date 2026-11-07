@@ -10,7 +10,7 @@ import { Bubble, pill } from "./Bubble";
 
 export type Photo = { id: string; blob: Blob; url: string; at: string; info: TryonInfo };
 export type StylePrompt = { id: string; label: string; submit: (style: string) => void };
-const KINDS = ["Haircut", "Nails", "Hair color"] as const;
+const KINDS = ["Haircut", "Hair color", "Nails", "Lashes & makeup"] as const;
 type Look = typeof KINDS[number];
 
 export function PhotoTurn({ photo, onPrompt }: { photo: Photo; onPrompt: (prompt: StylePrompt | null) => void }) {
@@ -45,8 +45,8 @@ export function PhotoTurn({ photo, onPrompt }: { photo: Photo; onPrompt: (prompt
     // once per photo: the chat at the moment she sent it
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const kind: TryonKind = look === "Nails" ? "nails" : "hair";
-  const presets = photo.info.presets[kind].filter((p) => kind === "nails" || (/copper|balayage/i.test(p) === (look === "Hair color")));
+  const kind: TryonKind = look === "Nails" ? "nails" : look === "Lashes & makeup" ? "face" : "hair";
+  const presets = (photo.info.presets[kind] ?? []).filter((p) => kind !== "hair" || (/copper|balayage/i.test(p) === (look === "Hair color")));
 
   async function make(chosen: string, k: TryonKind = kind) {
     const trimmed = chosen.trim().slice(0, 120);
@@ -76,7 +76,7 @@ export function PhotoTurn({ photo, onPrompt }: { photo: Photo; onPrompt: (prompt
       setPhase("brief");
       const b = await postAi("/api/brief", { profile: vault.memory.profile, kind: k, style: trimmed }, request.signal);
       if (request.signal.aborted) return;
-      const label = k === "hair" ? "Stylist brief" : "Nail artist brief";
+      const label = k === "hair" ? "Stylist brief" : k === "face" ? "Makeup brief" : "Nail artist brief";
       await vault.update((m) => ({ ...m, chat: [...m.chat, { role: "assistant", content: `${label}: ${trimmed}\n${b.text}`, at: new Date().toISOString(), ai: aiMeta(b), kind: "brief" }] }));
       setPhase("done");
     } catch (e) {
@@ -103,7 +103,7 @@ export function PhotoTurn({ photo, onPrompt }: { photo: Photo; onPrompt: (prompt
         {!look && Array.isArray(ideas) && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {ideas.map((i) => (
-              <button key={i.label} className="min-h-11 rounded-full bg-accent px-4 text-sm font-semibold text-ink" onClick={() => { setLook(i.kind === "nails" ? "Nails" : "Haircut"); void make(i.prompt, i.kind); }}>
+              <button key={i.label} className="min-h-11 rounded-full bg-accent px-4 text-sm font-semibold text-ink" onClick={() => { setLook(i.kind === "nails" ? "Nails" : i.kind === "face" ? "Lashes & makeup" : "Haircut"); void make(i.prompt, i.kind); }}>
                 {i.label}
               </button>
             ))}

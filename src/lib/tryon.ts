@@ -6,14 +6,17 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-export type TryonKind = "hair" | "nails";
+export type TryonKind = "hair" | "nails" | "face"; // face = lashes, brows, eye or lip makeup (Jayant TG 3768)
 
 export const PRESETS: Record<TryonKind, string[]> = {
   hair: ["Curtain bangs with long layers", "Sleek chin-length bob", "Soft beachy waves", "Copper red, same cut", "Short pixie cut", "Glossy dark brown balayage"],
+  face: ["Wispy natural lashes", "Bold fluttery lashes", "Soft brushed-up brows", "Glossy red lip", "Soft pink everyday makeup", "Smoky eye for night"],
   nails: ["Milky pink French tips", "Glazed chrome", "Deep cherry red", "Minimal nude, short square", "Pastel ombré", "Tiny white florals"],
 };
 
 export function tryonPrompt(kind: TryonKind, style: string): string {
+  if (kind === "face")
+    return `Edit this photo: give her a CLEARLY VISIBLE new lash or makeup look: ${style}. The change must be obvious at first glance. Change ONLY that detail (lashes, brows, eye or lip makeup); keep her face shape, features, identity, skin tone, hair and expression the same. Tasteful, photorealistic.`;
   return kind === "hair"
     ? `Edit this photo: give her a CLEARLY VISIBLE new hairstyle: ${style}. The change must be obvious at first glance (cut, length, fringe or color exactly as described). Keep her face, identity, skin tone and expression the same. Photorealistic, natural hairline, realistic hair texture.`
     : `Edit this photo of a hand: give the nails a CLEARLY VISIBLE new manicure: ${style}. The change must be obvious at first glance (color, shape and finish exactly as described). Keep the hand, fingers, skin, pose and background the same. Photorealistic salon manicure.`;

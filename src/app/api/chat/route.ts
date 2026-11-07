@@ -7,7 +7,7 @@ import { fail, guardDemo, readDecisions, readHistory, readProfile, str } from ".
 // Vercel: 0G answers in 2-5 s, but a busy TEE provider can be slower; 60 s is the Hobby plan maximum.
 export const maxDuration = 60;
 
-const LOOK = /\b(wear|outfit|dress|hair|bangs|nails?|haircut|hair ?colou?r|suits? me|look good on me)\b/i;
+const LOOK = /\b(wear|outfit|dress|hair|bangs|nails?|haircut|hair ?colou?r|(eye)?lash(es)?|brows?|makeup|lipstick|suits? me|look good on me)\b/i;
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);

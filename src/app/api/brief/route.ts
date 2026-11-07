@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const profile = readProfile(body?.profile);
   const kind = body?.kind;
   const style = str(body?.style, 120).trim();
-  if (kind !== "hair" && kind !== "nails") return fail(400, "kind must be hair or nails");
+  if (kind !== "hair" && kind !== "nails" && kind !== "face") return fail(400, "kind must be hair, nails or face");
   if (!style) return fail(400, "style missing");
   const blocked = guardDemo(req); if (blocked) return blocked;
   try {

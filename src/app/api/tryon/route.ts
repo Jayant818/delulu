@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   const style = str(form.get("style"), 120).trim();
   const address = str(form.get("address"), 64).trim();
   const photo = form.get("image");
-  if (kind !== "hair" && kind !== "nails") return fail(400, "kind must be hair or nails");
+  if (kind !== "hair" && kind !== "nails" && kind !== "face") return fail(400, "kind must be hair, nails or face");
   if (!style) return fail(400, "pick or describe a style");
   if (!(photo instanceof Blob) || !TYPES.includes(photo.type)) return fail(400, "photo must be a JPEG, PNG or WebP image");
   if (photo.size > MAX_BYTES) return fail(413, "photo is too big (max 6 MB)");
