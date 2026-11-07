@@ -52,7 +52,7 @@ export default function Landing() {
               Your diary has <em>opinions now.</em>
             </h1>
             <p className="max-w-[480px] text-[18px] leading-[1.55] text-l-body md:text-[21px]">
-              Spill everything. We never keep a copy.
+              Spill everything. We never keep a readable copy.
             </p>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               <OpenDelulu where="hero" />
