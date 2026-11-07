@@ -99,7 +99,10 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col">
       <main className="flex-1 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6">
-        <ArkivRestoreOffer />
+        {/* Fixed under the chat header: Talk is a fixed full-screen thread, so an in-flow card would sit hidden under it. */}
+        <div className="fixed inset-x-0 top-[calc(env(safe-area-inset-top)+4.75rem)] z-30 mx-auto max-w-md px-4">
+          <ArkivRestoreOffer />
+        </div>
         {children}
       </main>
       <nav className="fixed inset-x-0 bottom-0 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">

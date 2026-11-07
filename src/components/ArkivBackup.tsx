@@ -64,7 +64,7 @@ export function ArkivRestoreOffer() {
   const { arkiv, restore, replaceBackup } = useMemoryVault();
   if (!arkiv.enabled || !arkiv.offer) return null;
   return (
-    <div className="mb-4 rounded-2xl border border-line bg-accent-soft p-4 text-sm">
+    <div className="rounded-2xl border border-line bg-accent-soft p-4 text-sm shadow-[0_16px_40px_-16px_rgba(20,33,61,0.45)]">
       <p className="font-semibold">Found your encrypted backup on Arkiv.</p>
       <p className="mt-1 text-muted">This device has no memory yet. Restore your chats and decisions? Until you choose, nothing new is saved to Arkiv. {ARKIV_PUBLIC_NOTE}</p>
       <div className="mt-3 flex gap-2">
