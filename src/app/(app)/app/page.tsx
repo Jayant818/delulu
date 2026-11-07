@@ -12,7 +12,7 @@ import { PhotoTurn, type Photo, type StylePrompt } from "@/components/chat/Photo
 import { trackEvent } from "@/components/SiteAnalytics";
 import { APP_NAME, DEMO_FAST } from "@/config";
 import { sealLabel } from "@/lib/ai/labels";
-import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
+import { aiMeta, chatLines, decisionSummaries, isDemoLimit, postAi } from "@/lib/api";
 import { answerCheckback, applyChatResult } from "@/lib/assistant";
 import { useMemoryVault, type ChatEntry, type Memory } from "@/lib/memory";
 import { photoConsent, shrink, type TryonInfo } from "@/lib/tryon-client";
@@ -126,7 +126,7 @@ function Talk() {
     if (draft) router.replace("/app", { scroll: false });
   }, [draft, router]);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<{ text: string; retry?: string }>();
+  const [error, setError] = useState<{ text: string; retry?: string; limit?: boolean }>();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [pending, setPending] = useState<Photo>();
   const [reading, setReading] = useState(false);
@@ -223,7 +223,7 @@ function Talk() {
       if (controller.current?.signal.aborted) return;
       await vault.update((mm) => applyChatResult(mm, r, aiMeta(r), Date.now(), DEMO_FAST).memory);
     } catch (e) {
-      if (!controller.current?.signal.aborted) setError({ text: `Couldn't get a reply. ${(e as Error).message}`, retry: message });
+      if (!controller.current?.signal.aborted) setError(isDemoLimit(e) ? { text: (e as Error).message, limit: true } : { text: `Couldn't get a reply. ${(e as Error).message}`, retry: message });
     } finally {
       setBusy(false);
     }
@@ -263,7 +263,9 @@ function Talk() {
           </Fragment>)}
           {busy && <Bubble><p role="status" className="animate-pulse text-sm text-muted">{APP_NAME} is thinking…</p></Bubble>}
           {reading && <Bubble><p role="status" className="text-sm text-muted">Preparing your photo on this device…</p></Bubble>}
-          {error && <Bubble><p role="alert">{error.text}</p>{error.retry && <button disabled={busy} className={`${pill} mt-2`} onClick={() => send(error.retry)}>Try again</button>}</Bubble>}
+          {error && (error.limit
+            ? <Bubble><p role="status">{error.text}</p></Bubble>
+            : <Bubble><p role="alert" className="text-red-700">{error.text}</p>{error.retry && <button disabled={busy} className={`${pill} mt-2`} onClick={() => send(error.retry)}>Try again</button>}</Bubble>)}
         </div>
       </div>
       {pending && <section role="dialog" onKeyDown={(e) => { if (e.key === "Escape") cancelPhoto(); }} aria-label="Send photo" aria-describedby="photo-consent" className="max-h-[55%] shrink-0 overflow-y-auto border-t border-line bg-paper p-3">

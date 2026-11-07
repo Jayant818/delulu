@@ -5,7 +5,7 @@ import { AiChip } from "@/components/AiChip";
 import { VoiceTitle } from "@/components/VoiceTitle";
 import { PrivacyLine } from "@/components/PrivacyLine";
 import { CHECKBACK_MS } from "@/config";
-import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
+import { aiMeta, chatLines, decisionSummaries, isDemoLimit, postAi } from "@/lib/api";
 import { checkbackJob } from "@/lib/assistant";
 import { useMemoryVault, type AiMeta, type Decision } from "@/lib/memory";
 import { VIEWS, type ViewId } from "@/lib/persona";
@@ -13,7 +13,7 @@ import { VIEWS, type ViewId } from "@/lib/persona";
 const ORDER: ViewId[] = ["sane", "future", "bestie"];
 // "6 Nov 2026" style: unambiguous in every locale (11/6 vs 6/11).
 const day = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
-type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string };
+type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string; limit?: boolean };
 
 // /decide?q=<one-line decision> comes from the chat's "Sounds like a decision" card.
 export default function DecidePage() {
@@ -52,7 +52,7 @@ function Decide({ fromChat }: { fromChat: string }) {
           const r = await postAi("/api/decide", { ...ctx, view });
           setCards((c) => ({ ...c, [view]: { loading: false, text: r.text, ai: aiMeta(r) } }));
         } catch (e) {
-          setCards((c) => ({ ...c, [view]: { loading: false, error: (e as Error).message } }));
+          setCards((c) => ({ ...c, [view]: { loading: false, error: (e as Error).message, limit: isDemoLimit(e) } }));
         }
       }),
     );
@@ -108,7 +108,12 @@ function Decide({ fromChat }: { fromChat: string }) {
               <article key={v} className="rounded-2xl border border-line bg-paper p-4">
                 <VoiceTitle view={v} />
                 {c?.loading && <p className="mt-2 animate-pulse text-sm text-muted">…</p>}
-                {c?.error && <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>}
+                {c?.error &&
+                  (c.limit ? (
+                    <p role="status" className="mt-2 text-sm leading-relaxed text-ink">{c.error}</p>
+                  ) : (
+                    <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>
+                  ))}
                 {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{c.text}</p>}
                 {c?.ai && <AiChip ai={c.ai} />}
                 {picked === v && <p className="mt-3 text-sm font-semibold text-ink">✓ Your pick</p>}

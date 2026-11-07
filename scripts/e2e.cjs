@@ -3,7 +3,7 @@
 // Usage: CHROME_PATH=/path/to/chrome node scripts/e2e.cjs <path to playwright-core> <screenshot dir>
 const { chromium } = require(process.argv[2]);
 const out = process.argv[3];
-const B = `http://localhost:${process.env.PORT || 3300}`;
+const B = process.env.E2E_BASE_URL || `http://localhost:${process.env.PORT || 3300}`; // start the server with DEMO_GUARD=off
 const { mkdirSync } = require("node:fs");
 mkdirSync(out, { recursive: true });
 const ok = (c, m) => {
@@ -28,6 +28,9 @@ const idb = (page, op) =>
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined });
   for (const width of [390, 1440]) {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
+  // Vercel serves the analytics script only on deployments; keep the local browser test independent of the network.
+  await page.route("**/_vercel/insights/script.js", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
+  await page.route("**/va.vercel-scripts.com/**", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
   const shot = async (name) => {
     await page.waitForTimeout(500); // let the smooth chat scroll settle before capturing
     await page.screenshot({ path: `${out}/${width}-${name}.png` });

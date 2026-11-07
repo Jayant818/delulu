@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { AiChip } from "@/components/AiChip";
 import { VoiceTitle } from "@/components/VoiceTitle";
 import { CHECKBACK_MS } from "@/config";
-import { aiMeta, chatLines, decisionSummaries, postAi } from "@/lib/api";
+import { aiMeta, chatLines, decisionSummaries, isDemoLimit, postAi } from "@/lib/api";
 import { checkbackJob } from "@/lib/assistant";
 import { useMemoryVault, type AiMeta, type Decision } from "@/lib/memory";
 import type { ViewId } from "@/lib/persona";
@@ -14,7 +14,7 @@ import { useSession } from "@/lib/session";
 import { photoConsent, shrink, type TryonInfo } from "@/lib/tryon-client";
 
 type Kind = "hair" | "nails";
-type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string };
+type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string; limit?: boolean };
 const ORDER: ViewId[] = ["sane", "future", "bestie"];
 
 export default function TryOn() {
@@ -28,6 +28,7 @@ export default function TryOn() {
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<{ image: string; mock: boolean; ms: number; backend: string; requestId: string | null }>();
   const [brief, setBrief] = useState<{ text: string; ai: AiMeta } | "loading">();
+  const [briefError, setBriefError] = useState<{ msg: string; limit: boolean }>();
   const [cards, setCards] = useState<Partial<Record<ViewId, Card>>>({});
   const [picked, setPicked] = useState<ViewId | null>(null);
 
@@ -42,6 +43,7 @@ export default function TryOn() {
     setStyle("");
     setResult(undefined);
     setBrief(undefined);
+    setBriefError(undefined);
     setCards({});
     setPicked(null);
     setError(undefined);
@@ -66,6 +68,7 @@ export default function TryOn() {
     setMaking(true);
     setError(undefined);
     setBrief(undefined);
+    setBriefError(undefined);
     setCards({});
     setPicked(null);
     try {
@@ -80,7 +83,12 @@ export default function TryOn() {
       setResult(data);
       // The brief (0G, text only) runs right away; the three voices wait for her tap.
       setBrief("loading");
-      const b = await postAi("/api/brief", { profile: vault.memory.profile, kind, style: style.trim() });
+      const b = await postAi("/api/brief", { profile: vault.memory.profile, kind, style: style.trim() }).catch((e: Error) => {
+        setBrief(undefined);
+        setBriefError({ msg: e.message, limit: isDemoLimit(e) });
+        return null;
+      });
+      if (!b) return;
       setBrief({ text: b.text, ai: aiMeta(b) });
       const label = kind === "hair" ? "💇 Stylist brief" : "💅 Nail tech brief";
       await vault.update((m) => ({
@@ -103,7 +111,7 @@ export default function TryOn() {
           const r = await postAi("/api/decide", { ...ctx, view });
           setCards((c) => ({ ...c, [view]: { loading: false, text: r.text, ai: aiMeta(r) } }));
         } catch (e) {
-          setCards((c) => ({ ...c, [view]: { loading: false, error: (e as Error).message } }));
+          setCards((c) => ({ ...c, [view]: { loading: false, error: (e as Error).message, limit: isDemoLimit(e) } }));
         }
       }),
     );
@@ -238,6 +246,12 @@ export default function TryOn() {
           <article className="mt-4 rounded-2xl border border-line bg-paper p-4">
             <h2 className="font-semibold">{kind === "hair" ? "💇 Your stylist brief" : "💅 Your nail tech brief"}</h2>
             {brief === "loading" && <p className="mt-2 animate-pulse text-sm text-muted">Writing it privately…</p>}
+            {briefError &&
+              (briefError.limit ? (
+                <p role="status" className="mt-2 text-sm leading-relaxed text-ink">{briefError.msg}</p>
+              ) : (
+                <p className="mt-2 text-sm text-red-700">Could not write the brief: {briefError.msg}</p>
+              ))}
             {brief && brief !== "loading" && (
               <>
                 <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{brief.text}</p>
@@ -258,7 +272,12 @@ export default function TryOn() {
                   <article key={v} className="rounded-2xl border border-line bg-paper p-4">
                     <VoiceTitle view={v} as="h3" />
                     {c?.loading && <p className="mt-2 animate-pulse text-sm text-muted">…</p>}
-                    {c?.error && <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>}
+                    {c?.error &&
+                  (c.limit ? (
+                    <p role="status" className="mt-2 text-sm leading-relaxed text-ink">{c.error}</p>
+                  ) : (
+                    <p className="mt-2 text-sm text-red-700">Could not get this view: {c.error}</p>
+                  ))}
                     {c?.text && <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed [overflow-wrap:anywhere]">{c.text}</p>}
                     {c?.ai && <AiChip ai={c.ai} />}
                     {picked === v && <p className="mt-3 text-sm font-semibold text-ink">✓ Your pick</p>}
