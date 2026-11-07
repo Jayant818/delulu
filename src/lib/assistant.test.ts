@@ -37,7 +37,10 @@ test("intents are performed by the app, not described by the model", () => {
   assert.equal(apply(ci, { intent: { type: "checkin_off" } }).memory.jobs.length, 0);
   const demo = apply(base(), { intent: { type: "checkin_set", time: "21:00" } }, true).memory;
   assert.equal(Date.parse(demo.jobs[0].at), NOW + 60_000, "demo: first check-in in 1 min");
-  assert.equal(apply(base(), { intent: { type: "decide", question: "X or Y" } }).effect.navigate, "/decide?q=X%20or%20Y");
+  const decision = applyChatResult(base(), res({ intent: { type: "decide", question: "X or Y" } }), res({}), NOW, false);
+  assert.deepEqual(decision.effect, {}, "decisions stay in the chat");
+  assert.equal(decision.memory.chat.at(-1)!.decision, "X or Y");
+  assert.equal(decision.memory.chat.at(-1)!.ai?.requestId, "r1", "inline decisions keep the proof");
 });
 
 test("cancel a reminder by name; unknown name shows the list", () => {

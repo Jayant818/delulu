@@ -1,0 +1,19 @@
+.delulu-chat {
+  position: fixed;
+  inset-inline: 0;
+  top: var(--chat-top, 0px);
+  height: calc(var(--chat-height, 100dvh) - 3rem - env(safe-area-inset-bottom));
+  max-width: 48rem;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--cream);
+  border-inline: 1px solid var(--line);
+}
+
+.delulu-chat-wallpaper {
+  background-color: var(--cream);
+  background-image: radial-gradient(circle, rgb(20 33 61 / 5%) 1px, transparent 1px);
+  background-size: 22px 22px;
+  overflow-anchor: none;
+}

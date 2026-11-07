@@ -69,7 +69,7 @@ export function applyChatResult(m: Memory, r: ApiResult, meta: ChatEntry["ai"], 
         return { memory: add(entry(lead, { kind: "reminders" }, now)), effect: {} };
       }
       case "decide":
-        return { memory: add(entry("Let's look at it from three sides 👀", {}, now)), effect: { navigate: `/decide?q=${encodeURIComponent(intent.question)}` } };
+        return { memory: add(entry("Let's look at it from three sides 👀", { decision: intent.question, ai: meta }, now)), effect: {} };
     }
   }
 
