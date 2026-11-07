@@ -11,7 +11,7 @@ import { arkivApi, type ArkivInfo } from "@/lib/arkiv-client";
 
 export type AiMeta = Omit<AiResult, "text">;
 // kind marks app-made messages that render with buttons (check-back, delete confirm, reminders list).
-export type ChatKind = "reminder" | "checkback" | "checkin" | "help" | "privacy" | "confirm-forget" | "reminders" | "brief";
+export type ChatKind = "reminder" | "checkback" | "checkin" | "help" | "privacy" | "confirm-forget" | "reminders" | "brief" | "photo-ask";
 export type ChatEntry = { role: "user" | "assistant"; content: string; at: string; ai?: AiMeta; decision?: string; kind?: ChatKind; ref?: string };
 export type Decision = {
   id: string;

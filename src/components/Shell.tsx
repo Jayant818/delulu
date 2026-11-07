@@ -9,12 +9,6 @@ import { runDue } from "@/lib/assistant";
 import { useMemoryVault, type Memory } from "@/lib/memory";
 import { useSession } from "@/lib/session";
 
-const NAV = [
-  { href: "/app", label: "Talk" },
-  { href: "/decide", label: "Decide" },
-  { href: "/tryon", label: "Try-on" },
-  { href: "/settings", label: "Settings" },
-];
 
 function Center({ children }: { children: ReactNode }) {
   return <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-6 text-center">{children}</main>;
@@ -98,26 +92,20 @@ export function Shell({ children }: { children: ReactNode }) {
     );
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col">
-      <main className="flex-1 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-6">
+      <main className="flex-1 px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
+        {/* One screen, Talk (Jayant TG 3740): no bottom nav. Settings is the gear in the Talk header; every other page
+            (Settings, and the /decide and /tryon routes that still work) gets a way back. */}
+        {path !== "/app" && (
+          <Link href="/app" className="-ml-2 mb-2 inline-flex min-h-11 items-center gap-1 px-2 text-sm text-ink no-underline">
+            <span aria-hidden="true">←</span> Talk
+          </Link>
+        )}
         {/* Fixed under the chat header: Talk is a fixed full-screen thread, so an in-flow card would sit hidden under it. */}
         <div className="fixed inset-x-0 top-[calc(env(safe-area-inset-top)+4.75rem)] z-30 mx-auto max-w-md px-4">
           <ArkivRestoreOffer />
         </div>
         {children}
       </main>
-      <nav className="fixed inset-x-0 bottom-0 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
-        <div className="mx-auto flex max-w-md">
-          {NAV.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className={`flex-1 py-3 text-center text-sm ${path === n.href ? "font-semibold text-ink underline decoration-2 underline-offset-8" : "text-muted"}`}
-            >
-              {n.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
     </div>
   );
 }

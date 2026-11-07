@@ -13,12 +13,12 @@ export const WEB_HELP = `Just talk to me, like you'd text a friend. No commands.
 • "check in on me every evening at 9" / "stop checking in"
 • "is this private?"
 • "delete everything"
-Or tap Try-on to see a new hair or nail look on you. Reminders and check-ins show up here when you open Delulu.`;
+Or tap the paperclip and send a photo to try a new hair or nail look on you. Reminders and check-ins show up here when you open Delulu.`;
 
 export const WEB_PRIVACY = `What happens to what you tell me:
 • Chat: every answer comes from a model in private TEE mode on 0G Private Computer, and 0G reports it as sealed. Our server passes your words to 0G in memory and never stores them. The request IDs are below.
 • Memory: what I learn about you, our chats and your decisions are encrypted on this device with a key only your wallet can make. Nothing readable is stored on a server.
-• Try-on: your photo goes to an image model on 0G's network (standard tier, not sealed), only to make the look. We never save it, and Delulu keeps only the text.`;
+• Try-on: your photo goes to an image model (the app names which one before you send it; not sealed), only to make the look. We never save it, and Delulu keeps only the text.`;
 
 const rid = () => Math.random().toString(16).slice(2, 10);
 const entry = (content: string, extra: Partial<ChatEntry> = {}, now = Date.now()): ChatEntry => ({
@@ -70,6 +70,8 @@ export function applyChatResult(m: Memory, r: ApiResult, meta: ChatEntry["ai"], 
       }
       case "decide":
         return { memory: add(entry("Let's look at it from three sides 👀", { decision: intent.question, ai: meta }, now)), effect: {} };
+      case "photo": // her own words from the model, plus a "Send a photo" button (the photo goes to try-on only)
+        return { memory: add(entry(r.text, { kind: "photo-ask", ai: meta }, now)), effect: {} };
     }
   }
 

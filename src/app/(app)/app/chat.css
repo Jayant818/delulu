@@ -2,7 +2,7 @@
   position: fixed;
   inset-inline: 0;
   top: var(--chat-top, 0px);
-  height: calc(var(--chat-height, 100dvh) - 3rem - env(safe-area-inset-bottom));
+  height: calc(var(--chat-height, 100dvh) - env(safe-area-inset-bottom));
   max-width: 48rem;
   margin-inline: auto;
   display: flex;

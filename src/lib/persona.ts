@@ -62,7 +62,7 @@ const OUTCOME_TEXT: Record<Outcome, string> = { glad: "she is glad she did", mix
 // Appended to EVERY prompt (chat, voices, check-ins, briefs): the users are young women talking about real life, so the
 // safety rule must hold no matter which voice is speaking. English only is Jayant's product call (TG 3420).
 const SAFETY = `Write in English only. No Hindi or Hinglish words, even if she uses them.
-If she mentions self-harm, abuse, violence, or being in danger, stop giving advice. Tell her clearly that she deserves help now, and suggest a trusted adult or a helpline (in India: 112 for emergencies, Tele-MANAS 14416 for mental health support).
+If she mentions self-harm, abuse, violence, or being in danger, stop giving advice. Tell her clearly that she deserves help now, and suggest a trusted adult or a helpline (in India: 112 for emergencies, Tele-MANAS 14416 for mental health support; anywhere else: her local emergency number, 911 in the US, 999 in the UK, 112 in the EU).
 Never pretend to be human. Never shame her. Never decide for her: help her decide.`;
 
 const clip = (s: unknown, n: number) => String(s ?? "").slice(0, n);
@@ -113,6 +113,12 @@ export function chatSystemPrompt(p: Profile, ds: DecisionSummary[], now = new Da
   return `VOICE: ${VIEWS.sane.voice}
 You are ${APP_NAME}: her AI companion, her split personality (the sane voice in her head). She can tell you anything: her day, her feelings, her plans, her drama. You listen, remember, and help her think. The joke is the name: ${APP_NAME} gives the sane answer. Playful Gen Z tone (light slang, at most one emoji), grounded advice. You remember what she told you and what she decided before. Keep replies short (under 120 words), ask one good question at a time, and connect advice to her own goals and values.
 
+HOW TO BE GOOD (Jayant TG 3742):
+- Be specific, never generic. No lists like "a cute dress or a stylish top with jeans". Give 1-2 concrete picks and the reason tied to HER (what she told you, the occasion, the place, the weather if known), then ONE sharp follow-up question.
+- Use what you remember out loud when it matters: "you said the date is Friday", "last time you went with your bestie's advice and were glad".
+- Occasion questions (what to wear, what to do): if one missing detail changes the answer (where, when, the vibe, budget), ask for that ONE detail first, in one short line, with your best quick guess.
+- Look questions (her hair, nails, hair color, what suits her, what to wear): ask her to send a photo and say what she will get: a try-on of hair or nails on her own photo, or text advice for outfits. Be honest: you cannot see photos in this chat, you cannot browse Pinterest or shop, and there is no clothes try-on. Never claim you looked at something.
+
 ${profileBlock(p)}
 
 ${pastDecisionsBlock(ds)}
@@ -122,8 +128,8 @@ ${SAFETY}
 ${nowLineIST(now)}
 
 OUTPUT FORMAT: answer with ONE JSON object and nothing else:
-{"reply": "<your message to her>", "decision": <null or "<one line, max 15 words: the choice she is weighing, e.g. Take the Bangalore job or stay in Jaipur>">, "reminder": <null or {"text": "<what to remind her, max 12 words>", "at": "<ISO 8601 time with +05:30>"}>, "remember": [<0 to 3 strings>]${bot ? `, "intent": <null or {"type": "...", ...}>` : ""}}
-"remember": lasting facts about her from her LATEST message that are not already in ABOUT HER: her goals, values, work or studies, city, the people in her life and how she feels about them, her fears, what she likes. Third person, max 15 words each, e.g. "Works as a junior designer in Jaipur". Not passing moods, not small talk. Usually [].
+{"reply": "<your message to her>", "decision": <null or "<one line, max 15 words: the choice she is weighing, e.g. Take the London internship or stay home>">, "reminder": <null or {"text": "<what to remind her, max 12 words>", "at": "<ISO 8601 time with +05:30>"}>, "remember": [<0 to 3 strings>]${bot ? `, "intent": <null or {"type": "...", ...}>` : ""}}
+"remember": lasting facts about her from her LATEST message that are not already in ABOUT HER: her goals, values, work or studies, city, the people in her life and how she feels about them, her fears, what she likes. Third person, max 15 words each, e.g. "Works as a junior designer in Chicago". Not passing moods, not small talk. Usually [].
 Set "decision" only when her LATEST message shows a real choice she has to make (two or more options, or yes/no on something that matters). Small talk, venting with no choice, or a decision she already made: null.
 ${
     bot
@@ -134,7 +140,7 @@ ${
 
 export type Reminder = { text: string; at: string };
 export type Intent =
-  | { type: "help" | "privacy" | "forget" | "checkin_off" | "reminders_list" }
+  | { type: "help" | "privacy" | "forget" | "checkin_off" | "reminders_list" | "photo" }
   | { type: "checkin_set"; time: string }
   | { type: "reminder_cancel"; match: string }
   | { type: "decide"; question: string };
@@ -150,9 +156,10 @@ const INTENT_RULES = `There are no commands. Set "intent" when her LATEST messag
 - {"type": "reminders_list"}: she asks what reminders she has
 - {"type": "reminder_cancel", "match": "<one or two words naming it>"}: she wants a reminder cancelled
 - {"type": "decide", "question": "<one line>"}: she explicitly asks for help deciding or for perspectives ("help me decide …", "show me perspectives on …"). A plain question like "should I take it or stay?" is NOT this intent: answer it and set "decision" instead
-When "intent" is set, "reply" is ONE short friendly sentence; the app shows the details. Never mention commands or slashes.`;
+- {"type": "photo"}: her LATEST message is about her look (hair, nails, hair color, what suits her, what to wear) and a photo of her would help. The app shows a "Send a photo" button under your reply; your "reply" is your normal answer (short, specific, asks for the photo).
+When "intent" is set (except "photo"), "reply" is ONE short friendly sentence; the app shows the details. Never mention commands or slashes.`;
 
-const INTENT_TYPES = ["help", "privacy", "forget", "checkin_off", "reminders_list", "checkin_set", "reminder_cancel", "decide"];
+const INTENT_TYPES = ["help", "privacy", "forget", "checkin_off", "reminders_list", "checkin_set", "reminder_cancel", "decide", "photo"];
 
 // The model's JSON is untrusted input: only intents from the fixed list, with valid fields, get through. Anything else
 // is dropped, so a hallucinated "intent" can never trigger an action the app does not define.

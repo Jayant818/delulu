@@ -23,11 +23,17 @@ import { OUTCOMES, whenIST } from "@/lib/schedule";
 const STARTERS = ["Something happened today…", "I can't decide if I should…", "What can you do?"];
 
 /** The extra controls an app-made message carries (check-back answers, delete confirm, reminders list, proof). */
-function Extras({ e, i, m }: { e: ChatEntry; i: number; m: Memory }) {
+function Extras({ e, i, m, onPhoto }: { e: ChatEntry; i: number; m: Memory; onPhoto: () => void }) {
   const vault = useMemoryVault();
   const router = useRouter();
   const answeredLater = m.chat.slice(i + 1).some((x) => x.role === "user"); // buttons only until she moves on
 
+  if (e.kind === "photo-ask" && !answeredLater)
+    return (
+      <button className="mt-2 min-h-11 rounded-full bg-accent px-4 text-sm font-semibold text-ink" onClick={onPhoto}>
+        Send a photo
+      </button>
+    );
   if (e.kind === "checkback" && e.ref) {
     const d = m.decisions.find((x) => x.id === e.ref);
     if (!d || d.outcome) return d?.outcome ? <p className="mt-2 text-xs text-muted">Answered: {OUTCOMES.find((o) => o.key === d.outcome)?.label}</p> : null;
@@ -238,12 +244,14 @@ function Talk() {
   return (
     <div ref={panel} className="delulu-chat">
       <header className="flex shrink-0 items-center gap-3 border-b border-line bg-paper px-4 pb-3 pt-[max(.75rem,env(safe-area-inset-top))]">
-        <Link href="/settings" aria-label="Delulu settings" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cream"><Mark size={30} /></Link>
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cream" aria-hidden="true"><Mark size={30} /></span>
         <div className="min-w-0">
           <h1 className="font-serif text-2xl leading-tight">{APP_NAME}</h1>
           <p className="text-[11px] text-muted">{!status ? "Your AI companion" : isSealed(status) ? "Chat on 0G · private TEE mode" : status.backends[0] === "mock" ? "MOCK demo · no AI model connected" : "Fallback AI · not sealed"}</p>
         </div>
-        <Link href="/tryon" className="ml-auto flex min-h-11 items-center text-xs underline underline-offset-4">Try-on</Link>
+        <Link href="/settings" aria-label="Settings" className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink hover:bg-cream">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" /></svg>
+        </Link>
       </header>
       <div ref={scroll} className={`delulu-chat-wallpaper min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3`} aria-label="Chat messages">
         <div ref={thread} className="space-y-2.5">
@@ -258,7 +266,7 @@ function Talk() {
             {photo ? <PhotoTurn photo={photo} onPrompt={(prompt) => { setStylePrompt(prompt); if (prompt) input.current?.focus(); }} /> : e && <Bubble user={e.role === "user"} at={e.at} ai={e.ai}>
               <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{e.content}</p>
               {e.decision && <DecisionCard summary={e.decision} decided={decisions.find((d) => d.question === e.decision)} />}
-              <Extras e={e} i={i} m={m} />
+              <Extras e={e} i={i} m={m} onPhoto={() => file.current?.click()} />
             </Bubble>}
           </Fragment>)}
           {busy && <Bubble><p role="status" className="animate-pulse text-sm text-muted">{APP_NAME} is thinking…</p></Bubble>}

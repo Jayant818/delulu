@@ -81,7 +81,7 @@ const idb = (page, op) =>
   ok(true, "memory decrypts after reload");
 
   // Back in chat: the card now shows the outcome; small talk makes no card.
-  await page.getByRole("link", { name: "Talk" }).click();
+  await page.getByRole("link", { name: "Talk" }).click(); // the back link on pages other than Talk
   await page.getByText(/Decided: went with You at 30/).waitFor();
   ok(true, "chat card shows the decision she made");
 
@@ -172,7 +172,7 @@ const idb = (page, op) =>
 
   // The standalone Try-on route still works.
   // Try-on (MOCK without OPENAI_API_KEY): photo -> style -> look -> brief (0G) -> three voices -> pick.
-  await page.getByRole("link", { name: "Try-on", exact: true }).last().click();
+  await page.goto(B + "/tryon"); // not in the nav any more (TG 3740), the route still works
   await page.getByRole("heading", { name: "Try the look" }).waitFor();
   ok((await page.getByText(/Try-on photos are processed/).count()) === 0, "no privacy banner on the try-on screen (it lives in the FAQ)");
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAKklEQVR4nO3NQQkAAAgEsIttEjMZyxQ+hMH+y1SfikAgEAgEAoFAIPgSLPAYWGrIjiB9AAAAAElFTkSuQmCC", "base64");
@@ -192,7 +192,8 @@ const idb = (page, op) =>
   ok(!stored.includes("data:image") && !stored.includes("Sleek"), "no photo (and no plaintext) in stored memory");
 
   // Delete everything.
-  await page.getByRole("link", { name: "Settings" }).click();
+  await page.getByRole("link", { name: "Talk" }).click(); // back from /tryon
+  await page.getByRole("link", { name: "Settings" }).click(); // the gear in the Talk header
   await page.getByText(/\d+ decisions/).waitFor();
   ok(await page.getByText(/· 1 thing it knows about you/).isVisible(), "Settings counts what it learned");
   await page.getByText(/What Delulu knows about you/).click();
