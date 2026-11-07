@@ -59,9 +59,31 @@ Without keys everything still runs, labelled: chat answers say MOCK, try-on retu
 
 - **Chats are sealed.** Every chat, decision, check-in and brief call goes to 0G Private Computer in `private` trust mode: TeeML providers only, the model runs inside an Intel TDX enclave, and 0G documents that neither 0G nor the GPU operator can read the prompt.
 - **We store nothing readable.** The bot keeps each person's memory encrypted at rest (per-user key, wrapped by a server master key). The web app keeps memory encrypted on her own device. Neither logs message content.
+- **Arkiv backup is public but locked.** If the Arkiv feature is on, an encrypted copy of her memory sits on a public network. Anyone can see the locked blob, her wallet address and the save times, never the words. See the Arkiv section.
 - **Try-on photos are NOT sealed.** They are processed by an image model on 0G's network (standard tier: no enclave), then deleted: the photo and the result exist only in that request's memory and in her browser tab, never on our disk, never in her stored memory. The app says this on the try-on screen and shows the 0G request ID of each image.
 - **Telegram carries the messages** (bot only). Telegram can read bot chats, like any Telegram chat. That part is outside our control, and the bot says so when she asks "is this private?".
 - **What we do not claim:** whoever runs the bot server holds the master key and could decrypt the store. "Nothing readable at rest" is the claim, not "unreadable to us". We also do not claim "nobody can read your chats": our server relays each message to 0G in memory (never stored or logged), and the router reports `x-0g-e2ee: sealed` but returns no `tee_verified`, so the app says "sealed", never "TEE verified".
+
+## Arkiv (encrypted memory backup)
+
+Delulu backs up her memory to [Arkiv](https://docs.arkiv.network) on the **Rabdi** testnet (chain 7794095) with `@arkiv-network/sdk`. A user-visible feature reads from it: Settings shows "Encrypted backup on Arkiv" (entity, save time, expiry, explorer link) and **Restore from Arkiv**. On a new device with empty memory, the app finds the backup and offers to restore it.
+
+- **Writer wallet (relayer):** `0xB681D7d03b055EF0Ed26766fB21b0c1ff6520C54`
+- **Schema:** `delulu.memory-backup`, one entity per user, expires in about 182 days and is renewed on every save.
+- **What is on-chain:** AES-256-GCM ciphertext (made in her browser), her wallet address, save times. Never her words. Arkiv is public, so the app says so.
+- **One query we can run** (lists every Delulu backup, no keys needed):
+
+```bash
+npm ci && npm run arkiv:query
+```
+
+It runs `publicClient.select({...}).from(Backup).createdBy("0xB681D7d03b055EF0Ed26766fB21b0c1ff6520C54").fetch()`. Details: [`arkiv/schema.md`](arkiv/schema.md), [`arkiv/how-you-use-arkiv.md`](arkiv/how-you-use-arkiv.md), [`arkiv/why-arkiv.md`](arkiv/why-arkiv.md), [`arkiv/friction.md`](arkiv/friction.md), [`arkiv/reach.md`](arkiv/reach.md).
+- **Turn it on:** set `ARKIV_RELAYER_PRIVATE_KEY` (a funded tGLM wallet) and optionally `ARKIV_ACCESS_KEY` in `.env.local`. Without the relayer key the Arkiv UI is hidden.
+- **"Delete everything"** also deletes her Arkiv entity (signed by her). If Arkiv is down at that moment, the entity is no longer renewed and expires on its own.
+
+## AI use
+
+This project was built with AI coding agents (Claude Code), directed and reviewed by the author. The product itself calls AI models through 0G Private Computer.
 
 ## 0G facts verified at the source (2026-11-06)
 
