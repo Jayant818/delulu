@@ -1,9 +1,11 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { APP_NAME } from "@/config";
 import { ArkivRestoreOffer } from "@/components/ArkivBackup";
+import { Mark } from "@/components/Mark";
 import { chatLines, decisionSummaries, postAi, aiMeta } from "@/lib/api";
 import { runDue } from "@/lib/assistant";
 import { useMemoryVault, type Memory } from "@/lib/memory";
@@ -71,13 +73,28 @@ export function Shell({ children }: { children: ReactNode }) {
 
   if (!session.authenticated)
     return (
-      <Center>
-        <h1 className="font-serif text-5xl">{APP_NAME}</h1>
-        <p className="text-muted">The app with the delulu name that gives you the sane answer. Three voices, your call, and your memory stays encrypted on your phone.</p>
-        <button onClick={session.login} className="w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-ink">
-          Continue with email or Google
-        </button>
-      </Center>
+      // The login screen (Jayant TG 3753): like the landing, still one action. Coral only on the button.
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
+        <div className="flex items-center gap-2" aria-label={APP_NAME}>
+          <Mark size={30} />
+          <span className="font-serif text-[26px] font-medium italic leading-none" aria-hidden="true">delulu</span>
+        </div>
+        <div className="flex flex-1 flex-col justify-center gap-5 py-10">
+          <figure className="w-[112px] -rotate-3 bg-white p-1.5 pb-4 shadow-[0_8px_20px_-8px_rgba(20,33,61,0.35)]" aria-hidden="true">
+            <div className="relative aspect-square overflow-hidden">
+              <Image src="/visuals-west/hair-base-west.jpg" alt="" fill sizes="112px" className="scale-[1.45] object-cover object-[50%_18%]" />
+            </div>
+          </figure>
+          <h1 className="font-serif text-[44px] leading-[1.02] [text-wrap:balance]">Dear diary, it&apos;s me again.</h1>
+          <p className="text-[17px] leading-relaxed text-muted">
+            Log in with email or Google. Your login makes the key that locks your diary on this phone. We never see it.
+          </p>
+          <button onClick={session.login} className="min-h-12 w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-ink">
+            Continue with email or Google
+          </button>
+          <p className="text-center text-[13px] text-muted [text-wrap:balance]">Free · chats sealed on 0G · delete everything in one line</p>
+        </div>
+      </main>
     );
 
   if (!session.address) return <Center><p className="text-muted">Creating your private wallet…</p></Center>;
