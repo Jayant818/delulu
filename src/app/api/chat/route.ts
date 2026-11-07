@@ -7,6 +7,8 @@ import { fail, guardDemo, readDecisions, readHistory, readProfile, str } from ".
 // Vercel: 0G answers in 2-5 s, but a busy TEE provider can be slower; 60 s is the Hobby plan maximum.
 export const maxDuration = 60;
 
+const LOOK = /\b(wear|outfit|dress|hair|bangs|nails?|haircut|hair ?colou?r|suits? me|look good on me)\b/i;
+
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const profile = readProfile(body?.profile);
@@ -20,7 +22,10 @@ export async function POST(req: Request) {
       message,
       { channel: "web" },
     );
-    return NextResponse.json({ ...ai, decision, reminder, intent, remember });
+    // Look questions always get the "Send a photo" button, even when the model forgets the intent (Jayant TG 3740).
+    // ponytail: keyword match on her message; swap for a classifier if it fires on the wrong messages.
+    const lookIntent = !intent && LOOK.test(message) ? ({ type: "photo" } as const) : intent;
+    return NextResponse.json({ ...ai, decision, reminder, intent: lookIntent, remember });
   } catch (e) {
     return fail(502, (e as Error).message);
   }
