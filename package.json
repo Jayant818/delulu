@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/book.test.ts src/lib/core.test.ts src/lib/assistant.test.ts src/lib/tryon.test.ts src/lib/demoGuard.test.ts src/bot/bot.test.ts src/lib/arkiv.test.ts scripts/check-url.test.mjs",
+    "test": "tsx --test src/lib/looks.test.ts src/lib/book.test.ts src/lib/core.test.ts src/lib/assistant.test.ts src/lib/tryon.test.ts src/lib/demoGuard.test.ts src/bot/bot.test.ts src/lib/arkiv.test.ts scripts/check-url.test.mjs",
     "check:url": "node scripts/check-url.mjs",
     "bot": "tsx --env-file=.env.local src/bot/index.ts",
     "arkiv:query": "tsx scripts/arkiv-query.ts",

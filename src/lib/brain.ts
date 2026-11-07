@@ -1,6 +1,7 @@
 // Server-only, channel-agnostic "brain": the web API routes and the Telegram bot both call these.
 // Every model call goes through complete() -> 0G Private Computer (private trust mode) first.
 import { complete, type AiResult } from "@/lib/ai/provider";
+import { looksPrompt } from "@/lib/looks";
 import {
   briefPrompt,
   checkInPrompt,
@@ -61,6 +62,17 @@ export async function allViews(ctx: Context, question: string): Promise<Record<V
     VIEW_ORDER.map((v) => viewOn(v, ctx, question).catch((e: Error) => ({ error: e.message }))),
   );
   return Object.fromEntries(VIEW_ORDER.map((v, i) => [v, results[i]])) as Record<ViewId, AiResult | { error: string }>;
+}
+
+/** Three try-on ideas that fit the chat, after her photo (one 0G call, text only: the photo never comes here). */
+export function looksFor(profile: Profile, history: ChatLine[]): Promise<AiResult> {
+  return complete(
+    [
+      { role: "system", content: looksPrompt(profile, history) },
+      { role: "user", content: "Suggest 3 looks for my photo." },
+    ],
+    { json: true, maxTokens: 300 },
+  );
 }
 
 /** Stylist / nail tech brief for a try-on look (one 0G call, text only). */

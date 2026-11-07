@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { aiMeta, postAi } from "@/lib/api";
+import { aiMeta, chatLines, postAi } from "@/lib/api";
+import type { Look as Idea } from "@/lib/looks";
 import { useMemoryVault } from "@/lib/memory";
 import { useSession } from "@/lib/session";
 import type { TryonKind } from "@/lib/tryon";
@@ -24,10 +25,30 @@ export function PhotoTurn({ photo, onPrompt }: { photo: Photo; onPrompt: (prompt
   const controller = useRef<AbortController | null>(null);
   const running = useRef(false);
   useEffect(() => () => controller.current?.abort(), []);
+  // Three ideas that fit the chat (Jayant TG 3761), from 0G. The fixed chips below stay as the fallback, and take over
+  // when the ideas fail or take longer than 6 s.
+  const [ideas, setIdeas] = useState<Idea[] | "failed" | null>(null);
+  useEffect(() => {
+    const req = new AbortController();
+    const slow = setTimeout(() => req.abort(), 6000);
+    fetch("/api/looks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile: vault.memory.profile, history: chatLines(vault.memory, 6), address: session.address }),
+      signal: req.signal,
+    })
+      .then(async (r) => (r.ok ? ((await r.json()) as { looks: Idea[] }).looks : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((looks) => setIdeas(looks.length ? looks : "failed"))
+      .catch(() => setIdeas("failed"))
+      .finally(() => clearTimeout(slow));
+    return () => { clearTimeout(slow); req.abort(); };
+    // once per photo: the chat at the moment she sent it
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const kind: TryonKind = look === "Nails" ? "nails" : "hair";
   const presets = photo.info.presets[kind].filter((p) => kind === "nails" || (/copper|balayage/i.test(p) === (look === "Hair color")));
 
-  async function make(chosen: string) {
+  async function make(chosen: string, k: TryonKind = kind) {
     const trimmed = chosen.trim().slice(0, 120);
     if (!trimmed || running.current) return;
     running.current = true;
@@ -42,7 +63,7 @@ export function PhotoTurn({ photo, onPrompt }: { photo: Photo; onPrompt: (prompt
       if (!result) {
         setPhase("image");
         const form = new FormData();
-        form.set("kind", kind);
+        form.set("kind", k);
         form.set("style", trimmed);
         form.set("address", session.address ?? "");
         form.set("image", photo.blob, "photo.jpg");
@@ -53,9 +74,9 @@ export function PhotoTurn({ photo, onPrompt }: { photo: Photo; onPrompt: (prompt
         setResult({ ...data, at: new Date().toISOString() });
       }
       setPhase("brief");
-      const b = await postAi("/api/brief", { profile: vault.memory.profile, kind, style: trimmed }, request.signal);
+      const b = await postAi("/api/brief", { profile: vault.memory.profile, kind: k, style: trimmed }, request.signal);
       if (request.signal.aborted) return;
-      const label = kind === "hair" ? "Stylist brief" : "Nail artist brief";
+      const label = k === "hair" ? "Stylist brief" : "Nail artist brief";
       await vault.update((m) => ({ ...m, chat: [...m.chat, { role: "assistant", content: `${label}: ${trimmed}\n${b.text}`, at: new Date().toISOString(), ai: aiMeta(b), kind: "brief" }] }));
       setPhase("done");
     } catch (e) {
@@ -77,7 +98,17 @@ export function PhotoTurn({ photo, onPrompt }: { photo: Photo; onPrompt: (prompt
         <img src={photo.url} alt="Your photo" className="max-h-64 w-full rounded-xl object-contain" />
       </Bubble>
       {phase === "choose" && <Bubble at={photo.at}>
-        <p>{look ? "Pick a look, or describe your own." : "What are we trying? For nails, use a photo of your hand."}</p>
+        <p>{look ? "Pick a look, or describe your own." : "Ideas from our chat, or pick your own. For nails, use a photo of your hand."}</p>
+        {!look && ideas === null && <p role="status" className="mt-2 animate-pulse text-sm text-muted">Thinking of looks that fit…</p>}
+        {!look && Array.isArray(ideas) && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {ideas.map((i) => (
+              <button key={i.label} className="min-h-11 rounded-full bg-accent px-4 text-sm font-semibold text-ink" onClick={() => { setLook(i.kind === "nails" ? "Nails" : "Haircut"); void make(i.prompt, i.kind); }}>
+                {i.label}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="mt-2 flex flex-wrap gap-1.5">
           {KINDS.map((k) => <button key={k} aria-pressed={look === k} className={`${pill} ${look === k ? "border-ink" : ""}`} onClick={() => pick(k)}>{k}</button>)}
         </div>
