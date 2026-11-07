@@ -4,13 +4,14 @@ import { isSealedAnswer, sealLabel } from "@/lib/ai/labels";
 import type { AiMeta } from "@/lib/memory";
 
 // The proof under every AI answer: which backend answered, its 0G request ID (tap to copy) and the seal status.
-// MOCK / FALLBACK are explicitly labelled so a demo can never pass as 0G.
+// MOCK / FALLBACK are labelled and amber, so a demo can never pass as 0G at a glance; 0G answers stay neutral navy
+// (coral is reserved for things you press), with a dot when the router reports them sealed.
 export function AiChip({ ai }: { ai: AiMeta }) {
   const [copied, setCopied] = useState(false);
   const id = ai.requestId ?? "no-id";
   const label = ai.backend === "0g" ? "0G" : ai.backend === "openai" ? "FALLBACK" : "MOCK";
   const tee = ai.backend === "0g" ? sealLabel(ai) : null;
-  const tone = "bg-paper text-ink border-line";
+  const tone = ai.backend === "0g" ? "bg-paper text-ink border-line" : "bg-amber-50 text-amber-900 border-amber-200";
 
   return (
     <button
