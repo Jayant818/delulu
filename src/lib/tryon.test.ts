@@ -51,8 +51,8 @@ test("caps: per user and total, per IST day; refund gives one back", async () =>
 
 test("prompt keeps her identity and only changes hair / nails", async () => {
   const { tryonPrompt } = (await ready).lib;
-  assert.match(tryonPrompt("hair", "Sleek bob"), /change ONLY her hairstyle to: Sleek bob.*Keep her face, identity/);
-  assert.match(tryonPrompt("nails", "Glazed chrome"), /paint the nails with: Glazed chrome/);
+  assert.match(tryonPrompt("hair", "Sleek bob"), /CLEARLY VISIBLE new hairstyle: Sleek bob.*obvious at first glance.*Keep her face, identity/);
+  assert.match(tryonPrompt("nails", "Glazed chrome"), /CLEARLY VISIBLE new manicure: Glazed chrome.*obvious at first glance/);
 });
 
 test("route validates input and runs in MOCK mode without a key (nothing spent)", async () => {

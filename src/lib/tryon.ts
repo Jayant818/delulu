@@ -15,8 +15,8 @@ export const PRESETS: Record<TryonKind, string[]> = {
 
 export function tryonPrompt(kind: TryonKind, style: string): string {
   return kind === "hair"
-    ? `Edit this photo: change ONLY her hairstyle to: ${style}. Keep her face, identity, skin, expression, clothes, background and lighting exactly the same. Photorealistic, natural hairline, realistic hair texture.`
-    : `Edit this photo of a hand: paint the nails with: ${style}. Keep the hand, fingers, skin, pose, jewellery and background exactly the same. Photorealistic salon manicure.`;
+    ? `Edit this photo: give her a CLEARLY VISIBLE new hairstyle: ${style}. The change must be obvious at first glance (cut, length, fringe or color exactly as described). Keep her face, identity, skin tone and expression the same. Photorealistic, natural hairline, realistic hair texture.`
+    : `Edit this photo of a hand: give the nails a CLEARLY VISIBLE new manicure: ${style}. The change must be obvious at first glance (color, shape and finish exactly as described). Keep the hand, fingers, skin, pose and background the same. Photorealistic salon manicure.`;
 }
 
 // ---- Spend cap --------------------------------------------------------------------------------------
