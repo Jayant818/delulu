@@ -6,6 +6,13 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { photoConsent } from "./tryon-client";
+
+test("photo consent names the real provider and never describes MOCK as on-device", () => {
+  assert.match(photoConsent("mock", "Send"), /our server.*MOCK.*unchanged/);
+  assert.match(photoConsent("openai", "Send"), /“Send”.*OpenAI.*not 0G, not sealed/);
+  assert.match(photoConsent("0g"), /“See it on me”.*0G.*standard tier/);
+});
 
 // Env must be set before the modules load (caps are read at import). CommonJS: no top-level await, so one promise.
 const ready = (async () => {

@@ -11,27 +11,16 @@ import { checkbackJob } from "@/lib/assistant";
 import { useMemoryVault, type AiMeta, type Decision } from "@/lib/memory";
 import type { ViewId } from "@/lib/persona";
 import { useSession } from "@/lib/session";
+import { photoConsent, shrink, type TryonInfo } from "@/lib/tryon-client";
 
 type Kind = "hair" | "nails";
-type Info = { presets: Record<Kind, string[]>; caps: { total: number; user: number }; mock: boolean; backend: string; model: string };
 type Card = { loading: boolean; text?: string; ai?: AiMeta; error?: string };
 const ORDER: ViewId[] = ["sane", "future", "bestie"];
-
-/** Shrink in the browser before upload: faster, cheaper, and less of her photo leaves the phone. */
-async function shrink(file: File, max = 1024): Promise<Blob> {
-  const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
-  const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
-  const c = document.createElement("canvas");
-  c.width = Math.round(bmp.width * s);
-  c.height = Math.round(bmp.height * s);
-  c.getContext("2d")!.drawImage(bmp, 0, 0, c.width, c.height);
-  return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("could not read the photo"))), "image/jpeg", 0.9));
-}
 
 export default function TryOn() {
   const vault = useMemoryVault();
   const session = useSession();
-  const [info, setInfo] = useState<Info>();
+  const [info, setInfo] = useState<TryonInfo>();
   const [kind, setKind] = useState<Kind>("hair");
   const [photo, setPhoto] = useState<{ blob: Blob; url: string }>();
   const [style, setStyle] = useState("");
@@ -195,16 +184,12 @@ export default function TryOn() {
       {/* Consent before the photo leaves the phone (design.md §3.2): one short, true line, right at the button. */}
       {photo && (
         <p className="mt-3 rounded-xl border border-line bg-paper px-3 py-2 text-xs leading-relaxed text-muted">
-          {info?.backend === "mock"
-            ? "No image model is set up here (MOCK), so your photo stays in this tab."
-            : info?.backend === "openai"
-              ? "Tapping “See it on me” sends this photo to OpenAI's image model (not 0G, not sealed). It is deleted right after; we never save it."
-              : "Tapping “See it on me” sends this photo to an image model on 0G (standard tier, not the sealed mode your chats use). It is deleted right after; we never save it."}
+          {info ? photoConsent(info.backend) : "Checking the photo provider before you send…"}
         </p>
       )}
       <button
         onClick={make}
-        disabled={!photo || !style.trim() || making}
+        disabled={!info || !photo || !style.trim() || making}
         className="mt-3 w-full rounded-2xl bg-accent px-5 py-3 font-semibold text-ink disabled:bg-line disabled:text-muted"
       >
         {making ? "Making your look… about 30 seconds" : "See it on me ✨"}

@@ -5,8 +5,8 @@ import type { Intent, Reminder } from "@/lib/persona";
 
 export type ApiResult = AiResult & { decision?: string | null; reminder?: Reminder | null; intent?: Intent | null; remember?: string[] };
 
-export async function postAi(url: string, body: unknown): Promise<ApiResult> {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+export async function postAi(url: string, body: unknown, signal?: AbortSignal): Promise<ApiResult> {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal });
   const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
   if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
   return data as ApiResult;
